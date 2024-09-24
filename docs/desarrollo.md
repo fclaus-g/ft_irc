@@ -36,5 +36,17 @@ int max_fd; //para seguir el fd mas alto
 std::string password; //contraseña del servidor
 bool is_running;//flag para saber si el server esta corriendo o debe detenerse.
 std::string server_name;
+```
 
+## The sockets
+
+Son una abstracción que permite la comunicación entre diferentes procesos, ya sea en la misma máquina o en máquinas diferentes a través de una red. En el contexto del servidor los sockets se utilizan para aceptar conexiones entrantes y para comunicarse con los clientes conectados.
+* **Conceptos clave**
+
+1. **Creación de Socket** -> *socket()*
+2. **Enlace (binding)**-> *bind()* Enlaza el socket con una IP y un puerto específico.
+3. **Escucha** -> *listen()* Pone el socket en modo escucha, listo para aceptar conexiones entrantes.
+4. **Aceptación de Conexiones** -> *accept()* acepta una conexiçon entrante y crea un nuevo socket para manejar la comunicacion con el cliente.
+5. **Lectura y escritura** -> *read() y write()* leen y escriben datos en el socket.
+6. **Cierre del socket** -> *close()*.
 
