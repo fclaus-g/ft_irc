@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <sys/socket.h>
+
 
 #define RED "\033[31m"
 #define GRE "\033[32m"

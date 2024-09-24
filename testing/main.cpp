@@ -6,9 +6,9 @@
 #include <cstring>
 
 int main() {
-    int server_fd, client_fd;
-    struct sockaddr_in server_addr, client_addr;
-    socklen_t client_addr_len = sizeof(client_addr);
+    int server_fd, client_fd;// File descriptors for the server and client sockets
+    struct sockaddr_in server_addr, client_addr;//estructuras para almacenar la dirección del servidor y del cliente
+    socklen_t client_addr_len = sizeof(client_addr);//tamaño de la dirección del cliente
     char buffer[1024];
     int port = 6667; // Default IRC port
 

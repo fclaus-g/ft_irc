@@ -14,6 +14,8 @@ Server::~Server()
 	std::cout << "Server object destroyed" << std::endl;
 }
 
+/*-----------------------[SETTER]------------------------*/
+
 void Server::setHost(std::string host)
 {
 	this->host = host;
@@ -28,6 +30,8 @@ void Server::setPort(int port)
 {
 	this->port = port;
 }
+
+/*-----------------------[GETTER]------------------------*/
 
 std::string Server::getHost() const
 {
