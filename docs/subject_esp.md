@@ -32,11 +32,11 @@ conectarse a su servidor.
 		* INVITE: invita a un cliente a un canal
 		* TOPIC: cambia o visualiza el tema del canal
 		* MODE: cambia el modo del canal:
-		* i: establece o elimina el canal solo para invitados
-		* t: establece o elimina las restricciones del comando TOPIC para los operadores de canal
-		* k: establece o elimina la clave del canal (contraseña)
-		* o: otorga o quita privilegios de operador de canal
-		* l: Establecer/eliminar el número de users para el canal.
+			* i: establece o elimina el canal solo para invitados
+			* t: establece o elimina las restricciones del comando TOPIC para los operadores de canal
+			* k: establece o elimina la clave del canal (contraseña)
+			* o: otorga o quita privilegios de operador de canal
+			* l: Establecer/eliminar el número de users para el canal.
 
 Verifique absolutamente todos los errores y problemas posibles (recepción de datos parciales, ancho de banda bajo,
 etc.). Para asegurarse de que su servidor procesa correctamente todo lo que le envía, puede realizar la siguiente
