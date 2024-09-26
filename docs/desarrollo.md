@@ -43,10 +43,21 @@ std::string server_name;
 Son una abstracción que permite la comunicación entre diferentes procesos, ya sea en la misma máquina o en máquinas diferentes a través de una red. En el contexto del servidor los sockets se utilizan para aceptar conexiones entrantes y para comunicarse con los clientes conectados.
 * **Conceptos clave**
 
-1. **Creación de Socket** -> *socket()*
+1. **Creación de Socket** -> *socket()* -> return(fd) del punto de conexión.
 2. **Enlace (binding)**-> *bind()* Enlaza el socket con una IP y un puerto específico.
 3. **Escucha** -> *listen()* Pone el socket en modo escucha, listo para aceptar conexiones entrantes.
 4. **Aceptación de Conexiones** -> *accept()* acepta una conexiçon entrante y crea un nuevo socket para manejar la comunicacion con el cliente.
 5. **Lectura y escritura** -> *read() y write()* leen y escriben datos en el socket.
 6. **Cierre del socket** -> *close()*.
 
+### <sys/sockets.h>
+
+Este header define varias structs, tipos de datos y funciones para trabajar con sockets.
+* **Creación de Socket**
+    * **int socket(int domain, int type, int protocol)**
+        + **domain** -> Dominio de comunicación deseado. Permite seleccionar la familia de protocolos que se utilizará en la comunicación.
+            - 
+        + **type** -> Especifica la semántica de la comunicación, sus valores más comunes son SOCK_STREAM y SOCK_DGRAM.
+            - 
+        + **protocol** -> Protocolo particular a utilizar. Generalmente un dominio y tipo solo admite un protocolo particular, por lo que suele tomar el valor 0.
+    
