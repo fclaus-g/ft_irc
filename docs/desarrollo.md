@@ -40,7 +40,11 @@ std::string server_name;
 
 ## The sockets
 
-Son una abstracción que permite la comunicación entre diferentes procesos, ya sea en la misma máquina o en máquinas diferentes a través de una red. En el contexto del servidor los sockets se utilizan para aceptar conexiones entrantes y para comunicarse con los clientes conectados.
+Son una abstracción que permite la comunicación entre diferentes procesos, ya sea en la misma máquina o en máquinas diferentes a través de una red. En el contexto del servidor los sockets se utilizan para aceptar conexiones entrantes y para comunicarse con los clientes conectados. De hecho y simplificando es un fd que permite la comunicación remota.
+Hay varios tipos de sockets entre ellos los principales son:
+* **Sockets de corriente**-> *SOCK_STREAM*. Utilizan el TCP (capa de transtporte) para comunicarse. Este protocolo hace cumplir una transmisión de datos confiable y conectada, a costa de un rendimiento ligeramente reducido.
+* **Sockets de datagramas**-> *SOCK_DGRAM*. Utiliza UDP (capa de transporte). A diferencia de TCP, UDP permite la transmisión de datos sin conexión, que es rápida, pero sin garantia de recepción. (sin el handshake de 3 vias de TCP).
+
 * **Conceptos clave**
 
 1. **Creación de Socket** -> *socket()* -> return(fd) del punto de conexión.
@@ -60,4 +64,19 @@ Este header define varias structs, tipos de datos y funciones para trabajar con 
         + **type** -> Especifica la semántica de la comunicación, sus valores más comunes son SOCK_STREAM y SOCK_DGRAM.
             - 
         + **protocol** -> Protocolo particular a utilizar. Generalmente un dominio y tipo solo admite un protocolo particular, por lo que suele tomar el valor 0.
-    
+
+### <netinet/in.h>
+
+Es parte de la familia de headers de la familia BSD(Berkeley Software Distribution). Define archivos y structs utilizados en programación de redes y sockets.
+* Tipos definidos:
+    + in_port_t-> Unsigned int de 16bits, usado para representar tipos de puerto.
+    + in_addr_t-> Unsigned int de 32bits para representar direcciones IP.
+
+* Structs definidas:
+    + in_addr-> Contiene al menos el miembro s_addr de 32bits para la IP
+    + sockaddr_in-> Contiene los siguientes miembros
+        - sin_family-> int que indica la familia de direcciones(AF_INET para IPv4)
+        - sin_port->
+        - sin_addr->
+* Macros
+El archivo <netinet/in.h> también define macros para utilizar como valores del argumento level en las funciones getsockopt() y setsockopt().
