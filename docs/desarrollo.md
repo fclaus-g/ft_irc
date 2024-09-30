@@ -75,8 +75,36 @@ Es parte de la familia de headers de la familia BSD(Berkeley Software Distributi
 * Structs definidas:
     + in_addr-> Contiene al menos el miembro s_addr de 32bits para la IP
     + sockaddr_in-> Contiene los siguientes miembros
-        - sin_family-> int que indica la familia de direcciones(AF_INET para IPv4)
-        - sin_port->
-        - sin_addr->
+        - sin_family-> int que indica la familia de protocolos de la IP, versión de protocolo de Internet: IPv4/IPv6 (AF_INET para IPv4)
+        - sin_port-> Puerto al que nos gustaría conectarnos. Debemos proporcionar este puerto en el orden de bytes de red, no en el orden del host. Por ejemplo para conectarnos al puerto 3302, necesitaremos htons() de la siguiente manera htons(3302)-> veremos esto mas adelante.
+        - sin_addr-> struct de tipo in_addr que contiene la representación int de una dirección IPv4.
 * Macros
-El archivo <netinet/in.h> también define macros para utilizar como valores del argumento level en las funciones getsockopt() y setsockopt().
+    El archivo <netinet/in.h> también define macros para utilizar como valores del argumento level en las funciones getsockopt() y setsockopt().
+
+    + INADDR_ANY: Especifica que el socket debe vincularse a todas las interfaces locales disponibles. Valor: 0.0.0.0
+        ```cpp
+        address.sin_addr.s_addr = INADDR_ANY;
+        ```
+    + INADDR_LOOPBACK: Especifica la dirección de loopback(localhost). Valor 127.0.0.1
+        ```cpp
+        address.sin_addr.s_addr = INADDR_LOOPBACK;
+        ```
+    + INADDR_BROADCAST: Especifica la dirección de broadcast. Valor: 255.255.255.255
+    + INADDR_NONE: Indica una dirección IP inválida. Valor: -1
+        ```cpp
+        if (inet_addr("invalid_ip") == INADDR_NONE) 
+        {
+        // Manejar dirección IP inválida
+        }
+        ```
+    
+* Funciones
+    Siempre que queramos enviar y recibir datos de un ordenador a otro, debemos tener en cuenta que los sistemas pueden representar sus datos de dos formas distintas y opuestas. Tomemos como ejemplo el entero hexadecimal 2F0A(que es 12042 en decimal). Debido a su tamaño, este entero debe almacenarse en dos bytes: 2Fy 0A.
+    Es lógico suponer que este entero siempre se almacenará en este orden: 2F, seguido de 0A. Este es el orden más común, conocido como “big endian”, ya que el extremo grande del número, el byte más significativo, se almacena primero. Pero este no siempre es el caso…
+    En algunos sistemas, en particular aquellos con procesadores Intel o compatibles con Intel, es preferible almacenar los bytes de nuestro entero en orden inverso, con el extremo menos significativo o pequeño primero: 0Aseguido de 2F. A este ordenamiento lo llamamos “little endian”.
+    El orden de bytes de la red siempre es big endian, pero el orden de bytes del host puede ser big endian o little endian, según su arquitectura.
+    Para trabajar con este orden contamos con lar siguientes funciones:
+    + htonl()-> Convierte un int de 32 bits del orden de bytes del host al orden de la red.
+    + htons()-> Convierte un int de 16 bits del orden de bytes del host al orden de la red.
+    + ntohl()-> Convierte un int de 32 bits del orden de bytes de la red al orden del host.
+    + ntohs()-> Convierte un int de 32 bits del orden de bytes de la red al orden del host.
