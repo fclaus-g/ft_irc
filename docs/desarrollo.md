@@ -108,3 +108,34 @@ Es parte de la familia de headers de la familia BSD(Berkeley Software Distributi
     + htons()-> Convierte un int de 16 bits del orden de bytes del host al orden de la red.
     + ntohl()-> Convierte un int de 32 bits del orden de bytes de la red al orden del host.
     + ntohs()-> Convierte un int de 32 bits del orden de bytes de la red al orden del host.
+
+	## **<poll.h>**
+
+	Proporciona una interfaz para la multiplexación de in/out permitiendo a los programas monitorear múltiples fd para ver si están listos para realizar operaciones de lectura/escritura. Es útil en aplicaciones que necesitan manejar múltiples conexiones de red simultaneamente (servidores).
+
+	### **Funciones y estructuras clave**
+	* **poll():** Función principal que se ultiliza para monitorear múltiples fd.
+		```cpp
+		int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+		/* 
+		* fds: Un puntero a una matriz de estructuras pollfd que especifican los descriptores de archivos a monitorear y los eventos de interés.
+		* nfds: El número de elementos en la matriz fds.
+		* timeout: El tiempo de espera en milisegundos. Puede ser:
+			* Un valor positivo para especificar el tiempo de espera.
+			* 0 para retornar inmediatamente.
+			* -1 para esperar indefinidamente.*/
+		```
+	* **struct pollfd:** Describe el fd que se va a monitorear:
+		```cpp
+		struct pollfd
+		{
+    		int fd;         // Descriptor de archivo a monitorear
+   			short events;   // Eventos de interés
+    		short revents;  // Eventos que ocurrieron
+		};
+		```	
+		+ **Eventos Comunes**
+			- POLLIN: Datos disponibles para leer.
+			- POLLOUT: Espacio disponible para escribir.
+			- POLLERR: Error en el descriptor de archivo.
+			- POLLHUP: Cierre del descriptor de archivo.
