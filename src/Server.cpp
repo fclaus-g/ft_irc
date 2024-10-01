@@ -1,11 +1,15 @@
 #include "../inc/Server.hpp"
-
-Server::Server(std::string host, std::string ip, int port)
+Server::Server()
+{
+	this->server_fd = -1;
+	//PENDIENTE DE VER SI HAY QUE TENER CONSTRUCTOR POR DEFECTO O NO
+}
+Server::Server(int port, std::string password)
 {
 	std::cout << "Server object created" << std::endl;
-	this->host = host;
-	this->ip = ip;
 	this->port = port;
+	this->password = password;
+	this->name = "MyServer";
 	this->isRunning = false;
 }
 
@@ -16,47 +20,30 @@ Server::~Server()
 
 /*-----------------------[SETTER]------------------------*/
 
-void Server::setHost(std::string host)
-{
-	this->host = host;
-}
-
-void Server::setIp(std::string ip)
-{
-	this->ip = ip;
-}
-
-void Server::setPort(int port)
-{
-	this->port = port;
-}
-
 /*-----------------------[GETTER]------------------------*/
-
-std::string Server::getHost() const
-{
-	return this->host;
-}
-
-std::string Server::getIp() const
-{
-	return this->ip;
-}
-
 int Server::getPort() const
 {
 	return this->port;
 }
-
+std::string Server::getName() const
+{
+	return this->name;
+}
 bool Server::getIsRunning() const
 {
 	return this->isRunning;
 }
+/*-----------------------[METHODS]------------------------*/
+void Server::start()
+{
+	
+	std::cout << "Server started" << std::endl;
+	this->isRunning = true;
+}
 
 std::ostream& operator<<(std::ostream& out, const Server& server)
 {
-	out << GRE << "Server: " << server.getHost()<< RES << std::endl;
-	out << "IP : " << server.getIp() << std::endl;
+	out << GRE << "Server: " << server.getName()<< RES << std::endl;
 	out << "Port :" << server.getPort() << std::endl;
 	if(server.getIsRunning())
 	{

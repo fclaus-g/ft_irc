@@ -2,11 +2,14 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sys/socket.h>
-
+#include <iostream>//for cout
+#include <string>//for string
+#include <fstream>//for file
+#include <sys/socket.h>//for socket
+#include <sys/types.h>//for socket
+#include <netinet/in.h>//for sockaddr_in
+#include <unistd.h> //for close
+#include <poll.h>//for poll
 
 #define RED "\033[31m"
 #define GRE "\033[32m"
@@ -17,23 +20,22 @@
 class Server
 {
 	private:
-		std::string host;
-		std::string ip;
-		int port;
-		bool isRunning;
-	public:
-		Server(std::string host, std::string ip, int port);
-		~Server();
+		int			port;
+		std::string	password;
+		std::string	name;
+		bool		isRunning;
+		int			server_fd;
 
+	public:
+		Server();
+		Server(int port, std::string password);
+		~Server();
 		
-		void setHost(std::string host);
-		void setIp(std::string ip);
-		void setPort(int port);
-		
-		std::string getHost() const;
-		std::string getIp() const;
 		int getPort() const;
+		std::string getName() const;
 		bool getIsRunning() const;
+
+		void start();
 };
 
 std::ostream& operator<<(std::ostream& out, const Server& server);
