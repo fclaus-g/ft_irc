@@ -48,8 +48,33 @@ Hay varios tipos de sockets entre ellos los principales son:
 * **Conceptos clave**
 
 1. **Creación de Socket** -> *socket()* -> return(fd) del punto de conexión.
+```cpp
+int socket(int domain, int type, int protocol);
+/*
+* domain: Especifica la familia de direcciones.
+* type: Especifica el tipo de socket.
+    SOCK_STREAM: Socket de flujo (TCP)
+    SOCK_DGRAM: Socket de datagramas (UDP)
+    SOCK_RAW: Socket sin procesar
+* protocol: Especifica el protocolo a utilizar. Normalmente se establece en 0 para seleccionar el protocolo predeterminado para el tipo de socket especificado.*/
+```
 2. **Enlace (binding)**-> *bind()* Enlaza el socket con una IP y un puerto específico.
+```cpp
+    int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+/* 
+* sockfd: El descriptor de archivo del socket que se va a asociar.
+* addr: Un puntero a una estructura sockaddr que contiene la dirección y el puerto a los que se va a asociar el socket.
+* addrlen: El tamaño de la estructura sockaddr.
+```
+
 3. **Escucha** -> *listen()* Pone el socket en modo escucha, listo para aceptar conexiones entrantes.
+```cpp
+int listen(int sockfd, int backlog);
+/*
+* sockfd-> fd del socket que se pondrá en escucha.
+* backlog-> núm máximo de conexiones pendientes de estar en cola antes de rechazar nuevas conexiones
+*/
+```
 4. **Aceptación de Conexiones** -> *accept()* acepta una conexiçon entrante y crea un nuevo socket para manejar la comunicacion con el cliente.
 5. **Lectura y escritura** -> *read() y write()* leen y escriben datos en el socket.
 6. **Cierre del socket** -> *close()*.
@@ -57,14 +82,16 @@ Hay varios tipos de sockets entre ellos los principales son:
 ### <sys/sockets.h>
 
 Este header define varias structs, tipos de datos y funciones para trabajar con sockets.
-* **Creación de Socket**
-    * **int socket(int domain, int type, int protocol)**
-        + **domain** -> Dominio de comunicación deseado. Permite seleccionar la familia de protocolos que se utilizará en la comunicación.
-            - 
-        + **type** -> Especifica la semántica de la comunicación, sus valores más comunes son SOCK_STREAM y SOCK_DGRAM.
-            - 
-        + **protocol** -> Protocolo particular a utilizar. Generalmente un dominio y tipo solo admite un protocolo particular, por lo que suele tomar el valor 0.
-
+* **Funciones:**
+    + socket(): Crea un nuevo socket.
+    + bind(): Asocia un socket con una dirección específica y un puerto.
+    + listen(): Pone un socket en modo de escucha, permitiendo que acepte conexiones entrantes.
+    + accept(): Acepta una conexión entrante en un socket en modo de escucha.
+    + connect(): Establece una conexión con un socket remoto.
+    + setsockopt(): Establece opciones en un socket.
+    + getsockopt(): Obtiene opciones de un socket.
+    + shutdown(): Cierra parcialmente una conexión de socket.
+    + close(): Cierra un socket.
 ### <netinet/in.h>
 
 Es parte de la familia de headers de la familia BSD(Berkeley Software Distribution). Define archivos y structs utilizados en programación de redes y sockets.
@@ -78,6 +105,14 @@ Es parte de la familia de headers de la familia BSD(Berkeley Software Distributi
         - sin_family-> int que indica la familia de protocolos de la IP, versión de protocolo de Internet: IPv4/IPv6 (AF_INET para IPv4)
         - sin_port-> Puerto al que nos gustaría conectarnos. Debemos proporcionar este puerto en el orden de bytes de red, no en el orden del host. Por ejemplo para conectarnos al puerto 3302, necesitaremos htons() de la siguiente manera htons(3302)-> veremos esto mas adelante.
         - sin_addr-> struct de tipo in_addr que contiene la representación int de una dirección IPv4.
+        ```cpp
+        struct sockaddr_in {
+        sa_family_t sin_family;   // Familia de direcciones (AF_INET para IPv4)
+        in_port_t sin_port;       // Puerto (en orden de bytes de red)
+        struct in_addr sin_addr;  // Dirección IP (en orden de bytes de red)
+        char sin_zero[8];         // Relleno para alinear con la estructura sockaddr
+        };
+        ```
 * Macros
     El archivo <netinet/in.h> también define macros para utilizar como valores del argumento level en las funciones getsockopt() y setsockopt().
 
@@ -139,3 +174,84 @@ Es parte de la familia de headers de la familia BSD(Berkeley Software Distributi
 			- POLLOUT: Espacio disponible para escribir.
 			- POLLERR: Error en el descriptor de archivo.
 			- POLLHUP: Cierre del descriptor de archivo.
+* **fcntl()**
+Se utiliza para realizar varias operaciones en fd. Puede cambiar las propiedades de un fd, duplicarlo y más.
+```cpp
+int fcntl(int fd, int cmd, ... /* arg */ );
+/*
+* fd: El descriptor de archivo en el que se va a realizar la operación.
+
+* cmd: El comando que especifica la operación a realizar. Algunos comandos comunes son:
+    * F_GETFL: Obtiene las banderas de estado del descriptor de archivo.
+    * F_SETFL: Establece las banderas de estado del descriptor de archivo.
+    * F_DUPFD: Duplica el descriptor de archivo.
+    * F_GETFD: Obtiene las banderas del descriptor de archivo.
+    * F_SETFD: Establece las banderas del descriptor de archivo.
+arg: Un argumento opcional que se utiliza con algunos comandos.*/
+```
+* **std::vector**
+Plantilla de contenedor en la biblioteca estándar de C++ que proporciona una secuencia dinámica de elementos. Entre sus características contamos con:
+* **Crecimiento Dinámico**: Pueden redimensionarse cuando se añaden y eliminan elementos.
+* **Acceso aleatorio**: Permiten el acceso a los elementos en tiempo constante.
+* **Almacenamiento contiguo**: Los elementos se almacenan en un bloque contiguo de memoria, lo que permite una buena localización de la caché.
+    + **Métodos Comunes**
+        * **Constructores:**
+        - vector(): Constructor por defecto.
+        - vector(size_type count): Constructor que crea un vector con count elementos.
+        - vector(size_type count, const T& value): Constructor que crea un vector con count elementos inicializados a value.
+        * **Capacidad:** 
+        - size(): Devuelve el número de elementos en el vector.
+        - capacity(): Devuelve el número de elementos que el vector puede contener antes de necesitar redimensionarse.
+        - empty(): Devuelve true si el vector está vacío.
+        - reserve(size_type new_cap): Reserva espacio para al menos new_cap elementos.
+        - shrink_to_fit(): Reduce la capacidad del vector para que coincida con su tamaño.
+        * **Modificadores:**
+        - push_back(const T& value): Añade un elemento al final del vector.
+        - pop_back(): Elimina el último elemento del vector.
+        - insert(iterator pos, const T& value): Inserta un elemento en la posición pos.
+        - erase(iterator pos): Elimina el elemento en la posición pos.
+        - clear(): Elimina todos los elementos del vector.
+        - resize(size_type count): Cambia el tamaño del vector a count elementos.
+        * **Acceso a Elementos:**
+        - operator[](size_type pos): Accede al elemento en la posición pos.
+        - at(size_type pos): Accede al elemento en la posición pos con verificación de límites.
+        - front(): Devuelve una referencia al primer elemento.
+        - back(): Devuelve una referencia al último elemento.
+        - data(): Devuelve un puntero al bloque de memoria subyacente.
+        * **Iteradores:**
+        - begin(): Devuelve un iterador al primer elemento.
+        - end(): Devuelve un iterador al elemento siguiente al último.
+        - rbegin(): Devuelve un iterador inverso al último elemento.
+        - rend(): Devuelve un iterador inverso al elemento anterior al primero.
+* **std::map**
+std::map es una plantilla de contenedor en la biblioteca estándar de C++ que almacena pares clave-valor ordenados. Cada clave en un std::map es única, y los elementos se ordenan automáticamente según la clave.
+
+* **Características Principales**
+* Ordenado: Los elementos se almacenan en orden ascendente según las claves.
+* Acceso Rápido: Permite el acceso, inserción y eliminación de elementos en tiempo logarítmico.
+* Claves Únicas: Cada clave en el mapa es única.
+* Métodos Comunes
+Aquí tienes una lista de algunos de los métodos más comunes de std::map:
+    * Constructores:
+    - map(): Constructor por defecto.
+    - map(const map& other): Constructor de copia.
+    - map(map&& other): Constructor de movimiento.
+    * Capacidad:
+    - size(): Devuelve el número de eementos en el mapa.
+    - empty(): Devuelve true si el mapa está vacío.
+    * Modificadores:
+    - insert(const value_type& value): Inserta un elemento en el mapa.
+    - erase(iterator pos): Elimina el elemento en la posición pos.
+    - clear(): Elimina todos los elementos del mapa.
+    - emplace(Args&&... args): Construye y añade un nuevo elemento al mapa.
+    * Acceso a Elementos:
+    - operator[](const key_type& key): Accede al valor asociado con la clave key. Si la clave no existe, se crea un nuevo elemento.
+    - at(const key_type& key  * ): Accede al valor asocido con la clave key con verificación de límites.
+    * Operaciones de Búsqueda:
+    - find(const key_type& key): Devuelve un iterador al elemento con la clave key, o end() si no se encuentra.
+    - count(const key_type& key): Devuelve el número de elementos con la clave key (siempre será 0 o 1).
+    * Iteradores:
+    - begin(): Devuelve un iterador al primer elemento.
+    - end(): Devuelve un iterador al elemento siguiente al último.
+    - rbegin(): Devuelve un iterador inverso al último elemento.
+    - rend(): Devuelve un iterador inverso al elemento anterior al primero.
