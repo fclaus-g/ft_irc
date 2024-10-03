@@ -89,6 +89,23 @@ Este header define varias structs, tipos de datos y funciones para trabajar con 
     + accept(): Acepta una conexión entrante en un socket en modo de escucha.
     + connect(): Establece una conexión con un socket remoto.
     + setsockopt(): Establece opciones en un socket.
+    ```cpp
+    int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
+    /*
+    * sockfd-> fd del socket
+    * level->level: El nivel en el que se define la opción. Los niveles más comunes son:
+        + SOL_SOCKET: Opciones de socket a nivel de API de sockets.
+        + IPPROTO_TCP: Opciones específicas del protocolo TCP.
+        + IPPROTO_IP: Opciones específicas del protocolo IP.
+    * optname: El nombre de la opción que se va a establecer. Algunos ejemplos comunes son:
+        + SO_REUSEADDR: Permite reutilizar direcciones locales. Este es elque usaremos.
+        + SO_KEEPALIVE: Habilita los mensajes de keep-alive en conexiones TCP.
+        + SO_RCVBUF: Establece el tamaño del buffer de recepción.
+        + SO_SNDBUF: Establece el tamaño del buffer de envío.
+    * optval: Un puntero a un buffer que contiene el valor de la opción.
+    * optlen: El tamaño del buffer apuntado por optval.
+    */
+    ```
     + getsockopt(): Obtiene opciones de un socket.
     + shutdown(): Cierra parcialmente una conexión de socket.
     + close(): Cierra un socket.
@@ -189,6 +206,8 @@ int fcntl(int fd, int cmd, ... /* arg */ );
     * F_SETFD: Establece las banderas del descriptor de archivo.
 arg: Un argumento opcional que se utiliza con algunos comandos.*/
 ```
+En ft_irc lo usamos para setear la flag O_NONBLOCK  en el fd del socket del server. Esta flag setea el socket en modo no bloqueante, lo que hace que las operaciones como read() y write() en el socket retornarán inmediatamente, incluso si no hay datos disponibles para leer o la operación de escritura no se hubiera podido completar. Esto provee un mecanismo eficiente y flexible para manejar operaciones I/O de forma asíncrona sin bloquear la ejecución del programa.
+Por ejemplo, si está conectado a un servidor a través de la herramienta NetCut(nc) y escribe algo en la terminal pero no presiona el botón de enviar, y luego intenta apagar el servidor, no podrá hacerlo porque hay una operación de lectura en progreso.
 * **std::vector**
 Plantilla de contenedor en la biblioteca estándar de C++ que proporciona una secuencia dinámica de elementos. Entre sus características contamos con:
 * **Crecimiento Dinámico**: Pueden redimensionarse cuando se añaden y eliminan elementos.
@@ -255,3 +274,17 @@ Aquí tienes una lista de algunos de los métodos más comunes de std::map:
     - end(): Devuelve un iterador al elemento siguiente al último.
     - rbegin(): Devuelve un iterador inverso al último elemento.
     - rend(): Devuelve un iterador inverso al elemento anterior al primero.
+* **Declaración:**
+```cpp
+    #include <map>
+    std::map<std::string, int> myMap;
+```
+
+## Conexión cliente-servidor:
+
+Para aceptar conexiones entrantes necesitamos hacer que el socket sea pasivo. Vamos a ver la diferencia entre socket pasivo y activo en una comunicación de red:
+* **Socket Activo(IRC CLIENT)**
+Representa la conexión del lado del cliente en un servidor IRC. El cliente inicia la comunicación  conectandose al server usando una conexión TCP/IP. Una vez conectado, el cliente puede enviar comandos y mensajes al server y recibir respuestas. El socket del cliente maneja el input del user, envia mensajes al server y procesa las respuestas del server.
+* **Socket Pasivo(IRC SERVER)**
+Representa la escucha del servidor que acepta las conexiones entrantes desde los clientes. El server escucha las conexiones entrantes de un puerto especifico, cuando una petición de conexión es recibida, el server acepta la conexión creando un nuevo socket para la comunicación con ese cliente. El socket del server maneja múltiples conexiones de clientes simultaneamente, manejando comandos y mensajes desde cada cliente conectado y mensajes de broadcast para tantos clientes como sea necesario.
+Para hacer nuestro server pasivo podemos usar la llamada a sistema listen().

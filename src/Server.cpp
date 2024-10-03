@@ -45,6 +45,14 @@ void Server::start()
 		perror("socket");
 		return;
 	}
+	// Set the socket options
+	int opt = 1;
+	if (setsockopt(this->server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) < 0)
+	{
+		perror("setsockopt");
+		close(this->server_fd);
+		return;
+	}
 	memset(&server_addr, 0, sizeof(server_addr));//initialize the server address struct
 	server_addr.sin_family = AF_INET;// Set the address family to IPv4
 	server_addr.sin_addr.s_addr = INADDR_ANY;// Bind to all available interfaces
@@ -61,14 +69,49 @@ void Server::start()
 		close(this->server_fd);
 		return;
 	}
-	poll_fd.fd = this->server_fd;
-	poll_fd.events = POLLIN;
-	poll_fd.revents = 0;
-	fds.push_back(poll_fd);
+	poll_fd.fd = this->server_fd;//file descriptor of the socket
+	poll_fd.events = POLLIN;//POLLIN: There is data to read
+	poll_fd.revents = 0;//revents is an output parameter, filled by the kernel with the events that actually occurred
+	fds.push_back(poll_fd);//add the server socket to the pollfd vector
 
 	std::cout << "Server listening on port " << this->port << std::endl;
 	std::cout << "Server started" << std::endl;
 	this->isRunning = true;
+	std::cout << "Server listening on port " << port << std::endl;
+
+	// int client_fd;
+	// char buffer[1024];
+	// struct sockaddr_in client_addr;
+	// socklen_t client_addr_len = sizeof(client_addr);
+    // // Accept a connection
+    // client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+    // if (client_fd < 0) {
+    //     perror("accept");
+    //     close(server_fd);
+    //     return ;
+    // }
+
+    // std::cout << "Client connected" << std::endl;
+
+    // // Read data from the client
+    // while (42)
+	// {
+	// 	ssize_t bytes_read = read(client_fd, buffer, sizeof(buffer) - 1);
+	// 	if (bytes_read < 0) {
+	// 		perror("read");
+	// 		close(client_fd);
+	// 		close(server_fd);
+	// 		return ;
+	// 	}
+
+	// 	buffer[bytes_read] = '\0'; // Null-terminate the buffer
+	// 	std::cout << "Received message: " << buffer << std::endl;
+	// }
+    // Close the client and server sockets
+    //close(client_fd);
+
+	close(server_fd);
+	//EL SERVER SE QUEDA ESCUCHANDO, NECESITAMOS UNA FUNCION PARA QUE ACEPTE CONEXIONES
 }
 
 std::ostream& operator<<(std::ostream& out, const Server& server)

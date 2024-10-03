@@ -16,6 +16,7 @@ int main (int ac, char **av)
 	Server server(std::atoi(av[1]), av[2]);
 	std::cout << server << std::endl;
 	server.start();
+	//while(server.getIsRunning())
 	return 0;
 
 }

@@ -10,6 +10,9 @@
 #include <netinet/in.h>//for sockaddr_in
 #include <unistd.h> //for close
 #include <poll.h>//for poll
+#include <map>//for map
+#include <vector>//for vector
+#include <cstring>//for memset
 
 #define RED "\033[31m"
 #define GRE "\033[32m"
@@ -25,7 +28,8 @@ class Server
 		std::string	name;
 		bool		isRunning;
 		int			server_fd;
-
+		std::map<int, std::string> clients;
+		std::vector<struct pollfd> fds;//pollfd used for monitoring file descriptors
 	public:
 		Server();
 		Server(int port, std::string password);
