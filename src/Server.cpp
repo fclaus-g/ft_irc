@@ -36,6 +36,35 @@ bool Server::getIsRunning() const
 /*-----------------------[METHODS]------------------------*/
 void Server::start()
 {
+	prepareSocket();
+	while (this->isRunning)
+	{
+		if ((poll(&fds[0], fds.size(), -1)) < 0)
+			throw std::runtime_error("poll");
+		for (size_t i = 0; i < fds.size(); i++)
+		{
+			if (fds[i].revents & POLLIN)
+			{
+				if (fds[i].fd == server_fd)
+					acceptClient();
+				else
+					//readClient(fds[i].fd);
+					std::cout << "Client reading" << std::endl;
+			}
+		}
+	}
+	//acceptClient();
+	close(server_fd);
+	//EL SERVER SE QUEDA ESCUCHANDO, NECESITAMOS UNA FUNCION PARA QUE ACEPTE CONEXIONES
+}
+
+void Server::stop()
+{
+	this->isRunning = false;
+	std::cout << "Server stopped" << std::endl;
+}
+void Server::prepareSocket()
+{
 	struct sockaddr_in server_addr;//server address struct
 	struct pollfd poll_fd;//poll struct
 	// Create the server socket
@@ -74,44 +103,36 @@ void Server::start()
 	poll_fd.revents = 0;//revents is an output parameter, filled by the kernel with the events that actually occurred
 	fds.push_back(poll_fd);//add the server socket to the pollfd vector
 
+	this->isRunning = true;
 	std::cout << "Server listening on port " << this->port << std::endl;
 	std::cout << "Server started" << std::endl;
-	this->isRunning = true;
-	std::cout << "Server listening on port " << port << std::endl;
+}
+void Server::acceptClient()
+{
+	int client_fd;
+	char buffer[1024];
+	struct sockaddr_in client_addr;
+	socklen_t client_addr_len = sizeof(client_addr);
+    // Accept a connection
+    client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+    if (client_fd < 0) {
+        perror("accept");
+        close(server_fd);
+        return ;
+    }
+    std::cout << "Client connected" << std::endl;
+    // Read data from the client
+	std::cout << "Received message: " << buffer << std::endl;
+    close(client_fd);
+}
 
-	// int client_fd;
-	// char buffer[1024];
-	// struct sockaddr_in client_addr;
-	// socklen_t client_addr_len = sizeof(client_addr);
-    // // Accept a connection
-    // client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-    // if (client_fd < 0) {
-    //     perror("accept");
-    //     close(server_fd);
-    //     return ;
-    // }
-
-    // std::cout << "Client connected" << std::endl;
-
-    // // Read data from the client
-    // while (42)
-	// {
-	// 	ssize_t bytes_read = read(client_fd, buffer, sizeof(buffer) - 1);
-	// 	if (bytes_read < 0) {
-	// 		perror("read");
-	// 		close(client_fd);
-	// 		close(server_fd);
-	// 		return ;
-	// 	}
-
-	// 	buffer[bytes_read] = '\0'; // Null-terminate the buffer
-	// 	std::cout << "Received message: " << buffer << std::endl;
-	// }
-    // Close the client and server sockets
-    //close(client_fd);
-
-	close(server_fd);
-	//EL SERVER SE QUEDA ESCUCHANDO, NECESITAMOS UNA FUNCION PARA QUE ACEPTE CONEXIONES
+void Server::signalHandler(int signal)
+{
+	if (signal == SIGINT || signal == SIGQUIT)
+	{
+		std::cout << "Signal received: " << signal << std::endl;
+		throw std::runtime_error("Server stopped by signal");
+	}
 }
 
 std::ostream& operator<<(std::ostream& out, const Server& server)

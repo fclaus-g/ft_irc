@@ -13,6 +13,9 @@
 #include <map>//for map
 #include <vector>//for vector
 #include <cstring>//for memset
+#include <cstdlib>//for atoi
+#include <signal.h>//for signal
+#include <exception>//for exception
 
 #define RED "\033[31m"
 #define GRE "\033[32m"
@@ -40,6 +43,11 @@ class Server
 		bool getIsRunning() const;
 
 		void start();
+		void stop();
+		void prepareSocket();
+		void acceptClient();
+		static void signalHandler(int signal);
+
 };
 
 std::ostream& operator<<(std::ostream& out, const Server& server);

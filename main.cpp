@@ -9,14 +9,23 @@ int main (int ac, char **av)
 	}
 	if (std::atoi(av[1]) < 1024 || std::atoi(av[1]) > 49151)
 	{
-		//CREO QUE NO SE PUEDE USAR STD::ATOI PORQUE ES DEL STD::11
 		std::cerr << "Port must be between 1024 and 49151" << std::endl;
 		return 1;
 	}
 	Server server(std::atoi(av[1]), av[2]);
 	std::cout << server << std::endl;
-	server.start();
-	//while(server.getIsRunning())
+	try
+	{
+		signal(SIGINT, Server::signalHandler);
+		signal(SIGQUIT, Server::signalHandler);
+		server.start();
+	}
+	catch(const std::exception& e)
+	{
+		//AQUI DEBERA CERRAR ES SERVER LIMPIAMENTE(FDS)
+		server.stop();
+		std::cerr << e.what() << '\n';
+	}
 	return 0;
 
 }
