@@ -48,12 +48,11 @@ void Server::start()
 				if (fds[i].fd == server_fd)
 					acceptClient();
 				else
-					//readClient(fds[i].fd);
+					readClient(fds[i].fd);
 					std::cout << "Client reading" << std::endl;
 			}
 		}
 	}
-	//acceptClient();
 	close(server_fd);
 	//EL SERVER SE QUEDA ESCUCHANDO, NECESITAMOS UNA FUNCION PARA QUE ACEPTE CONEXIONES
 }
@@ -67,7 +66,12 @@ void Server::prepareSocket()
 {
 	struct sockaddr_in server_addr;//server address struct
 	struct pollfd poll_fd;//poll struct
-	// Create the server socket
+	
+	memset(&server_addr, 0, sizeof(server_addr));//initialize the server address struct
+	server_addr.sin_family = AF_INET;// Set the address family to IPv4
+	server_addr.sin_addr.s_addr = INADDR_ANY;// Bind to all available interfaces
+	server_addr.sin_port = htons(this->port);// Convert the port to network byte order// Create the server socket
+	
 	this->server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->server_fd < 0)
 	{
@@ -76,16 +80,19 @@ void Server::prepareSocket()
 	}
 	// Set the socket options
 	int opt = 1;
+	//NONBLOCK: Set the O_NONBLOCK file status flag on the open file description
 	if (setsockopt(this->server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) < 0)
 	{
 		perror("setsockopt");
 		close(this->server_fd);
 		return;
 	}
-	memset(&server_addr, 0, sizeof(server_addr));//initialize the server address struct
-	server_addr.sin_family = AF_INET;// Set the address family to IPv4
-	server_addr.sin_addr.s_addr = INADDR_ANY;// Bind to all available interfaces
-	server_addr.sin_port = htons(this->port);// Convert the port to network byte order
+	if (fcntl(this->server_fd, F_SETFL, O_NONBLOCK) < 0)
+	{
+		perror("fcntl");
+		close(this->server_fd);
+		return;
+	}
 	if (bind(this->server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
 	{
 		perror("bind");
@@ -122,8 +129,28 @@ void Server::acceptClient()
     }
     std::cout << "Client connected" << std::endl;
     // Read data from the client
+
 	std::cout << "Received message: " << buffer << std::endl;
     close(client_fd);
+}
+
+void Server::readClient(int client_fd)
+{
+	char buffer[1024];
+	int bytes_read;
+	bytes_read = read(client_fd, buffer, sizeof(buffer));
+	if (bytes_read < 0)
+	{
+		perror("recv");
+		close(client_fd);
+		return;
+	}
+	if (bytes_read == 0)
+	{
+		close(client_fd);
+		return;
+	}
+	std::cout << "Received message: " << buffer << std::endl;
 }
 
 void Server::signalHandler(int signal)

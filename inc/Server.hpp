@@ -16,6 +16,7 @@
 #include <cstdlib>//for atoi
 #include <signal.h>//for signal
 #include <exception>//for exception
+#include <fcntl.h>//for fcntl
 
 #define RED "\033[31m"
 #define GRE "\033[32m"
@@ -46,6 +47,7 @@ class Server
 		void stop();
 		void prepareSocket();
 		void acceptClient();
+		void readClient(int client_fd);
 		static void signalHandler(int signal);
 
 };
