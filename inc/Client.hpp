@@ -9,6 +9,7 @@ class Client
 	private:
 		int client_fd;
 		std::string client_ip;
+		std::string client_name;
 	public:
 		Client();
 		~Client();

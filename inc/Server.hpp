@@ -32,7 +32,7 @@ class Server
 		std::string	name;
 		bool		isRunning;
 		int			server_fd;
-		std::map<int, std::string> clients;
+		std::map<int, std::string> clients;//map of clients file descriptors and their names
 		std::vector<struct pollfd> fds;//pollfd used for monitoring file descriptors
 	public:
 		Server();
@@ -47,6 +47,7 @@ class Server
 		void stop();
 		void prepareSocket();
 		void acceptClient();
+		void addClient(int client_fd);
 		void readClient(int client_fd);
 		static void signalHandler(int signal);
 

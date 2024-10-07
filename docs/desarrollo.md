@@ -288,3 +288,19 @@ Representa la conexión del lado del cliente en un servidor IRC. El cliente inic
 * **Socket Pasivo(IRC SERVER)**
 Representa la escucha del servidor que acepta las conexiones entrantes desde los clientes. El server escucha las conexiones entrantes de un puerto especifico, cuando una petición de conexión es recibida, el server acepta la conexión creando un nuevo socket para la comunicación con ese cliente. El socket del server maneja múltiples conexiones de clientes simultaneamente, manejando comandos y mensajes desde cada cliente conectado y mensajes de broadcast para tantos clientes como sea necesario.
 Para hacer nuestro server pasivo podemos usar la llamada a sistema listen().
+
+
+
+# Ejecución
+1. Debemos hacer make en el directorio del proyecto para que compile y cree el ejecutable.
+2. Ejecutamos con los parámetros necesarios.
+```bash
+./ircsrv <port> <password>
+```
+3. Abrimos un nuevo terminal, que será nuestro cliente y trabajaremos con netcat:
+```bash
+nc <port> <password>
+```
+
+
+## recv

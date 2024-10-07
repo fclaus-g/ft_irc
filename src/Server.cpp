@@ -33,6 +33,7 @@ bool Server::getIsRunning() const
 {
 	return this->isRunning;
 }
+
 /*-----------------------[METHODS]------------------------*/
 void Server::start()
 {
@@ -127,18 +128,28 @@ void Server::acceptClient()
         close(server_fd);
         return ;
     }
-    std::cout << "Client connected" << std::endl;
-    // Read data from the client
-
+	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) < 0)
+		std::cout << "Error setting non-blocking" << std::endl;
+	
+	struct pollfd client_poll_fd;
+	
+	client_poll_fd.fd = client_fd;
+	client_poll_fd.events = POLLIN;
+	client_poll_fd.revents = 0;
+	fds.push_back(client_poll_fd);//add the client socket to the pollfd vector
+	
+	clients[client_fd] = "";
 	std::cout << "Received message: " << buffer << std::endl;
-    close(client_fd);
+    //close(client_fd);
 }
 
 void Server::readClient(int client_fd)
 {
 	char buffer[1024];
 	int bytes_read;
-	bytes_read = read(client_fd, buffer, sizeof(buffer));
+
+	memset(buffer, 0, sizeof(buffer));
+	bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 	if (bytes_read < 0)
 	{
 		perror("recv");
