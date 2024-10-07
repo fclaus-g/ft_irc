@@ -2,27 +2,7 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <iostream>//for cout
-#include <string>//for string
-#include <fstream>//for file
-#include <sys/socket.h>//for socket
-#include <sys/types.h>//for socket
-#include <netinet/in.h>//for sockaddr_in
-#include <unistd.h> //for close
-#include <poll.h>//for poll
-#include <map>//for map
-#include <vector>//for vector
-#include <cstring>//for memset
-#include <cstdlib>//for atoi
-#include <signal.h>//for signal
-#include <exception>//for exception
-
-#define RED "\033[31m"
-#define GRE "\033[32m"
-#define YEL "\033[33m"
-#define BLU "\033[34m"
-#define RES "\033[0m"
-
+#include "ft_irc.hpp"
 class Server
 {
 	private:
@@ -47,7 +27,6 @@ class Server
 		void prepareSocket();
 		void acceptClient();
 		static void signalHandler(int signal);
-
 };
 
 std::ostream& operator<<(std::ostream& out, const Server& server);
