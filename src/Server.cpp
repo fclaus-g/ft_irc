@@ -54,8 +54,10 @@ void Server::start()
 				if (_fds[i].fd == _serverFd)
 					acceptUser();
 				else
+				{
 					readUser(_fds[i].fd);
 					std::cout << "Client reading" << std::endl;
+				}
 			}
 		}
 	}
@@ -65,6 +67,8 @@ void Server::start()
 void Server::stop()
 {
 	this->_isRunning = false;
+	for (size_t i = 1; i < _fds.size(); i++)
+		close(_fds[i].fd);
 	std::cout << "Server stopped" << std::endl;
 }
 void Server::prepareSocket()
@@ -148,6 +152,7 @@ void Server::acceptUser()
 void Server::addUser(int userFd, struct sockaddr_in user_addr)
 {
 	User newUser;
+	std::cout << "Adding user--------constructo 1-------------------" << std::endl;
 
 	newUser.setFd(userFd);
 	newUser.setIp(inet_ntoa(user_addr.sin_addr));
@@ -156,6 +161,8 @@ void Server::addUser(int userFd, struct sockaddr_in user_addr)
 	newUser.setRealName("");
 	newUser.setAuthenticated(false);
 	_users[userFd] = newUser;//add the client to the clients map
+	std::cout << "Adding user--------constructo 2-------------------" << std::endl;
+	std::cout << _users[userFd] << "imprimido" << std::endl;
 	std::cout << "User added" << std::endl;
 	//printMap(_users);
 }
@@ -189,6 +196,7 @@ void Server::readUser(int client_fd)
 	std::cout << "Received message: " << buffer << std::endl;
 	std::cout << "From client: " << client_fd << std::endl;
 	std::cout << this->_users[client_fd] << std::endl;
+	send(client_fd, "Su mensaje ha sido resibido\n", strlen("Su mensaje ha sido resibido\n"), 0);
 }
 
 void Server::signalHandler(int signal)
