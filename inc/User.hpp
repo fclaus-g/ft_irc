@@ -31,7 +31,8 @@ class User
 		void setNick(std::string nick);
 		void setUserName(std::string userName);
 		void setRealName(std::string realName);
-
 };
+
+std::ostream& operator<<(std::ostream& out, const User& user);
 
 #endif
