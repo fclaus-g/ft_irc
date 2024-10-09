@@ -11,24 +11,61 @@ User::~User()
 }
 
 /*Get*/
-int User::getFd()
+int User::getFd() const
 {
-    return this->User_fd;
+    return this->_fd;
 }
 
-std::string User::getIp()
+bool User::getAuthenticated() const
 {
-    return this->User_ip;
+    return this->_authenticated;
 }
+
+
+std::string User::getIp() const
+{
+    return this->_ip;
+}
+
 
 /*Set*/
 
 void User::setFd(int fd)
 {
-    this->User_fd = fd;
+    this->_fd = fd;
 }
 
 void User::setIp(std::string ip)
 {
-    this->User_ip = ip;
+    this->_ip = ip;
+}
+
+void User::setAuthenticated(bool authenticated)
+{
+    this->_authenticated = authenticated;
+}
+
+void User::setNick(std::string nick)
+{
+    this->_nick = nick;
+}
+
+void User::setUserName(std::string userName)
+{
+    this->_userName = userName;
+}
+
+void User::setRealName(std::string realName)
+{
+    this->_realName = realName;
+}
+
+std::ostream& operator<<(std::ostream& out, const User& user)
+{
+    out << "User: " << user.getFd() << std::endl;
+    out << "IP: " << user.getIp() << std::endl;
+    out << "Nick: " << user.getNick() << std::endl;
+    out << "UserName: " << user.getUserName() << std::endl;
+    out << "RealName: " << user.getRealName() << std::endl;
+    return out;
 }

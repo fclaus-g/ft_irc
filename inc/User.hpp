@@ -9,6 +9,7 @@ class User
 	private:
 		int 			_fd;
 		bool			_authenticated;
+		std::string		_ip;
 		std::string		_nick;
 		std::string		_userName;
 		std::string 	_realName;
@@ -16,11 +17,21 @@ class User
 		User();
 		~User();
 
-		int getFd();
-		std::string getIp();
+		int getFd() const;
+		std::string getIp() const;
+		bool getAuthenticated() const;
+		std::string getNick() const;
+		std::string getUserName() const;
+		std::string getRealName() const;
+
 
 		void setFd(int fd);
 		void setIp(std::string ip);
+		void setAuthenticated(bool authenticated);
+		void setNick(std::string nick);
+		void setUserName(std::string userName);
+		void setRealName(std::string realName);
+
 };
 
 #endif
