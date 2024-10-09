@@ -23,7 +23,6 @@ int main (int ac, char **av)
 	}
 	catch(const std::exception& e)
 	{
-		//AQUI DEBERA CERRAR ES SERVER LIMPIAMENTE(FDS)
 		server.stop();
 		std::cerr << e.what() << '\n';
 	}

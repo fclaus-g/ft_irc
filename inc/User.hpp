@@ -6,19 +6,17 @@
 class User 
 {
 	private:
-		int 			_fd;
+		int 			_socketFd;
 		bool			_authenticated;
-		std::string		_nick;
+		std::string		_nickName;
 		std::string		_userName;
 		std::string 	_realName;
 	public:
 		User();
+		User(int socket_fd);
 		~User();
-		//Getters
+	
 		int getFd();
-		void setFd(int fd);
-		//Setters
-		//Methods
 };
 
 #endif

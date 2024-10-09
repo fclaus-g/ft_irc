@@ -1,151 +1,100 @@
-#include "../inc/Server.hpp"
-Server::Server()
-{
-	this->server_fd = -1;
-	//PENDIENTE DE VER SI HAY QUE TENER CONSTRUCTOR POR DEFECTO O NO
-}
-Server::Server(int port, std::string password)
-{
-	std::cout << "Server object created" << std::endl;
-	this->port = port;
-	this->password = password;
-	this->name = "MyServer";
-	this->isRunning = false;
-}
 
-Server::~Server()
-{
-	std::cout << "Server object destroyed" << std::endl;
-}
+#include "ft_irc.hpp"
 
-/*-----------------------[SETTER]------------------------*/
-
-/*-----------------------[GETTER]------------------------*/
-int Server::getPort() const
-{
-	return this->port;
-}
-std::string Server::getName() const
-{
-	return this->name;
-}
-bool Server::getIsRunning() const
-{
-	return this->isRunning;
-}
-/*-----------------------[METHODS]------------------------*/
 void Server::start()
 {
 	prepareSocket();
-	while (this->isRunning)
-	{
-		if ((poll(&fds[0], fds.size(), -1)) < 0)
-			throw std::runtime_error("poll");
-		for (size_t i = 0; i < fds.size(); i++)
-		{
-			if (fds[i].revents & POLLIN)
-			{
-				if (fds[i].fd == server_fd)
-					acceptClient();
-				else
-					//readClient(fds[i].fd);
-					std::cout << "Client reading" << std::endl;
-			}
-		}
-	}
-	//acceptClient();
-	close(server_fd);
-	//EL SERVER SE QUEDA ESCUCHANDO, NECESITAMOS UNA FUNCION PARA QUE ACEPTE CONEXIONES
+	run();
 }
 
-void Server::stop()
-{
-	this->isRunning = false;
-	std::cout << "Server stopped" << std::endl;
-}
 void Server::prepareSocket()
 {
-	struct sockaddr_in server_addr;//server address struct
-	struct pollfd poll_fd;//poll struct
-	// Create the server socket
+	struct sockaddr_in 	server_addr;
+	struct pollfd 		poll_fd;
+	int 				opt = 1;
+
 	this->server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->server_fd < 0)
 	{
 		perror("socket");
 		return;
 	}
-	// Set the socket options
-	int opt = 1;
 	if (setsockopt(this->server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) < 0)
 	{
 		perror("setsockopt");
 		close(this->server_fd);
 		return;
 	}
-	memset(&server_addr, 0, sizeof(server_addr));//initialize the server address struct
-	server_addr.sin_family = AF_INET;// Set the address family to IPv4
-	server_addr.sin_addr.s_addr = INADDR_ANY;// Bind to all available interfaces
-	server_addr.sin_port = htons(this->port);// Convert the port to network byte order
+	memset(&server_addr, 0, sizeof(server_addr));
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = INADDR_ANY;
+	server_addr.sin_port = htons(this->port);
 	if (bind(this->server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
 	{
 		perror("bind");
 		close(this->server_fd);
 		return;
 	}
-	if (listen(this->server_fd, SOMAXCONN) < 0)//SOMAXCONN is the maximum number of pending connections
+	if (listen(this->server_fd, SOMAXCONN) < 0)
 	{
 		perror("listen");
 		close(this->server_fd);
 		return;
 	}
-	poll_fd.fd = this->server_fd;//file descriptor of the socket
-	poll_fd.events = POLLIN;//POLLIN: There is data to read
-	poll_fd.revents = 0;//revents is an output parameter, filled by the kernel with the events that actually occurred
-	fds.push_back(poll_fd);//add the server socket to the pollfd vector
+	poll_fd.fd = this->server_fd;
+	poll_fd.events = POLLIN;
+	poll_fd.revents = 0;
+	_socketsPoll.push_back(poll_fd);
 
 	this->isRunning = true;
-	std::cout << "Server listening on port " << this->port << std::endl;
-	std::cout << "Server started" << std::endl;
-}
-void Server::acceptClient()
-{
-	int client_fd;
-	char buffer[1024];
-	struct sockaddr_in client_addr;
-	socklen_t client_addr_len = sizeof(client_addr);
-    // Accept a connection
-    client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-    if (client_fd < 0) {
-        perror("accept");
-        close(server_fd);
-        return ;
-    }
-    std::cout << "Client connected" << std::endl;
-    // Read data from the client
-	std::cout << "Received message: " << buffer << std::endl;
-    close(client_fd);
+	std::cout << "Server started and listening on port " << this->port << std::endl;
 }
 
-void Server::signalHandler(int signal)
+void	Server::run()
 {
-	if (signal == SIGINT || signal == SIGQUIT)
+	while (this->isRunning)
 	{
-		std::cout << "Signal received: " << signal << std::endl;
-		throw std::runtime_error("Server stopped by signal");
+		if ((poll(&_socketsPoll[0], _socketsPoll.size(), -1)) < 0)
+			throw std::runtime_error("poll");
+		for (size_t i = 0; i < _socketsPoll.size(); i++)
+		{
+			if (_socketsPoll[i].revents & POLLIN)
+			{
+				if (_socketsPoll[i].fd == server_fd)
+					newConnection();
+				else
+					//parse_message();
+					std::cout << "Reading messages" << std::endl;
+			}
+		}
 	}
 }
 
-std::ostream& operator<<(std::ostream& out, const Server& server)
+void Server::newConnection()
 {
-	out << GRE << "Server: " << server.getName()<< RES << std::endl;
-	out << "Port :" << server.getPort() << std::endl;
-	if(server.getIsRunning())
+	sockaddr_in 		client_addr;
+	socklen_t 			client_addr_len = sizeof(client_addr);
+	int 				client_socket;
+	int					error;
+	struct pollfd		new_pollfd;
+
+	client_socket = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+	if (client_socket < 0)
 	{
-		out << "Server is running" << std::endl;
+		perror("accept");
+		return ;
 	}
-	else
+	error = fcntl(client_socket, F_GETFL, 0);
+	if (error == -1 || fcntl(client_socket, F_SETFL, error | O_NONBLOCK) == -1)
 	{
-		out << "Server is not running" << std::endl;
+		perror("fcntl");
+		close(client_socket);
+		return;
 	}
-	return out;
+	new_pollfd.fd = client_socket;
+	new_pollfd.events = POLLIN | POLLOUT;
+	new_pollfd.revents = 0;
+	_socketsPoll.push_back(new_pollfd);
+	_users[client_socket] = new User(client_socket);
+	std::cout << "New connection established" << std::endl;
 }

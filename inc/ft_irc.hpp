@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <signal.h>
 #include <exception>
+#include <fcntl.h>
 
 #include "Server.hpp"
 #include "User.hpp"
@@ -25,5 +26,8 @@
 #define YEL "\033[33m"
 #define BLU "\033[34m"
 #define RES "\033[0m"
+
+const int MAX_CLIENTS = 100;
+const int BUFF_SIZE = 1024;
 
 #endif

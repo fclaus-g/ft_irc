@@ -1,36 +1,40 @@
-NAME = ircserv
+NAME		= ircserv
+CC			= g++
+CFLAGS		= -std=c++98 -Wall -Wextra -Werror -I./inc
 
-CC = g++
-CFLAGS = -std=c++98 -Wall -Wextra -Werror -I./inc
+SRC_PATH	= src/
+OBJ_PATH	= obj/
 
-SRC_PATH = src/
-OBJ_PATH = obj/
+#CMDS		= 
+AUX			= Server_init Server_utils
+SRC			= main Server User
 
-SRC = main.cpp Server.cpp User.cpp
+SRCS		= $(addsuffix .cpp, $(addprefix $(SRC_PATH), $(SRC))) \
+				$(addsuffix .cpp, $(addprefix $(SRC_PATH)aux/, $(AUX))) \
 
-SRCS	 = $(addprefix $(SRC_PATH), $(SRC))
-OBJ		 = $(SRC:.cpp=.o)
-OBJS	 = $(addprefix $(OBJ_PATH), $(OBJ))
+OBJS		= $(SRCS:$(SRC_PATH)%.cpp=$(OBJ_PATH)/%.o)
 
-RM = rm -f
+RM			= rm -f
 
 all: $(NAME)
 
 $(OBJ_PATH)%.o: $(SRC_PATH)%.cpp
 	@mkdir -p $(OBJ_PATH)
+	@mkdir -p $(OBJ_PATH)/cmds
+	@mkdir -p $(OBJ_PATH)/aux
 	@$(CC) $(CFLAGS) -c $< -o $@
 $(NAME):	$(OBJS)
 	@${CC} $(CFLAGS) $(OBJS) -o $(NAME)
-	@echo "\033[0;32m\n	 ##### Program is ready! #####\n\033[0m"
+	@echo "\033[0;32m\n	 ##### ✅ Program $(NAME) is ready! ✅ #####\n\033[0m"
 
 clean:
 	@$(RM) $(OBJS) 
-	@rmdir -p $(OBJ_PATH) 2>/dev/null || true
-	@echo "\033[0;32m\n	##### Object files have been removed #####\n\033[0m"
+	@if [ -d $(OBJ_PATH) ]; then find $(OBJ_PATH) -type d -empty -delete; fi
+	@echo "\033[0;32m\n	##### ✅ Object files and folders removed ✅ #####\n\033[0m"
 
 fclean: clean
-	@$(RM) $(OBJ) $(NAME)
-	@echo "\033[0;32m\n	##### FCLEAN done! #####\n\033[0m"
+	@$(RM) $(NAME)
+	@echo "\033[0;32m\n	##### ✅ Full clean done! ✅ #####\n\033[0m"
 
 re: fclean all
 
