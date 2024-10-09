@@ -35,8 +35,8 @@ class Server
 		std::string		_password;
 		std::string		_name;
 		bool			_isRunning;
-		int				_server_fd;
-		std::map<int, Channel> _channels;//map of channels file descriptors and their objects
+		int				_serverFd;
+		//std::map<int, Channel> _channels;//map of channels file descriptors and their objects
 		std::map<int, User> _users;//map of clients file descriptors and their objects
 		//std::map<int, std::string> clients;//map of clients file descriptors and their names
 		std::vector<struct pollfd> _fds;//pollfd used for monitoring file descriptors
@@ -48,14 +48,16 @@ class Server
 		int getPort() const;
 		std::string getName() const;
 		bool getIsRunning() const;
+		const std::map<int, User>& getUsers() const;
 
 		void start();
 		void stop();
 		void prepareSocket();
 		void acceptUser();
-		void readUser(int user_fd);
+		void readUser(int userFd);
+		void printMap(const std::map<int, User>& map);
 		
-		void addUser(int user_fd, struct sockaddr_in user_addr);
+		void addUser(int userFd, struct sockaddr_in user_addr);
 		
 		
 		static void signalHandler(int signal);
