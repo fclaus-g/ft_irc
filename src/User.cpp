@@ -27,6 +27,20 @@ std::string User::getIp() const
     return this->_ip;
 }
 
+std::string User::getNick() const
+{
+    return this->_nick;
+}
+
+std::string User::getUserName() const
+{
+    return this->_userName;
+}
+
+std::string User::getRealName() const
+{
+    return this->_realName;
+}
 
 /*Set*/
 
