@@ -15,8 +15,9 @@ class User
 		std::string 	_realName;
 	public:
 		User();
+		User(const User& rhs);
+		User& operator=(const User& rhs);
 		~User();
-
 		int getFd() const;
 		std::string getIp() const;
 		bool getAuthenticated() const;

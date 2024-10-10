@@ -2,7 +2,28 @@
 
 User::User()
 {
-    std::cout << "User constructor" << std::endl;
+    std::cout << "--------------- User constructor º---------------" << std::endl;
+}
+
+User::User(const User& rhs)
+{
+    std::cout << "User copy constructor" << std::endl;
+    *this = rhs;
+}
+
+User& User::operator=(const User& rhs)
+{
+    std::cout << "User assignment operator" << std::endl;
+    if (this != &rhs)
+    {
+        this->_fd = rhs._fd;
+        this->_authenticated = rhs._authenticated;
+        this->_ip = rhs._ip;
+        this->_nick = rhs._nick;
+        this->_userName = rhs._userName;
+        this->_realName = rhs._realName;
+    }
+    return *this;
 }
 
 User::~User()
