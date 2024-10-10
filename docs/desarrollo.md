@@ -304,3 +304,17 @@ nc <port> <password>
 
 
 ## recv
+Es una función usada en programación con sockets para recibir datos de un socket conectado. Comúnmente es usada en la comunicación por sockets con el protocolo TCP para leer los datos mandados la conexón remota.
+```cpp
+ssize_t recv(int sockfd, void* buf, size_t len, int flags)
+/**
+ * sockfd-> el fd del socket del que recibimos los datos.
+ * buf-> Un untero al buffer donde almacenamos los datos recibidos.
+ * len-> El máximo número de bytes a recibir y almacenar en el buffer.
+ * flags-> Flags opcionales para controlar el comportamiento de la función
+ *  * MSG_WAITALL
+ *  * MSG_DONTWAIT
+ *  * MSG_PEEK
+ *  * MSG_TRUNK
+ * Seleccionando las flags correctas podemos adaptar la operación de recepción a nuestras necesidades hacienla mas versatil y eficiente.*/
+ ```
