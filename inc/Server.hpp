@@ -56,8 +56,8 @@ class Server
 		void acceptUser();
 		void readUser(int userFd);
 		void printMap(const std::map<int, User>& map);
-		
 		void addUser(int userFd, struct sockaddr_in user_addr);
+		void removeUser(int userFd);
 		
 		
 		static void signalHandler(int signal);

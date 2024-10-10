@@ -175,6 +175,15 @@ void Server::printMap(const std::map<int, User>& map)
 	}
 }
 
+void Server::removeUser(int userFd)
+{
+	_users.erase(userFd);
+	_fds.erase(_fds.begin() + userFd);
+	std::cout << "User removed" << std::endl;
+	//MUY SIMPLE LO VEO QUIZAS HAY QUE RECORRER LOS CONTENEDORES Y COMPROBAR SI ES IGUAL 
+//ANTES PARA LUEGO BORRARLO
+}
+
 void Server::readUser(int client_fd)
 {
 	char buffer[1024];
@@ -182,21 +191,22 @@ void Server::readUser(int client_fd)
 
 	memset(buffer, 0, sizeof(buffer));
 	bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-	if (bytes_read < 0)
+	if (bytes_read <= 0)
 	{
 		perror("recv");
+		std::cout << "Client " << client_fd << " disconnected" << std::endl;
+		//AQUI HAY QUE ELIMINAR EL CLIENTE DE LA LISTA DE CLIENTES Y DE LA LISTA DE POLL
 		close(client_fd);
 		return;
 	}
-	if (bytes_read == 0)
+	else
 	{
-		close(client_fd);
-		return;
+		buffer[bytes_read] = '\0';
+		std::cout << "Received message: " << buffer << std::endl;
+		std::cout << "From client: " << client_fd << std::endl;
+		std::cout << this->_users[client_fd] << std::endl;
+		send(client_fd, "Su mensaje ha sido resibido\n", strlen("Su mensaje ha sido resibido\n"), 0);
 	}
-	std::cout << "Received message: " << buffer << std::endl;
-	std::cout << "From client: " << client_fd << std::endl;
-	std::cout << this->_users[client_fd] << std::endl;
-	send(client_fd, "Su mensaje ha sido resibido\n", strlen("Su mensaje ha sido resibido\n"), 0);
 }
 
 void Server::signalHandler(int signal)
