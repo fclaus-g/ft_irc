@@ -14,9 +14,13 @@ class User
 	public:
 		User();
 		User(int socket_fd);
+		User(const User &rhs);
 		~User();
+	
+		User &operator=(const User &rhs);
 	
 		int getFd();
 };
+
 
 #endif

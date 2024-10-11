@@ -45,9 +45,8 @@ void Server::prepareSocket()
 	poll_fd.events = POLLIN;
 	poll_fd.revents = 0;
 	_socketsPoll.push_back(poll_fd);
-
 	this->isRunning = true;
-	std::cout << "Server started and listening on port " << this->port << std::endl;
+	std::cout << *this << std::endl;
 }
 
 void	Server::run()
@@ -63,14 +62,13 @@ void	Server::run()
 				if (_socketsPoll[i].fd == server_fd)
 					newConnection();
 				else
-					//parse_message();
-					std::cout << "Reading messages" << std::endl;
+					parseMessage(_socketsPoll[i].fd);
 			}
 		}
 	}
 }
 
-void Server::newConnection()
+void	Server::newConnection()
 {
 	sockaddr_in 		client_addr;
 	socklen_t 			client_addr_len = sizeof(client_addr);
@@ -96,5 +94,39 @@ void Server::newConnection()
 	new_pollfd.revents = 0;
 	_socketsPoll.push_back(new_pollfd);
 	_users[client_socket] = new User(client_socket);
-	std::cout << "New connection established" << std::endl;
+	std::cout << "New connection established with socket fd "<< client_socket << std::endl;
+	welcomeUser(client_socket);
+}
+
+void	Server::readMessage(int socketFd)
+{
+	char		buffer[BUFF_SIZE];
+	std::string	msg;
+	int			read_bytes;
+
+	read_bytes = read(socketFd, buffer, sizeof(buffer) - 1);
+	if (read_bytes <= 0)
+	{
+		if (read_bytes == 0)
+			std::cout << "User disconnected" << std::endl;
+		else
+			perror("read");
+		close(socketFd);
+		//delete_user_memoryleaks();
+		return ;
+	}
+	buffer[read_bytes] = '\0';
+	msg = buffer;
+	if (!firstMessage(socketFd))
+	{
+
+	}
+
+
+}
+
+bool	Server::firstMessage(int userFd)
+{
+	if (_users[userFd].getAuth() == true)
+		return (true);
 }

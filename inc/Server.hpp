@@ -34,6 +34,9 @@ class Server
 	
 		void 		prepareSocket();
 		void 		newConnection();
+		void		welcomeUser(int userFd);
+		void		readMessage(int socketFd);
+		bool		firstMessage(int userFd);
 	
 		static void signalHandler(int signal);
 };
