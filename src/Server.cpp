@@ -203,10 +203,50 @@ void Server::readUser(int client_fd)
 	{
 		buffer[bytes_read] = '\0';
 		std::cout << "Received message: " << buffer << std::endl;
+		this->_message = buffer;
+		checkCommand(client_fd);
 		std::cout << "From client: " << client_fd << std::endl;
 		std::cout << this->_users[client_fd] << std::endl;
 		send(client_fd, "Su mensaje ha sido resibido\n", strlen("Su mensaje ha sido resibido\n"), 0);
 	}
+}
+
+void Server::checkCommand(int userFd)
+{
+	std::string commands[9] = {"USER", "NICK", "JOIN", "QUIT", "PRIVMSG", "KICK", "INVITE", "TOPIC", "MODE"};
+	std::cout << "Checking command: " << this->_message << std::endl;
+	int iPos = this->_message.find_first_not_of(" \t");
+	int fPos = this->_message.find_first_of(" \t", iPos);
+	std::string command = this->_message.substr(iPos, fPos - iPos);
+	std::cout << "Command: " << command << std::endl;
+	int i = -1;
+	while(commands[++i] != "")
+		if (command == commands[i])
+			break;
+	switch (i)
+	{
+		case USER:
+			break;
+		case NICK:
+			break;
+		case JOIN:
+			break;
+		case QUIT:
+			break;
+		case PRIVMSG:
+			break;
+		case KICK:
+			break;
+		case INVITE:
+			break;
+		case TOPIC:
+			break;
+		case MODE:
+			break;
+		default:
+			break;
+	}
+	(void)userFd;
 }
 
 void Server::signalHandler(int signal)

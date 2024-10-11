@@ -21,6 +21,8 @@
 
 #include "User.hpp"
 
+#include "ft_irc.hpp"
+
 #define RED "\033[31m"
 #define GRE "\033[32m"
 #define YEL "\033[33m"
@@ -28,6 +30,7 @@
 #define RES "\033[0m"
 
 class Client;
+
 class Server
 {
 	private:
@@ -36,6 +39,7 @@ class Server
 		std::string		_name;
 		bool			_isRunning;
 		int				_serverFd;
+		std::string		_message;
 		//std::map<int, Channel> _channels;//map of channels file descriptors and their objects
 		std::map<int, User> _users;//map of clients file descriptors and their objects
 		//std::map<int, std::string> clients;//map of clients file descriptors and their names
@@ -58,8 +62,8 @@ class Server
 		void printMap(const std::map<int, User>& map);
 		void addUser(int userFd, struct sockaddr_in user_addr);
 		void removeUser(int userFd);
-		
-		
+		void checkCommand(int userFd);
+
 		static void signalHandler(int signal);
 
 };
