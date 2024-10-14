@@ -31,6 +31,55 @@ Channel::Channel(const Channel &rhs)
 	*this = rhs;
 }
 
+/*METHODS*/
+/**
+ * @brief Add a user to the channel how a pointer to a user
+ * 		
+ */
+void Channel::addUserChannel(const User* user)
+{
+	this->_channelUsers.push_back(*user);
+}
+
+/**
+ * @brief Remove a user from the channel how a pointer to a user
+ * 		first search the user in the channel and then remove it
+ */
+void Channel::removeUserChannel(const User* user)
+{
+	for (size_t i = 0; i < this->_channelUsers.size(); i++)
+	{
+		if (this->_channelUsers[i].getFd() == user->getFd())
+		{
+			this->_channelUsers.erase(this->_channelUsers.begin() + i);
+			break;
+		}
+	}
+}
+
+/**
+ * @brief Add a user to the channel how a pointer to a user
+ * 		
+ *  */
+
+void Channel::addOpChannel(const User* user)
+{
+	for (size_t i = 0; i < this->_channelUsers.size(); i++)
+	{
+		if (this->_channelUsers[i].getFd() == user->getFd())
+		{
+			std::cout << "User already in the channel" << std::endl;
+			break;
+		}
+		else if (i == this->_channelUsers.size() - 1)
+		{
+			this->_channelOp.push_back(*user);
+			std::cout << "User not found in the channel" << std::endl;
+			return;
+		}
+	}
+}
+
 Channel& Channel::operator=(const Channel &rhs)
 {
 	std::cout << "Channel assignment operator" << std::endl;
@@ -107,7 +156,34 @@ void Channel::setTopic(const std::string& topic)
 
 /*-----------------------[METHODS]------------------------*/
 
+void Channel::addUserChannel(const User* user)
+{
+	this->_channelUsers.push_back(*user);
+}
 
+void Channel::removeUserChannel(int userFd)
+{
+	for (size_t i = 0; i < this->_channelUsers.size(); i++)
+	{
+		if (this->_channelUsers[i].getFd() == userFd)
+		{
+			this->_channelUsers.erase(this->_channelUsers.begin() + i);
+			break;
+		}
+	}
+}
+
+void Channel::addOpChannel(int userFd)
+{
+	for (size_t i = 0; i < this->_channelUsers.size(); i++)
+	{
+		if (this->_channelUsers[i].getFd() == userFd)
+		{
+			this->_channelOp.push_back(this->_channelUsers[i]);
+			break;
+		}
+	}
+}
 
 
 std::ostream& operator<<(std::ostream& os, const Channel& channel)

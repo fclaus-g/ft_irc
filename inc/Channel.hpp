@@ -48,9 +48,9 @@ class Channel
 		void setTopic(const std::string& topic);
 		
 		
-		void addUserChannel(int userFd);
-		void removeUserChannel(int userFd);
-		void addOpChannel(int userFd);
+		void addUserChannel(const User* user);
+		void removeUserChannel(const User* user);
+		void addOpChannel(const User* user);
 		void removeOpChannel(int userFd);
 		void kickUserChannel(int userFd);
 		void inviteUserChannel(int userFd);
