@@ -218,6 +218,41 @@ void Server::signalHandler(int signal)
 	}
 }
 
+void Server::createChannel(const std::string& name)
+{
+	Channel newChannel(name);
+	this->_channels.push_back(newChannel);
+	std::cout << "Channel created" << std::endl;
+}
+
+void Server::addUserToChannel(const std::string& channelName, User& user)
+{
+	for (size_t i = 0; i < this->_channels.size(); i++)
+	{
+		if (this->_channels[i].getName() == channelName)
+		{
+			this->_channels[i].addUserChannel(&user);
+			std::cout << "User added to channel" << std::endl;
+			return;
+		}
+	}
+	std::cout << "Channel not found" << std::endl;
+}
+
+void Server::removeChannel(const std::string& name)
+{
+	for (size_t i = 0; i < this->_channels.size(); i++)
+	{
+		if (this->_channels[i].getName() == name)
+		{
+			this->_channels.erase(this->_channels.begin() + i);
+			std::cout << "Channel removed" << std::endl;
+			return;
+		}
+	}
+	std::cout << "Channel not found" << std::endl;
+}
+
 std::ostream& operator<<(std::ostream& out, const Server& server)
 {
 	out << GRE << "Server: " << server.getName()<< RES << std::endl;
