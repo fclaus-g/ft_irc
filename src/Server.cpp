@@ -62,7 +62,7 @@ void	Server::run()
 				if (_socketsPoll[i].fd == server_fd)
 					newConnection();
 				else
-					parseMessage(_socketsPoll[i].fd);
+					//parseMessage(_socketsPoll[i].fd);
 			}
 		}
 	}
@@ -111,22 +111,29 @@ void	Server::readMessage(int socketFd)
 			std::cout << "User disconnected" << std::endl;
 		else
 			perror("read");
-		close(socketFd);
-		//delete_user_memoryleaks();
+		deleteUser(socketFd);
 		return ;
 	}
 	buffer[read_bytes] = '\0';
 	msg = buffer;
-	if (!firstMessage(socketFd))
+	if (!firstMessage(socketFd, msg))
 	{
-
+		//parseMsg();
 	}
-
-
 }
 
-bool	Server::firstMessage(int userFd)
+bool	Server::firstMessage(int userFd, std::string msg)
 {
-	if (_users[userFd].getAuth() == true)
-		return (true);
+	if (this->_users[userFd]->getAuth() == true)
+		return (false);
+	if (!loginFormat(msg))
+	{
+		std::cout << "New connection with socket fd " << userFd << "tried to login with wrong login format" << std::endl;
+		std::cout << "Connection rejected and socket closed" << std::endl;
+		sendWarning(userFd, "Wrong format for login authentication, your are being disconnected\n");
+		deleteUser(userFd);
+	}
+	else
+		//checkPass();
+	return (true);
 }

@@ -6,7 +6,7 @@ SRC_PATH	= src/
 OBJ_PATH	= obj/
 
 #CMDS		= 
-AUX			= Server_init Server_utils
+AUX			= Server_init Server_utils User_init
 SRC			= main Server User
 
 SRCS		= $(addsuffix .cpp, $(addprefix $(SRC_PATH), $(SRC))) \

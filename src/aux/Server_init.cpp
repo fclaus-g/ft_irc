@@ -19,8 +19,6 @@ Server::~Server()
 	std::cout << "Server destroyed" << std::endl;
 }
 
-/*-----------------------[SETTERS]------------------------*/
-
 /*-----------------------[GETTERS]------------------------*/
 int Server::getPort() const
 {

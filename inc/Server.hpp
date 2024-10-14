@@ -34,13 +34,16 @@ class Server
 	
 		void 		prepareSocket();
 		void 		newConnection();
+		void		deleteUser(int socketFd);
 		void		welcomeUser(int userFd);
 		void		readMessage(int socketFd);
-		bool		firstMessage(int userFd);
+		bool		firstMessage(int userFd, std::string msg);
+		bool		loginFormat(std::string msg);
+		void		sendWarning(int userFd, std::string str);
 	
 		static void signalHandler(int signal);
 };
 
-std::ostream& operator<<(std::ostream& out, const Server& server);
+std::ostream &operator<<(std::ostream &out, const Server &server);
 
 #endif

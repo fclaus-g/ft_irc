@@ -19,7 +19,8 @@ class User
 	
 		User &operator=(const User &rhs);
 	
-		int getFd();
+		int 	getFd();
+		bool	getAuth();
 };
 
 
