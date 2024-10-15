@@ -134,6 +134,13 @@ bool	Server::firstMessage(int userFd, std::string msg)
 		deleteUser(userFd);
 	}
 	else
-		//checkPass();
+	{
+		//setNick();
+		//if (!checkPass());
+			// std::cout << "New user with socket fd " << userFd << "tried to login with wrong password" << std::endl;
+			// std::cout << "Connection rejected and socket closed" << std::endl;
+			// sendWarning(userFd, "Wrong password, your are being disconnected\n");
+			// deleteUser(userFd);
+	}
 	return (true);
 }
