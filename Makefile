@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra -Werror -std=c++98
 SRC = main.cpp \
 	  src/Server.cpp \
 	  src/User.cpp \
-	  src/channel.cpp
+	  src/Channel.cpp
 	  
 OBJ = $(SRC:.cpp=.o)
 

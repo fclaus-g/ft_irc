@@ -23,7 +23,7 @@ class Channel
 		std::string _channelName;
 		std::string _channelPass;
 		std::string _topic;
-		std::map<User&, bool> _users;
+		//std::map<User&, bool> _users;
 		std::vector<User> _channelUsers;
 		std::vector<User> _channelOp;
 	public:
@@ -38,8 +38,8 @@ class Channel
 		const std::string& getName() const;
 		const std::string& getPass() const;
 		const std::string& getTopic() const;
-		const std::vector<User>& getUsers() const;
-		const std::vector<User>& getOp() const;
+		//const std::vector<User>& getUsers() const;
+		//const std::vector<User>& getOp() const;
 
 		void setIsPrivate(bool isPrivate);
 		void setMaxUsers(size_t maxUsers);
@@ -48,21 +48,21 @@ class Channel
 		void setTopic(const std::string& topic);
 		
 		
-		void addUserChannel(const User* user);
-		void removeUserChannel(const User* user);
-		void addOpChannel(const User* user);
-		void removeOpChannel(int userFd);
-		void kickUserChannel(int userFd);
-		void inviteUserChannel(int userFd);
-		void changeTopicChannel(const std::string& topic);
-		void changeModeChannel(const std::string& mode);
-		void changePassChannel(const std::string& pass);
-		void changeMaxUsersChannel(size_t maxUsers);
-		void changeNameChannel(const std::string& name);
-		void printUsersChannel();
-		void printOpsChannel();
+		void addUserChannel(User& user);
+		void removeUserChannel(User& user);
+		void addOpChannel(User& user);
+		// void removeOpChannel(int userFd);
+		// void kickUserChannel(int userFd);
+		// void inviteUserChannel(int userFd);
+		// void changeTopicChannel(const std::string& topic);
+		// void changeModeChannel(const std::string& mode);
+		// void changePassChannel(const std::string& pass);
+		// void changeMaxUsersChannel(size_t maxUsers);
+		// void changeNameChannel(const std::string& name);
+		// void printUsersChannel();
+		// void printOpsChannel();
 };
 
-std::ostream& operator<<(std::ostream& out, const Channel& channel);
+//std::ostream& operator<<(std::ostream& out, const Channel& channel);
 
 #endif

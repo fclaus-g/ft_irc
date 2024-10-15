@@ -231,8 +231,9 @@ void Server::addUserToChannel(const std::string& channelName, User& user)
 	{
 		if (this->_channels[i].getName() == channelName)
 		{
-			this->_channels[i].addUserChannel(&user);
+			this->_channels[i].addUserChannel(user);
 			std::cout << "User added to channel" << std::endl;
+			send(user.getFd(), "You have been added to the channel\n", strlen("You have been added to the channel\n"), 0);
 			return;
 		}
 	}
