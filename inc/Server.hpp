@@ -20,7 +20,7 @@
 #include <arpa/inet.h>//for inet_ntoa
 
 #include "User.hpp"
-
+#include "Channel.hpp"
 #include "ft_irc.hpp"
 
 #define RED "\033[31m"
@@ -30,6 +30,7 @@
 #define RES "\033[0m"
 
 class Client;
+class Channel;
 
 class Server
 {
@@ -40,6 +41,7 @@ class Server
 		bool			_isRunning;
 		int				_serverFd;
 		std::string		_message;
+		std::vector<Channel> _channels;//vector of channels
 		//std::map<int, Channel> _channels;//map of channels file descriptors and their objects
 		std::map<int, User> _users;//map of clients file descriptors and their objects
 		//std::map<int, std::string> clients;//map of clients file descriptors and their names
@@ -53,7 +55,7 @@ class Server
 		std::string getName() const;
 		bool getIsRunning() const;
 		const std::map<int, User>& getUsers() const;
-
+		void addChannel(std::string &name);
 		void start();
 		void stop();
 		void prepareSocket();
@@ -63,6 +65,15 @@ class Server
 		void addUser(int userFd, struct sockaddr_in user_addr);
 		void removeUser(int userFd);
 		void checkCommand(int userFd);
+		void commandUser(int userFd);
+		void commandNick(int userFd);
+		void commandJoin(int userFd);
+		void commandQuit(int userFd);
+		void commandPrivmsg(int userFd);
+		void commandKick(int userFd);
+		void commandInvite(int userFd);
+		void commandTopic(int userFd);
+		void commandMode(int userFd);
 
 		static void signalHandler(int signal);
 

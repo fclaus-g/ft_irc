@@ -166,6 +166,7 @@ void Server::addUser(int userFd, struct sockaddr_in user_addr)
 	std::cout << "User added" << std::endl;
 	//printMap(_users);
 }
+
 void Server::printMap(const std::map<int, User>& map)
 {
 	for (std::map<int, User>::const_iterator it = map.begin(); it != map.end(); ++it)
@@ -215,17 +216,21 @@ void Server::checkCommand(int userFd)
 {
 	std::string commands[9] = {"USER", "NICK", "JOIN", "QUIT", "PRIVMSG", "KICK", "INVITE", "TOPIC", "MODE"};
 	std::cout << "Checking command: " << this->_message << std::endl;
-	int iPos = this->_message.find_first_not_of(" \t");
-	int fPos = this->_message.find_first_of(" \t", iPos);
+	size_t iPos = this->_message.find_first_not_of(" \t");
+	size_t fPos = this->_message.find_first_of(" \t", iPos);
 	std::string command = this->_message.substr(iPos, fPos - iPos);
 	std::cout << "Command: " << command << std::endl;
-	int i = -1;
+	size_t i = -1;
 	while(commands[++i] != "")
 		if (command == commands[i])
 			break;
+	if (i < commands->size())
+		this->_message = this->_message.substr(fPos + 1);
+	std::cout << "Message: " << this->_message << std::endl;
 	switch (i)
 	{
 		case USER:
+			this->commandUser(userFd);
 			break;
 		case NICK:
 			break;
@@ -246,6 +251,93 @@ void Server::checkCommand(int userFd)
 		default:
 			break;
 	}
+}
+
+void Server::commandUser(int userFd) //Modificar para que acepte USER jsaavedr 0 * :realname
+{
+	std::string username;
+	std::string realname;
+
+	std::cout << "Message USER: " << this->_message << std::endl;
+	size_t iPos = this->_message.find_first_not_of(" \t");
+	size_t fPos = this->_message.find_first_of(" \t", iPos);
+	if (fPos == std::string::npos)
+	{
+		std::cout << "Error: Not enough parameters" << std::endl;
+		return;
+	}
+	username = this->_message.substr(iPos, fPos - iPos);
+
+	this->_message = this->_message.substr(fPos + 1);
+	iPos = this->_message.find_first_not_of(" \t", fPos);
+	fPos = this->_message.find_first_of(" \t", iPos);
+	realname = this->_message.substr(iPos, fPos - iPos);
+
+	this->_users[userFd].setUserName(username);
+	this->_users[userFd].setRealName(realname);
+	this->_message.clear();
+}
+
+void Server::commandNick(int userFd)
+{
+	size_t iPos = this->_message.find_first_not_of(" \t");
+
+	this->_users[userFd].setNick(this->_message.substr(iPos));
+}
+
+void Server::commandJoin(int userFd)
+{
+	size_t iPos = this->_message.find_first_not_of(" \t");
+	size_t fPos = this->_message.find_first_of(" \t", iPos);
+
+	std::string channel = this->_message.substr(iPos, fPos - iPos);
+	if (channel[0] != '#')
+	{
+		std::cout << "Error: Invalid channel name" << std::endl;
+		return;
+	}
+	channel.erase(0, 1);
+	std::vector<Channel> channels = this->_channels;
+	for(std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
+	{
+		if (it->getName() == channel)
+		{
+			it->addUser(userFd);
+			return;
+		}
+	}
+	Channel newChannel(channel);
+	newChannel.addUser(userFd);
+	this->_channels.push_back(newChannel);
+}
+
+void Server::commandQuit(int userFd)
+{
+	(void)userFd;
+}
+
+void Server::commandPrivmsg(int userFd)
+{
+	(void)userFd;
+}
+
+void Server::commandKick(int userFd)
+{
+	(void)userFd;
+}
+
+void Server::commandInvite(int userFd)
+{
+	(void)userFd;
+}
+
+void Server::commandTopic(int userFd)
+{
+	(void)userFd;
+}
+
+void Server::commandMode(int userFd)
+{
 	(void)userFd;
 }
 
