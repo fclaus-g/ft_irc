@@ -13,12 +13,12 @@ int main (int ac, char **av)
 		return 1;
 	}
 	Server server(std::atoi(av[1]), av[2]);
-	std::cout << server << std::endl;
 	try
 	{
 		signal(SIGINT, Server::signalHandler);
 		signal(SIGQUIT, Server::signalHandler);
 		server.start();
+		server.createChannel("General");
 	}
 	catch(const std::exception& e)
 	{
