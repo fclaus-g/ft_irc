@@ -1,26 +1,49 @@
 NAME = ircserv
 
-CC = g++
-CFLAGS = -Wall -Wextra -Werror -std=c++98 
+SRC_DIR = src
 
-SRC = main.cpp \
-	  src/Server.cpp \
-	  src/User.cpp
-OBJ = $(SRC:.cpp=.o)
+SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 
-all: $(NAME)
+INC_DIR = inc
 
-$(NAME): $(OBJ)
-	$(CC) $(CFLAGS) -o $(NAME) $(OBJ)
+OBJ_DIR = obj
 
-%.o: %.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+OBJS = $(addprefix $(OBJ_DIR)/, $(notdir $(SRCS:.cpp=.o)))
+
+CC = c++
+
+FLAGS = -Wall -Werror -Wextra -std=c++98
+
+RM = rm -f
+
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+RED = "\033[31m"
+NOCOLOR = "\033[0m"
+
+all: $(OBJ_DIR) $(NAME)
+
+$(OBJ_DIR):
+	@mkdir -p $(OBJ_DIR)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@$(CC) $(FLAGS) -c $< -o $@
+
+$(NAME): $(OBJS) $(INC_DIR)/ircserv.h
+	@echo $(GREEN)Compiling...$(NOCOLOR)
+	@$(CC) $(FLAGS) $(SRCS) -o $(NAME)
+	@echo $(GREEN)Program ircserv ready$(NOCOLOR)
 
 clean:
-	rm -f $(OBJ)
+	@$(RM) $(OBJ_DIR)/$(OBJS)
+	@rm -r $(OBJ_DIR)
+	@echo ircserv objects files $(RED)cleaned$(NOCOLOR)
+
 fclean: clean
-	rm -f $(NAME)
+	@$(RM) $(NAME)
+	@echo ircserv executable file $(RED)cleaned$(NOCOLOR)
+
 re: fclean all
+	@echo $(RED)Cleaned$(NOCOLOR) and $(GREEN)rebuilt$(NOCOLOR) ircserv
 
 .PHONY: all clean fclean re
-

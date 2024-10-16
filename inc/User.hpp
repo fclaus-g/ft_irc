@@ -1,38 +1,41 @@
-#ifndef User_HPP
-#define User_HPP
+#pragma once
 
-#include <iostream>
-#include <string>
+#include "ircserv.h"
+#include "Channel.hpp"
 
-class User 
+class User
 {
 	private:
-		int 			_fd;
-		bool			_authenticated;
-		std::string		_ip;
-		std::string		_nick;
-		std::string		_userName;
-		std::string 	_realName;
+        std::string     _userName;
+		std::string     _nickName;
+        std::string     _realName;
+        std::string     _host;
+        int             _port;
+        int             _clientSocket;
+		bool			_authent;
+        //lista/vector de canales
+
 	public:
-		User();
+        User();
+		User(int serverSocket);
+		User(User const &u);
+		User &operator=(User const &u);
 		~User();
 
-		int getFd() const;
-		std::string getIp() const;
-		bool getAuthenticated() const;
-		std::string getNick() const;
-		std::string getUserName() const;
-		std::string getRealName() const;
-
-
-		void setFd(int fd);
-		void setIp(std::string ip);
-		void setAuthenticated(bool authenticated);
-		void setNick(std::string nick);
-		void setUserName(std::string userName);
-		void setRealName(std::string realName);
+        std::string getUserName() const;
+        std::string getNickName() const;
+        std::string getRealName() const;
+        std::string getHost() const;
+        int         getPort() const;
+        int         getSocket() const;
+		bool		getAuthent() const;
+		void setUserName(std::string name);
+        void setNickName(std::string nick);
+        void setRealName(std::string realName);
+        void setHost(std::string host);
+        void setPort(int port);
+        void setSocket(int sock);
+		void setAuthent(bool auth);
 };
 
 std::ostream& operator<<(std::ostream& out, const User& user);
-
-#endif
