@@ -24,9 +24,9 @@ class Channel
 		std::string _channelPass;
 		std::string _topic;
 		//std::map<User&, bool> _users;
-		std::vector<User> _channelUsers;
 		std::vector<User> _channelOp;
 	public:
+		std::vector<User> _channelUsers;
 		Channel();
 		Channel(std::string name);
 		Channel(const Channel& rhs);
@@ -51,8 +51,8 @@ class Channel
 		void addUserChannel(User& user);
 		void removeUserChannel(User& user);
 		void addOpChannel(User& user);
-		// void removeOpChannel(int userFd);
-		// void kickUserChannel(int userFd);
+		void removeOpChannel(int userFd);
+		void kickUserChannel(int userFd);
 		// void inviteUserChannel(int userFd);
 		// void changeTopicChannel(const std::string& topic);
 		// void changeModeChannel(const std::string& mode);
@@ -63,6 +63,6 @@ class Channel
 		// void printOpsChannel();
 };
 
-//std::ostream& operator<<(std::ostream& out, const Channel& channel);
+std::ostream& operator<<(std::ostream& out, const Channel& channel);
 
 #endif

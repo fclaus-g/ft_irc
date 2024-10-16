@@ -107,6 +107,7 @@ void Channel::setTopic(const std::string& topic)
 void Channel::addUserChannel(User& user)
 {
 	this->_channelUsers.push_back(user);
+	std::cout << *this << std::endl;
 }
 
 void Channel::removeUserChannel(User& user)
@@ -133,16 +134,29 @@ void Channel::addOpChannel(User& user)
 	}
 }
 
+void Channel::removeOpChannel(int userFd)
+{
+	for (size_t i = 0; i < this->_channelOp.size(); i++)
+	{
+		if (this->_channelOp[i].getFd() == userFd)
+		{
+			this->_channelOp.erase(this->_channelOp.begin() + i);
+			break;
+		}
+	}
+}
 
-// std::ostream& operator<<(std::ostream& os, const Channel& channel)
-// {
-// 	os << "Channel name: " << channel.getName() << std::endl;
-// 	os << "Channel topic: " << channel.getTopic() << std::endl;
-// 	os << "Channel users: ";
-// 	for (size_t i = 0; i < channel.getUsers().size(); i++)
-// 	{
-// 		os << channel.getUsers()[i] << " ";
-// 	}
-// 	os << std::endl;
-// 	return os;
-// }
+std::ostream& operator<<(std::ostream& os, const Channel& channel)
+{
+	os << "Channel name: " << channel.getName() << std::endl;
+	os << "Channel topic: " << channel.getTopic() << std::endl;
+	os << "Channel users: ";
+	for (size_t i = 0; i < channel._channelUsers.size(); i++)
+	{
+		os << channel._channelUsers[i] << " "; 
+	
+	}
+	os << "users in channel : " << channel._channelUsers.size() << std::endl;	
+	os << std::endl;
+	return os;
+}
