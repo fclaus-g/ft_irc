@@ -58,7 +58,9 @@ class Server
 		//User methods
 		void acceptUser();
 		void readUser(int userFd);
+		//void parseMessage(const std::string& message, int userFd);
 		void printMap(const std::map<int, User>& map);
+		void printVector(const std::vector<Channel>& vector);
 		void addUser(int userFd, struct sockaddr_in user_addr);
 		void removeUser(int userFd);
 		//Channel methods
