@@ -30,4 +30,17 @@
 const int MAX_CLIENTS = 100;
 const int BUFF_SIZE = 1024;
 
+enum command
+{
+	USER,
+	NICK,
+	JOIN,
+	QUIT,
+	PRIVMSG,
+	KICK,
+	INVITE,
+	TOPIC,
+	MODE,
+};
+
 #endif

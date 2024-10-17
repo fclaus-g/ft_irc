@@ -1,7 +1,12 @@
 #include "ft_irc.hpp"
 
 /*-----------------------[SETTERS]------------------------*/
-void User::setNick(std::string newNick)
+void	User::setNick(std::string newNick)
 {
-	this._nickName = newNick;
+	this->_nickName = newNick;
+}
+
+void	User::setAuth(bool state)
+{
+	this->_authenticated = state;
 }

@@ -19,6 +19,8 @@ class Server
 		int							server_fd;
 		std::map<int, User*> 		_users;
 		std::vector<struct pollfd> 	_socketsPoll;
+		std::string					_tempNick;
+		std::string					_tempPass;
 	public:
 		Server();
 		Server(int port, std::string password);
@@ -36,10 +38,14 @@ class Server
 		void 		newConnection();
 		void		deleteUser(int socketFd);
 		void		welcomeUser(int userFd);
-		void		readMessage(int socketFd);
+		void		msgHandler(int socketFd);
 		bool		firstMessage(int userFd, std::string msg);
 		bool		loginFormat(std::string msg);
 		void		sendWarning(int userFd, std::string str);
+		void		checkPass(int userFd);
+		void		parseMsg(int socketFd, std::string msg);
+		bool		checkCmd(int userFd, std::string msg);
+		void		runCmd(int userFd, std::string key, std::string cmd);
 	
 		static void signalHandler(int signal);
 };

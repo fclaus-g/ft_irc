@@ -62,7 +62,7 @@ void	Server::run()
 				if (_socketsPoll[i].fd == server_fd)
 					newConnection();
 				else
-					//parseMessage(_socketsPoll[i].fd);
+					msgHandler(_socketsPoll[i].fd);
 			}
 		}
 	}
@@ -94,11 +94,11 @@ void	Server::newConnection()
 	new_pollfd.revents = 0;
 	_socketsPoll.push_back(new_pollfd);
 	_users[client_socket] = new User(client_socket);
-	std::cout << "New connection established with socket fd "<< client_socket << std::endl;
+	std::cout << GRE << "New connection established with socket fd " << client_socket << RES << std::endl;
 	welcomeUser(client_socket);
 }
 
-void	Server::readMessage(int socketFd)
+void	Server::msgHandler(int socketFd)
 {
 	char		buffer[BUFF_SIZE];
 	std::string	msg;
@@ -108,7 +108,7 @@ void	Server::readMessage(int socketFd)
 	if (read_bytes <= 0)
 	{
 		if (read_bytes == 0)
-			std::cout << "User disconnected" << std::endl;
+			std::cout << RED << "User disconnected" << RES << std::endl;
 		else
 			perror("read");
 		deleteUser(socketFd);
@@ -118,29 +118,75 @@ void	Server::readMessage(int socketFd)
 	msg = buffer;
 	if (!firstMessage(socketFd, msg))
 	{
-		//parseMsg();
+		parseMsg(socketFd, msg);
 	}
 }
 
-bool	Server::firstMessage(int userFd, std::string msg)
+void	Server::parseMsg(int userFd, std::string msg)
 {
-	if (this->_users[userFd]->getAuth() == true)
-		return (false);
-	if (!loginFormat(msg))
+	if (!checkCmd(userFd, msg))
 	{
-		std::cout << "New connection with socket fd " << userFd << "tried to login with wrong login format" << std::endl;
-		std::cout << "Connection rejected and socket closed" << std::endl;
-		sendWarning(userFd, "Wrong format for login authentication, your are being disconnected\n");
-		deleteUser(userFd);
+		std::string	user_msg = "@" + this->_users[userFd]->getNick() + ": " + msg;
+
+		for (size_t i = 0; i < this->_socketsPoll.size(); i++)
+		{
+			if (this->_socketsPoll[i].fd != this->server_fd
+				&& this->_socketsPoll[i].fd != userFd)
+			{
+				send(this->_socketsPoll[i].fd, user_msg.c_str(), user_msg.length(), 0);
+			}
+		}
 	}
-	else
+}
+
+bool Server::checkCmd(int userFd, std::string msg)
+{
+	std::string commands[9] = {"USER", "NICK", "JOIN", "QUIT",
+		"PRIVMSG", "KICK", "INVITE", "TOPIC", "MODE"};
+
+	for (int i = 0; commands[i] != ""; i++)
 	{
-		//setNick();
-		//if (!checkPass());
-			// std::cout << "New user with socket fd " << userFd << "tried to login with wrong password" << std::endl;
-			// std::cout << "Connection rejected and socket closed" << std::endl;
-			// sendWarning(userFd, "Wrong password, your are being disconnected\n");
-			// deleteUser(userFd);
+		if (msg.find(commands[i]) == 0)
+		{
+			runCmd(userFd, commands[i], msg);
+			return (true);
+		}
 	}
-	return (true);
+	return (false);
+}
+
+void	Server::runCmd(int userFd, std::string key, std::string msg)
+{
+	std::string commands[9] = {"USER", "NICK", "JOIN", "QUIT",
+		"PRIVMSG", "KICK", "INVITE", "TOPIC", "MODE"};
+	int i = -1;
+
+	while (commands[++i] != "")
+	{
+		if (commands[i] == key)
+			break ;
+	}
+	switch (i)
+	{
+		case USER:
+			break;
+		case NICK:
+			break;
+		case JOIN:
+			break;
+		case QUIT:
+			break;
+		case PRIVMSG:
+			break;
+		case KICK:
+			break;
+		case INVITE:
+			break;
+		case TOPIC:
+			break;
+		case MODE:
+			break;
+		default:
+			break;
+	}
 }

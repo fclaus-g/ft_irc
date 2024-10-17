@@ -1,17 +1,17 @@
 
 #include "ft_irc.hpp"
 
-std::ostream& operator<<(std::ostream& out, const Server& server)
+std::ostream &operator<<(std::ostream &out, const Server &server)
 {
-	out << GRE << "Server: " << server.getName()<< RES << std::endl;
-	out << "Port :" << server.getPort() << std::endl;
+	out << "Server: " << server.getName() << RES << std::endl;
+	out << "Port: " << server.getPort() << std::endl;
 	if(server.getIsRunning())
 	{
-		out << "Server is running" << std::endl;
+		out << GRE << "Server is running" << RES << std::endl;
 	}
 	else
 	{
-		out << "Server is not running" << std::endl;
+		out << RED << "Server is not running" << RES << std::endl;
 	}
 	return (out);
 }
@@ -55,20 +55,59 @@ void	Server::sendWarning(int userFd, std::string str)
 
 }
 
+bool	Server::firstMessage(int userFd, std::string msg)
+{
+	if (this->_users[userFd]->getAuth() == true)
+		return (false);
+	if (!loginFormat(msg))
+	{
+		std::cout << "New connection with socket fd " << userFd << " tried to login with wrong login format" << std::endl;
+		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
+		sendWarning(userFd, "Wrong format for login authentication, your are being disconnected\n");
+		deleteUser(userFd);
+	}
+	else
+		checkPass(userFd);
+	return (true);
+}
+
 bool	Server::loginFormat(std::string msg)
 {
 	size_t		nick_pos = msg.find("NICK ");
 	size_t		pass_pos = msg.find(" PASS ");
-	std::string	nick;
-	std::string	pass;
 
+	this->_tempNick.clear();
+	this->_tempPass.clear();
 	if (nick_pos == std::string::npos || pass_pos == std::string::npos)
 		return (false);
 	if (nick_pos != 0 || nick_pos > pass_pos)
 		return (false);
-	nick = msg.substr(nick_pos + 5, pass_pos - (nick_pos + 5));
-	pass = msg.substr(pass_pos + 6);
-	if (nick.empty() || pass.empty())
+	this->_tempNick = msg.substr(nick_pos + 5, pass_pos - (nick_pos + 5));
+	this->_tempPass = msg.substr(pass_pos + 6);
+	if (this->_tempNick.empty() || this->_tempPass.empty())
 		return (false);
+	if (this->_tempNick.find(" ") != std::string::npos
+		|| this->_tempPass.find(" ") != std::string::npos)
+			return (false);
 	return (true);
+}
+
+void	Server::checkPass(int userFd)
+{
+	if (this->_tempPass[this->_tempPass.length() - 1] == '\n')
+		this->_tempPass.erase(this->_tempPass.length() - 1);
+	if (this->_tempPass != this->password)
+	{
+		std::cout << "New user with socket fd " << userFd << " tried to login with wrong password" << std::endl;
+		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
+		sendWarning(userFd, "Wrong password, your are being disconnected\n");
+		deleteUser(userFd);
+	}
+	else
+	{
+		this->_users[userFd]->setNick(this->_tempNick);
+		this->_users[userFd]->setAuth(true);
+		std::cout << GRE << "New user with socket fd " << userFd << " has joined the server" << RES << std::endl;
+		sendWarning(userFd, "Login succesfull\n");
+	}
 }

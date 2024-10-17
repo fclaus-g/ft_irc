@@ -19,8 +19,11 @@ class User
 	
 		User &operator=(const User &rhs);
 	
-		int 	getFd();
-		bool	getAuth();
+		int 			getFd();
+		bool			getAuth();
+		std::string		getNick();
+		void			setNick(std::string newNick);
+		void			setAuth(bool state);
 };
 
 

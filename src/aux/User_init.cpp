@@ -7,7 +7,6 @@
 
 User::User()
 {
-	std::cout << "User default constructor called" << std::endl;
 }
 /**
  * @brief Construct a new User object and set all attributes to NULL
@@ -21,12 +20,10 @@ User::User(int socket_fd)
 	this->_nickName = "";
 	this->_userName = "";
 	this->_realName = "";
-	std::cout << "User by fd constructor called" << std::endl;
 }
 
 User::User(const User &rhs)
 {
-	std::cout << "User copy constructor called" << std::endl;
 	*this = rhs;
 }
 
@@ -61,4 +58,9 @@ int	User::getFd()
 bool	User::getAuth()
 {
 	return (this->_authenticated);
+}
+
+std::string	User::getNick()
+{
+	return (this->_nickName);
 }
