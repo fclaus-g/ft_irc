@@ -41,6 +41,7 @@ enum command
 	INVITE,
 	TOPIC,
 	MODE,
+	TOTAL,
 };
 
 #endif

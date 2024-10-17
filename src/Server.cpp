@@ -141,52 +141,70 @@ void	Server::parseMsg(int userFd, std::string msg)
 
 bool Server::checkCmd(int userFd, std::string msg)
 {
-	std::string commands[9] = {"USER", "NICK", "JOIN", "QUIT",
-		"PRIVMSG", "KICK", "INVITE", "TOPIC", "MODE"};
-
-	for (int i = 0; commands[i] != ""; i++)
+	for (int i = 0; i < TOTAL; i++)
 	{
-		if (msg.find(commands[i]) == 0)
+		if (msg.find(_commands[i]) == 0)
 		{
-			runCmd(userFd, commands[i], msg);
+			runCmd(userFd, i, msg);
 			return (true);
 		}
 	}
 	return (false);
 }
 
-void	Server::runCmd(int userFd, std::string key, std::string msg)
+void	Server::runCmd(int userFd, int key, std::string msg)
 {
-	std::string commands[9] = {"USER", "NICK", "JOIN", "QUIT",
-		"PRIVMSG", "KICK", "INVITE", "TOPIC", "MODE"};
-	int i = -1;
-
-	while (commands[++i] != "")
-	{
-		if (commands[i] == key)
-			break ;
-	}
-	switch (i)
+	switch (key)
 	{
 		case USER:
+		{
+			std::cout << "CMD _USER_ NOT IMPLMENTED YET" << std::endl;
 			break;
+		}
 		case NICK:
+		{
+			std::cout << "CMD _NICK_ NOT IMPLMENTED YET" << std::endl;
 			break;
+		}
 		case JOIN:
+		{
+			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
+		}
 		case QUIT:
+		{
+			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
+		}
 		case PRIVMSG:
+		{
+			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
+		}
 		case KICK:
+		{
+			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
+		}
 		case INVITE:
+		{
+			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
+		}
 		case TOPIC:
+		{
+			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
+		}
 		case MODE:
+		{
+			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
+		}
 		default:
+		{
+			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
+		}
 	}
 }

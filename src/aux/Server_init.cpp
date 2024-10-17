@@ -7,6 +7,8 @@ Server::Server()
 }
 
 Server::Server(int port, std::string password)
+	: _commands({"USER", "NICK", "JOIN", "QUIT",
+		"PRIVMSG", "KICK", "INVITE", "TOPIC", "MODE"})
 {
 	this->port = port;
 	this->password = password;

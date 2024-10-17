@@ -21,6 +21,7 @@ class Server
 		std::vector<struct pollfd> 	_socketsPoll;
 		std::string					_tempNick;
 		std::string					_tempPass;
+		std::string					_commands[TOTAL];
 	public:
 		Server();
 		Server(int port, std::string password);
@@ -45,7 +46,7 @@ class Server
 		void		checkPass(int userFd);
 		void		parseMsg(int socketFd, std::string msg);
 		bool		checkCmd(int userFd, std::string msg);
-		void		runCmd(int userFd, std::string key, std::string cmd);
+		void		runCmd(int userFd, int key, std::string cmd);
 	
 		static void signalHandler(int signal);
 };
