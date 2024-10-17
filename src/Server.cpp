@@ -120,8 +120,8 @@ void Server::prepareSocket()
 	_fds.push_back(poll_fd);//add the server socket to the pollfd vector
 
 	this->_isRunning = true;
+	std::cout << *this << std::endl;
 	std::cout << "Server listening on port " << this->_port << std::endl;
-	std::cout << "Server started" << std::endl;
 }
 void Server::acceptUser()
 {
@@ -152,8 +152,7 @@ void Server::acceptUser()
 void Server::addUser(int userFd, struct sockaddr_in user_addr)
 {
 	User newUser;
-	std::cout << "Adding user--------constructo 1-------------------" << std::endl;
-
+	
 	newUser.setFd(userFd);
 	newUser.setIp(inet_ntoa(user_addr.sin_addr));
 	newUser.setNick("");
@@ -161,9 +160,8 @@ void Server::addUser(int userFd, struct sockaddr_in user_addr)
 	newUser.setRealName("");
 	newUser.setAuthenticated(false);
 	_users[userFd] = newUser;//add the client to the clients map
-	std::cout << "Adding user--------constructo 2-------------------" << std::endl;
-	std::cout << _users[userFd] << "imprimido" << std::endl;
-	std::cout << "User added" << std::endl;
+	createChannel("#General");
+	addUserToChannel("#General", newUser);
 	//printMap(_users);
 }
 
@@ -348,6 +346,79 @@ void Server::signalHandler(int signal)
 		std::cout << "Signal received: " << signal << std::endl;
 		throw std::runtime_error("Server stopped by signal");
 	}
+}
+
+void Server::createChannel(const std::string& name)
+{
+	if (name == "")
+	{
+		std::cout << "Channel name can't be empty" << std::endl;
+		return;
+	}
+	if (name[0] != '#')
+	{
+		std::cout << "Channel name must start with #" << std::endl;
+		return;
+	}
+	if (name.size() < 2)
+	{
+		std::cout << "Channel name must have at least 2 characters" << std::endl;
+		return;
+	}
+	if (name.size() > 50)
+	{
+		std::cout << "Channel name must have at most 50 characters" << std::endl;
+		return;
+	}
+	for (size_t i = 0; i < this->_channels.size(); i++)
+	{
+		if (this->_channels[i].getName() == name)
+		{
+			std::cout << "Channel already exists" << std::endl;
+			return;
+		}
+	}
+	Channel *newChannel = new Channel(name);
+	this->_channels.push_back(*newChannel);
+	printVector(_channels);
+	std::cout << "Channel created" << std::endl;
+}
+
+void Server::printVector(const std::vector<Channel>& vector)
+{
+	for (size_t i = 0; i < vector.size(); i++)
+	{
+		std::cout << vector[i] << std::endl;
+	}
+}
+
+void Server::addUserToChannel(const std::string& channelName, User& user)
+{
+	for (size_t i = 0; i < this->_channels.size(); i++)
+	{
+		if (this->_channels[i].getName() == channelName)
+		{
+			this->_channels[i].addUserChannel(user);
+			std::cout << "User added to channel" << std::endl;
+			send(user.getFd(), "You have been added to the channel\n", strlen("You have been added to the channel\n"), 0);
+			return;
+		}
+	}
+	std::cout << "Channel not found" << std::endl;
+}
+
+void Server::removeChannel(const std::string& name)
+{
+	for (size_t i = 0; i < this->_channels.size(); i++)
+	{
+		if (this->_channels[i].getName() == name)
+		{
+			this->_channels.erase(this->_channels.begin() + i);
+			std::cout << "Channel removed" << std::endl;
+			return;
+		}
+	}
+	std::cout << "Channel not found" << std::endl;
 }
 
 std::ostream& operator<<(std::ostream& out, const Server& server)

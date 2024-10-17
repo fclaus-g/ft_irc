@@ -29,6 +29,7 @@
 #define BLU "\033[34m"
 #define RES "\033[0m"
 
+class Channel;
 class Client;
 class Channel;
 
@@ -42,7 +43,6 @@ class Server
 		int				_serverFd;
 		std::string		_message;
 		std::vector<Channel> _channels;//vector of channels
-		//std::map<int, Channel> _channels;//map of channels file descriptors and their objects
 		std::map<int, User> _users;//map of clients file descriptors and their objects
 		//std::map<int, std::string> clients;//map of clients file descriptors and their names
 		std::vector<struct pollfd> _fds;//pollfd used for monitoring file descriptors
@@ -59,11 +59,20 @@ class Server
 		void start();
 		void stop();
 		void prepareSocket();
+		//User methods
 		void acceptUser();
 		void readUser(int userFd);
+		//void parseMessage(const std::string& message, int userFd);
 		void printMap(const std::map<int, User>& map);
+		void printVector(const std::vector<Channel>& vector);
 		void addUser(int userFd, struct sockaddr_in user_addr);
 		void removeUser(int userFd);
+		//Channel methods
+		void createChannel(const std::string& name);
+		void addUserToChannel(const std::string& channelName, User& user);
+		void removeChannel(const std::string& name);
+
+		
 		void checkCommand(int userFd);
 		void commandUser(int userFd);
 		void commandNick(int userFd);

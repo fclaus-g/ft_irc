@@ -2,7 +2,19 @@
 #define CHANNEL_HPP
 
 #include "Server.hpp"
-
+/** + Debe poder autenticarse, establecer un apodo, un nombre de usuario, unirse a un canal, enviar y recibir mensajes privados utilizando el cliente de referencia.
+	+ Todos los mensajes enviados desde un cliente a un canal deben reenviarse a todos los demás clientes que se hayan unido al canal.
+	+ Debe tener operadores y usuarios regulares.
+	+ Luego, debe implementar los comandos que son específicos para los operadores de canal:
+		* KICK: expulsa a un cliente del canal
+		* INVITE: invita a un cliente a un canal
+		* TOPIC: cambia o visualiza el tema del canal
+		* MODE: cambia el modo del canal:
+			* i: establece o elimina el canal solo para invitados
+			* t: establece o elimina las restricciones del comando TOPIC para los operadores de canal
+			* k: establece o elimina la clave del canal (contraseña)
+			* o: otorga o quita privilegios de operador de canal
+			* l: Establecer/eliminar el número de users para el canal.*/
 class Channel
 {
 	private:
@@ -41,5 +53,6 @@ class Channel
 		void removeUser(int userFd);
 };
 
-std::ostream& operator<<(std::ostream& os, const Channel& channel);
+std::ostream& operator<<(std::ostream& out, const Channel& channel);
+
 #endif
