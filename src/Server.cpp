@@ -1,4 +1,4 @@
-#include "../inc/Server.hpp"
+#include "ft_irc.hpp"
 
 Server::Server()
 {
@@ -7,16 +7,30 @@ Server::Server()
 }
 Server::Server(int port, std::string password)
 {
-	std::cout << "Server object created" << std::endl;
 	this->_port = port;
 	this->_password = password;
 	this->_name = "MyServer";
 	this->_isRunning = false;
+	this->_serverFd = -1;
+	_initCommands();
+
+}
+
+void	Server::_initCommands()
+{
+	this->_commands[0] = "USER";
+    this->_commands[1] = "NICK";
+    this->_commands[2] = "JOIN";
+    this->_commands[3] = "QUIT";
+    this->_commands[4] = "PRIVMSG";
+    this->_commands[5] = "KICK";
+    this->_commands[6] = "INVITE";
+    this->_commands[7] = "TOPIC";
+    this->_commands[8] = "MODE";
 }
 
 Server::~Server()
 {
-	std::cout << "Server object destroyed" << std::endl;
 }
 
 /*-----------------------[SETTER]------------------------*/
@@ -35,33 +49,31 @@ bool Server::getIsRunning() const
 	return this->_isRunning;
 }
 
-const std::map<int, User>& Server::getUsers() const
-{
-	return this->_users;
-}
 /*-----------------------[METHODS]------------------------*/
 void Server::start()
 {
 	prepareSocket();
+	run();
+	stop();
+}
+
+void	Server::run()
+{
 	while (this->_isRunning)
 	{
 		if ((poll(&_fds[0], _fds.size(), -1)) < 0)
 			throw std::runtime_error("poll");
-		for (size_t i = 0; i < _fds.size(); i++)//iterate over the pollfd vector
+		for (size_t i = 0; i < _fds.size(); i++)
 		{
-			if (_fds[i].revents & POLLIN)//POLLIN: There is data to read
+			if (_fds[i].revents & POLLIN)
 			{
 				if (_fds[i].fd == _serverFd)
-					acceptUser();
+					newConnection();
 				else
-				{
-					readUser(_fds[i].fd);
-					std::cout << "Client reading" << std::endl;
-				}
+					msgHandler(_fds[i].fd);
 			}
 		}
 	}
-	close(_serverFd);
 }
 
 void Server::stop()
@@ -121,48 +133,6 @@ void Server::prepareSocket()
 
 	this->_isRunning = true;
 	std::cout << *this << std::endl;
-	std::cout << "Server listening on port " << this->_port << std::endl;
-}
-void Server::acceptUser()
-{
-	int userFd;
-	struct sockaddr_in user_addr;
-	socklen_t user_addr_len = sizeof(user_addr);
-    // Accept a connection
-    userFd = accept(_serverFd, (struct sockaddr *)&user_addr, &user_addr_len);
-    if (userFd < 0) {
-        perror("accept");
-        close(_serverFd);
-        return ;
-    }
-	if (fcntl(userFd, F_SETFL, O_NONBLOCK) < 0)
-		std::cout << "Error setting non-blocking" << std::endl;
-	std::cout << "Client connected" << std::endl;
-	struct pollfd user_poll_fd;//poll struct
-	
-	user_poll_fd.fd = userFd;
-	user_poll_fd.events = POLLIN;
-	user_poll_fd.revents = 0;
-	_fds.push_back(user_poll_fd);//add the client socket to the pollfd vector
-	//clients[client_fd] = "";//add the client socket to the clients map
-	addUser(userFd, user_addr);//add the client to the clients map
-    //close(client_fd);
-}
-
-void Server::addUser(int userFd, struct sockaddr_in user_addr)
-{
-	User newUser;
-	
-	newUser.setFd(userFd);
-	newUser.setIp(inet_ntoa(user_addr.sin_addr));
-	newUser.setNick("");
-	newUser.setUserName("");
-	newUser.setRealName("");
-	newUser.setAuthenticated(false);
-	_users[userFd] = newUser;//add the client to the clients map
-	createChannel("#General");
-	addUserToChannel("#General", newUser);
-	//printMap(_users);
 }
 
 void Server::printMap(const std::map<int, User>& map)
@@ -174,61 +144,18 @@ void Server::printMap(const std::map<int, User>& map)
 	}
 }
 
-void Server::removeUser(int userFd)
-{
-	_users.erase(userFd);
-	_fds.erase(_fds.begin() + userFd);
-	std::cout << "User removed" << std::endl;
-	//MUY SIMPLE LO VEO QUIZAS HAY QUE RECORRER LOS CONTENEDORES Y COMPROBAR SI ES IGUAL 
-//ANTES PARA LUEGO BORRARLO
-}
-
-void Server::readUser(int client_fd)
-{
-	char buffer[1024];
-	int bytes_read;
-
-	memset(buffer, 0, sizeof(buffer));
-	bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-	if (bytes_read <= 0)
-	{
-		perror("recv");
-		std::cout << "Client " << client_fd << " disconnected" << std::endl;
-		//AQUI HAY QUE ELIMINAR EL CLIENTE DE LA LISTA DE CLIENTES Y DE LA LISTA DE POLL
-		close(client_fd);
-		return;
-	}
-	else
-	{
-		buffer[bytes_read] = '\0';
-		std::cout << "Received message: " << buffer << std::endl;
-		this->_message = buffer;
-		User client;
-		for (std::map<int, User>::iterator it = this->_users.begin(); it != this->_users.end(); ++it)
-			if (it->first == client_fd)
-				client = it->second;
-		checkCommand(client);
-		std::cout << "From client: " << client_fd << std::endl;
-		std::cout << this->_users[client_fd] << std::endl;
-		send(client_fd, "Su mensaje ha sido resibido\n", strlen("Su mensaje ha sido resibido\n"), 0);
-	}
-}
-
 void Server::checkCommand(User user)
 {
 	std::string commands[9] = {"USER", "NICK", "JOIN", "QUIT", "PRIVMSG", "KICK", "INVITE", "TOPIC", "MODE"};
-	std::cout << "Checking command: " << this->_message << std::endl;
 	size_t iPos = this->_message.find_first_not_of(" \t");
 	size_t fPos = this->_message.find_first_of(" \t", iPos);
 	std::string command = this->_message.substr(iPos, fPos - iPos);
-	std::cout << "Command: " << command << std::endl;
 	size_t i = -1;
 	while(commands[++i] != "")
 		if (command == commands[i])
 			break;
 	if (i < commands->size())
 		this->_message = this->_message.substr(fPos + 1);
-	std::cout << "Message: " << this->_message << std::endl;
 	switch (i)
 	{
 		case USER:
@@ -260,7 +187,6 @@ void Server::commandUser(User user) //Modificar para que acepte USER jsaavedr 0 
 	std::string username;
 	std::string realname;
 
-	std::cout << "Message USER: " << this->_message << std::endl;
 	size_t iPos = this->_message.find_first_not_of(" \t");
 	size_t fPos = this->_message.find_first_of(" \t", iPos);
 	if (fPos == std::string::npos)
@@ -439,4 +365,207 @@ std::ostream& operator<<(std::ostream& out, const Server& server)
 		out << "Server is not running" << std::endl;
 	}
 	return out;
+}
+
+void Server::welcomeUser(int userFd)
+{
+	std::string msg;
+	msg = "Wecolme to The Pollitas Server!\n";
+	msg.append("Insert user nick and server password\n");
+	msg.append("Usage \"NICK <your_nickname> PASS <server_password>\"\n");
+	send(userFd, msg.c_str(), msg.length(), 0);
+}
+
+void	Server::deleteUser(int socketFd)
+{
+	std::vector<struct pollfd>::iterator i = this->_fds.begin();
+
+	while (i != this->_fds.end())
+	{
+		if (i->fd == socketFd)
+		{
+			_fds.erase(i);
+			break ;
+		}
+		i++;
+	}
+	delete (this->_users[socketFd]);
+	this->_users.erase(socketFd);
+	close(socketFd);
+}
+
+void	Server::sendWarning(int userFd, std::string str)
+{
+	std::string	msg = "";
+	msg.append(str);
+	send(userFd, msg.c_str(), msg.length(), 0);
+
+}
+
+bool	Server::firstMessage(int userFd, std::string msg)
+{
+	if (this->_users[userFd]->getAuthenticated() == true)
+		return (false);
+	if (!loginFormat(msg))
+	{
+		std::cout << "New connection with socket fd " << userFd << " tried to login with wrong login format" << std::endl;
+		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
+		sendWarning(userFd, "Wrong format for login authentication, your are being disconnected\n");
+		deleteUser(userFd);
+	}
+	else
+		checkPass(userFd);
+	return (true);
+}
+
+bool	Server::loginFormat(std::string msg)
+{
+	size_t		nick_pos = msg.find("NICK ");
+	size_t		pass_pos = msg.find(" PASS ");
+
+	this->_tempNick.clear();
+	this->_tempPass.clear();
+	if (nick_pos == std::string::npos || pass_pos == std::string::npos)
+		return (false);
+	if (nick_pos != 0 || nick_pos > pass_pos)
+		return (false);
+	this->_tempNick = msg.substr(nick_pos + 5, pass_pos - (nick_pos + 5));
+	this->_tempPass = msg.substr(pass_pos + 6);
+	if (this->_tempNick.empty() || this->_tempPass.empty())
+		return (false);
+	if (this->_tempNick.find(" ") != std::string::npos
+		|| this->_tempPass.find(" ") != std::string::npos)
+			return (false);
+	return (true);
+}
+
+void	Server::checkPass(int userFd)
+{
+	if (this->_tempPass[this->_tempPass.length() - 1] == '\n')
+		this->_tempPass.erase(this->_tempPass.length() - 1);
+	if (this->_tempPass != this->_password)
+	{
+		std::cout << "New user with socket fd " << userFd << " tried to login with wrong password" << std::endl;
+		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
+		sendWarning(userFd, "Wrong password, your are being disconnected\n");
+		deleteUser(userFd);
+	}
+	else
+	{
+		this->_users[userFd]->setNick(this->_tempNick);
+		this->_users[userFd]->setAuthenticated(true);
+		std::cout << GRE << "New user with socket fd " << userFd << " has joined the server" << RES << std::endl;
+		sendWarning(userFd, "Login succesfull\n");
+	}
+}
+
+void	Server::newConnection()
+{
+	sockaddr_in 		client_addr;
+	socklen_t 			client_addr_len = sizeof(client_addr);
+	int 				client_socket;
+	int					error;
+	struct pollfd		new_pollfd;
+
+	client_socket = accept(_serverFd, (struct sockaddr *)&client_addr, &client_addr_len);
+	if (client_socket < 0)
+	{
+		perror("accept");
+		return ;
+	}
+	error = fcntl(client_socket, F_GETFL, 0);
+	if (error == -1 || fcntl(client_socket, F_SETFL, error | O_NONBLOCK) == -1)
+	{
+		perror("fcntl");
+		close(client_socket);
+		return;
+	}
+	new_pollfd.fd = client_socket;
+	new_pollfd.events = POLLIN | POLLOUT;
+	new_pollfd.revents = 0;
+	_fds.push_back(new_pollfd);
+	_users[client_socket] = new User(client_socket);
+	std::cout << GRE << "New connection established with socket fd " << client_socket << RES << std::endl;
+	welcomeUser(client_socket);
+}
+
+void	Server::msgHandler(int socketFd)
+{
+	char		buffer[BUFF_SIZE];
+	int			read_bytes;
+
+	this->_message.clear();
+	read_bytes = read(socketFd, buffer, sizeof(buffer) - 1);
+	if (read_bytes <= 0)
+	{
+		if (read_bytes == 0)
+			std::cout << RED << "User disconnected" << RES << std::endl;
+		else
+			perror("read");
+		deleteUser(socketFd);
+		return ;
+	}
+	buffer[read_bytes] = '\0';
+	this->_message = buffer;
+	if (!firstMessage(socketFd, this->_message))
+		parseMsg(socketFd, this->_message);
+}
+
+void	Server::parseMsg(int userFd, std::string msg)
+{
+	if (!checkCmd(userFd, msg))
+	{
+		std::string	user_msg = "@" + this->_users[userFd]->getNick() + ": " + msg;
+
+		for (size_t i = 0; i < this->_fds.size(); i++)
+		{
+			if (this->_fds[i].fd != this->_serverFd
+				&& this->_fds[i].fd != userFd)
+			{
+				send(this->_fds[i].fd, user_msg.c_str(), user_msg.length(), 0);
+			}
+		}
+	}
+}
+
+bool Server::checkCmd(int userFd, std::string msg)
+{
+	for (int i = 0; i < TOTAL; i++)
+	{
+		if (msg.find(_commands[i]) == 0)
+		{
+			runCmd(userFd, i, msg);
+			return (true);
+		}
+	}
+	return (false);
+}
+
+void	Server::runCmd(int userFd, int key, std::string msg)
+{
+	(void)userFd;
+	(void)msg;
+	switch (key)
+	{
+		case USER:
+			break;
+		case NICK:
+			break;
+		case JOIN:
+			break;
+		case QUIT:
+			break;
+		case PRIVMSG:
+			break;
+		case KICK:
+			break;
+		case INVITE:
+			break;
+		case TOPIC:
+			break;
+		case MODE:
+			break;
+		default:
+			break;
+	}
 }

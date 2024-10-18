@@ -1,8 +1,7 @@
-#include "../inc/Channel.hpp"
+#include "ft_irc.hpp"
 
 Channel::Channel()
 {
-	std::cout << "Channel object created" << std::endl;
 	this->_name = "Channel";
 	this->_topic = "";
 	this->_inviteMode = false;
@@ -14,7 +13,6 @@ Channel::Channel()
 
 Channel::Channel(std::string name)
 {
-	std::cout << "Channel object created" << std::endl;
 	this->_name = name;
 	this->_topic = "";
 	this->_inviteMode = false;
@@ -26,18 +24,15 @@ Channel::Channel(std::string name)
 
 Channel::~Channel()
 {
-	std::cout << "Channel object destroyed" << std::endl;
 }
 
 Channel::Channel(const Channel &rhs)
 {
-	std::cout << "Channel copy constructor" << std::endl;
 	*this = rhs;
 }
 
 Channel& Channel::operator=(const Channel &rhs)
 {
-	std::cout << "Channel assignment operator" << std::endl;
 	if (this != &rhs)
 	{
 		this->_name = rhs._name;

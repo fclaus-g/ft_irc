@@ -1,8 +1,7 @@
 #ifndef User_HPP
 #define User_HPP
 
-#include <iostream>
-#include <string>
+#include "ft_irc.hpp"
 
 class User 
 {
@@ -10,11 +9,12 @@ class User
 		int 			_fd;
 		bool			_authenticated;
 		std::string		_ip;
-		std::string		_nick;
+		std::string		_nickName;
 		std::string		_userName;
 		std::string 	_realName;
 	public:
 		User();
+		User(int fd);
 		User(const User& rhs);
 		User& operator=(const User& rhs);
 		~User();

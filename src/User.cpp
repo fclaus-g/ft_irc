@@ -1,25 +1,31 @@
-#include "../inc/User.hpp"
+#include "ft_irc.hpp"
 
 User::User()
 {
-	std::cout << "--------------- User constructor º---------------" << std::endl;
+}
+
+User::User(int socket_fd)
+{
+	this->_fd = socket_fd;
+	this->_authenticated = false;
+	this->_nickName = "";
+	this->_userName = "";
+	this->_realName = "";
 }
 
 User::User(const User& rhs)
 {
-	std::cout << "User copy constructor" << std::endl;
 	*this = rhs;
 }
 
 User& User::operator=(const User& rhs)
 {
-	std::cout << "User assignment operator" << std::endl;
 	if (this != &rhs)
 	{
 		this->_fd = rhs._fd;
 		this->_authenticated = rhs._authenticated;
 		this->_ip = rhs._ip;
-		this->_nick = rhs._nick;
+		this->_nickName = rhs._nickName;
 		this->_userName = rhs._userName;
 		this->_realName = rhs._realName;
 	}
@@ -28,7 +34,6 @@ User& User::operator=(const User& rhs)
 
 User::~User()
 {
-	std::cout << "User destructor" << std::endl;
 }
 
 /*Get*/
@@ -50,7 +55,7 @@ std::string User::getIp() const
 
 std::string User::getNick() const
 {
-	return this->_nick;
+	return this->_nickName;
 }
 
 std::string User::getUserName() const
@@ -82,7 +87,7 @@ void User::setAuthenticated(bool authenticated)
 
 void User::setNick(std::string nick)
 {
-	this->_nick = nick;
+	this->_nickName = nick;
 }
 
 void User::setUserName(std::string userName)
