@@ -73,16 +73,16 @@ class Server
 		void removeChannel(const std::string& name);
 
 		
-		void checkCommand(int userFd);
-		void commandUser(int userFd);
-		void commandNick(int userFd);
-		void commandJoin(int userFd);
-		void commandQuit(int userFd);
-		void commandPrivmsg(int userFd);
-		void commandKick(int userFd);
-		void commandInvite(int userFd);
-		void commandTopic(int userFd);
-		void commandMode(int userFd);
+		void checkCommand(User user);
+		void commandUser(User user);
+		void commandNick(User user);
+		void commandJoin(User user);
+		void commandQuit(User user);
+		void commandPrivmsg(User user);
+		void commandKick(User user);
+		void commandInvite(User user);
+		void commandTopic(User user);
+		void commandMode(User user);
 
 		static void signalHandler(int signal);
 

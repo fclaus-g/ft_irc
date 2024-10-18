@@ -203,14 +203,18 @@ void Server::readUser(int client_fd)
 		buffer[bytes_read] = '\0';
 		std::cout << "Received message: " << buffer << std::endl;
 		this->_message = buffer;
-		checkCommand(client_fd);
+		User client;
+		for (std::map<int, User>::iterator it = this->_users.begin(); it != this->_users.end(); ++it)
+			if (it->first == client_fd)
+				client = it->second;
+		checkCommand(client);
 		std::cout << "From client: " << client_fd << std::endl;
 		std::cout << this->_users[client_fd] << std::endl;
 		send(client_fd, "Su mensaje ha sido resibido\n", strlen("Su mensaje ha sido resibido\n"), 0);
 	}
 }
 
-void Server::checkCommand(int userFd)
+void Server::checkCommand(User user)
 {
 	std::string commands[9] = {"USER", "NICK", "JOIN", "QUIT", "PRIVMSG", "KICK", "INVITE", "TOPIC", "MODE"};
 	std::cout << "Checking command: " << this->_message << std::endl;
@@ -228,7 +232,7 @@ void Server::checkCommand(int userFd)
 	switch (i)
 	{
 		case USER:
-			this->commandUser(userFd);
+			this->commandUser(user);
 			break;
 		case NICK:
 			break;
@@ -251,7 +255,7 @@ void Server::checkCommand(int userFd)
 	}
 }
 
-void Server::commandUser(int userFd) //Modificar para que acepte USER jsaavedr 0 * :realname
+void Server::commandUser(User user) //Modificar para que acepte USER jsaavedr 0 * :realname
 {
 	std::string username;
 	std::string realname;
@@ -271,19 +275,22 @@ void Server::commandUser(int userFd) //Modificar para que acepte USER jsaavedr 0
 	fPos = this->_message.find_first_of(" \t", iPos);
 	realname = this->_message.substr(iPos, fPos - iPos);
 
-	this->_users[userFd].setUserName(username);
-	this->_users[userFd].setRealName(realname);
 	this->_message.clear();
+	(void)iPos;
+	(void)fPos;
+	(void)user;
 }
 
-void Server::commandNick(int userFd)
+void Server::commandNick(User user)
 {
 	size_t iPos = this->_message.find_first_not_of(" \t");
 
-	this->_users[userFd].setNick(this->_message.substr(iPos));
+	(void)iPos;
+	(void)user;
+
 }
 
-void Server::commandJoin(int userFd)
+void Server::commandJoin(User user)
 {
 	size_t iPos = this->_message.find_first_not_of(" \t");
 	size_t fPos = this->_message.find_first_of(" \t", iPos);
@@ -294,49 +301,47 @@ void Server::commandJoin(int userFd)
 		std::cout << "Error: Invalid channel name" << std::endl;
 		return;
 	}
-	channel.erase(0, 1);
 	std::vector<Channel> channels = this->_channels;
 	for(std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
 	{
 		if (it->getName() == channel)
 		{
-			it->addUser(userFd);
+			it->addUserChannel(user);
 			return;
 		}
 	}
-	Channel newChannel(channel);
-	newChannel.addUser(userFd);
-	this->_channels.push_back(newChannel);
+	this->createChannel(channel);
+	this->addUserToChannel(channel, user);
 }
 
-void Server::commandQuit(int userFd)
+void Server::commandQuit(User user)
 {
-	(void)userFd;
+	(void)user;
 }
 
-void Server::commandPrivmsg(int userFd)
+void Server::commandPrivmsg(User user)
 {
-	(void)userFd;
+	(void)user;
 }
 
-void Server::commandKick(int userFd)
+void Server::commandKick(User user)
 {
-	(void)userFd;
+	(void)user;
 }
 
-void Server::commandInvite(int userFd)
+void Server::commandInvite(User user)
 {
-	(void)userFd;
+	(void)user;
 }
 
-void Server::commandTopic(int userFd)
+void Server::commandTopic(User user)
 {
-	(void)userFd;
+	(void)user;
 }
 
-void Server::commandMode(int userFd)
+void Server::commandMode(User user)
 {
-	(void)userFd;
+	(void)user;
 }
 
 void Server::signalHandler(int signal)

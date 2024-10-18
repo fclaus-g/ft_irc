@@ -20,7 +20,8 @@ class Channel
 	private:
 		std::string _name;
 		std::string _topic;
-		std::vector<int> _users;
+		std::vector<User> _users;
+		std::vector<User> _op;
 		//std::map<User &, bool> _users;
 		bool _inviteMode;
 		bool _topicMode;
@@ -30,15 +31,17 @@ class Channel
 	public:
 		Channel();
 		Channel(std::string name);
+		Channel(const Channel &rhs);
 		~Channel();
-		
+
+		Channel& operator=(const Channel &rhs);
 		const std::string& getName() const;
 		const std::string& getTopic() const;
-		const std::vector<int>& getUsers() const;
-		const bool getInviteMode() const;
-		const bool getTopicMode() const;
-		const bool getKeyMode() const;
-		const int getUsersLimit() const;
+		const std::vector<User>& getUsers() const;
+		bool getInviteMode() const;
+		bool getTopicMode() const;
+		bool getKeyMode() const;
+		int getUsersLimit() const;
 		const std::string& getPassword() const;
 
 		void setName(const std::string& name);
@@ -49,8 +52,10 @@ class Channel
 		void setUsersLimit(const int usersLimit);
 		void setPassword(const std::string& password);
 
-		void addUser(int userFd);
-		void removeUser(int userFd);
+		void addUserChannel(User& user);
+		void removeUserChannel(User& user);
+		void addOpChannel(User& user);
+		void removeOpChannel(int userFd);
 };
 
 std::ostream& operator<<(std::ostream& out, const Channel& channel);

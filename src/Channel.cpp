@@ -40,15 +40,25 @@ Channel& Channel::operator=(const Channel &rhs)
 	std::cout << "Channel assignment operator" << std::endl;
 	if (this != &rhs)
 	{
-		this->_channelName = rhs._channelName;
+		this->_name = rhs._name;
 		this->_topic = rhs._topic;
-		this->_isPrivate = rhs._isPrivate;
-		this->_maxUsers = rhs._maxUsers;
-		this->_channelPass = rhs._channelPass;
-		this->_channelUsers = rhs._channelUsers;
-		this->_channelOp = rhs._channelOp;
+		this->_inviteMode = rhs._inviteMode;
+		this->_usersLimit = rhs._usersLimit;
+		this->_password = rhs._password;
+		this->_users = rhs._users;
+		this->_op = rhs._op;
 	}
 	return *this;
+}
+
+void Channel::setName(const std::string& name)
+{
+	this->_name = name;
+}
+
+void Channel::setTopic(const std::string& topic)
+{
+	this->_topic = topic;
 }
 
 void Channel::setInviteMode(const bool inviteMode)
@@ -79,48 +89,37 @@ void Channel::setPassword(const std::string& password)
 
 /*-----------------------[GETTER]------------------------*/
 
-const bool& Channel::getIsPrivate() const
-{
-	return this->_isPrivate;
-}
-const size_t& Channel::getMaxUsers() const
-{
-	return this->_maxUsers;
-}
 const std::string& Channel::getName() const
 {
-	return this->_channelName;
+	return this->_name;
 }
-const std::string& Channel::getPass() const
-{
-	return this->_channelPass;
-}
+
 const std::string& Channel::getTopic() const
 {
 	return this->_topic;
 }
 
-const std::vector<int>& Channel::getUsers() const
+const std::vector<User>& Channel::getUsers() const
 {
 	return this->_users;
 }
 
-const bool Channel::getInviteMode() const
+bool Channel::getInviteMode() const
 {
 	return this->_inviteMode;
 }
 
-const bool Channel::getTopicMode() const
+bool Channel::getTopicMode() const
 {
 	return this->_topicMode;
 }
 
-const bool Channel::getKeyMode() const
+bool Channel::getKeyMode() const
 {
 	return this->_keyMode;
 }
 
-const int Channel::getUsersLimit() const
+int Channel::getUsersLimit() const
 {
 	return this->_usersLimit;
 }
@@ -134,17 +133,17 @@ const std::string& Channel::getPassword() const
 
 void Channel::addUserChannel(User& user)
 {
-	this->_channelUsers.push_back(user);
+	this->_users.push_back(user);
 	std::cout << *this << std::endl;
 }
 
 void Channel::removeUserChannel(User& user)
 {
-	for (size_t i = 0; i < this->_channelUsers.size(); i++)
+	for (size_t i = 0; i < this->_users.size(); i++)
 	{
-		if (this->_channelUsers[i].getFd() == user.getFd())
+		if (this->_users[i].getFd() == user.getFd())
 		{
-			this->_channelUsers.erase(this->_channelUsers.begin() + i);
+			this->_users.erase(this->_users.begin() + i);
 			break;
 		}
 	}
@@ -152,11 +151,11 @@ void Channel::removeUserChannel(User& user)
 
 void Channel::addOpChannel(User& user)
 {
-	for (size_t i = 0; i < this->_channelUsers.size(); i++)
+	for (size_t i = 0; i < this->_users.size(); i++)
 	{
-		if (this->_channelUsers[i].getFd() == user.getFd())
+		if (this->_users[i].getFd() == user.getFd())
 		{
-			this->_channelOp.push_back(this->_channelUsers[i]);
+			this->_op.push_back(this->_users[i]);
 			break;
 		}
 	}
@@ -164,11 +163,11 @@ void Channel::addOpChannel(User& user)
 
 void Channel::removeOpChannel(int userFd)
 {
-	for (size_t i = 0; i < this->_channelOp.size(); i++)
+	for (size_t i = 0; i < this->_op.size(); i++)
 	{
-		if (this->_channelOp[i].getFd() == userFd)
+		if (this->_op[i].getFd() == userFd)
 		{
-			this->_channelOp.erase(this->_channelOp.begin() + i);
+			this->_op.erase(this->_op.begin() + i);
 			break;
 		}
 	}
@@ -179,12 +178,12 @@ std::ostream& operator<<(std::ostream& os, const Channel& channel)
 	os << "Channel name: " << channel.getName() << std::endl;
 	os << "Channel topic: " << channel.getTopic() << std::endl;
 	os << "Channel users: ";
-	for (size_t i = 0; i < channel._channelUsers.size(); i++)
+	for (size_t i = 0; i < channel.getUsers().size(); i++)
 	{
-		os << channel._channelUsers[i] << " "; 
+		os << channel.getUsers()[i] << " "; 
 	
 	}
-	os << "users in channel : " << channel._channelUsers.size() << std::endl;	
+	os << "users in channel : " << channel.getUsers().size() << std::endl;	
 	os << std::endl;
 	return os;
 }
