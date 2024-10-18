@@ -43,7 +43,19 @@ void Server::welcomeUser(int userFd)
 
 void	Server::deleteUser(int socketFd)
 {
+	std::vector<struct pollfd>::iterator i = this->_socketsPoll.begin();
+
+	while (i != this->_socketsPoll.end())
+	{
+		if (i->fd == socketFd)
+		{
+			_socketsPoll.erase(i);
+			break ;
+		}
+		i++;
+	}
 	delete (this->_users[socketFd]);
+	this->_users.erase(socketFd);
 	close(socketFd);
 }
 

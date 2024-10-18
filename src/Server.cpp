@@ -116,10 +116,9 @@ void	Server::msgHandler(int socketFd)
 	}
 	buffer[read_bytes] = '\0';
 	msg = buffer;
+	//std::cout << YEL << "CLIENT RAW MESSAGE = " << msg << RES << std::endl;
 	if (!firstMessage(socketFd, msg))
-	{
 		parseMsg(socketFd, msg);
-	}
 }
 
 void	Server::parseMsg(int userFd, std::string msg)
@@ -154,57 +153,39 @@ bool Server::checkCmd(int userFd, std::string msg)
 
 void	Server::runCmd(int userFd, int key, std::string msg)
 {
+	(void)userFd;
+	(void)msg;
 	switch (key)
 	{
 		case USER:
-		{
 			std::cout << "CMD _USER_ NOT IMPLMENTED YET" << std::endl;
 			break;
-		}
 		case NICK:
-		{
 			std::cout << "CMD _NICK_ NOT IMPLMENTED YET" << std::endl;
 			break;
-		}
 		case JOIN:
-		{
 			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
-		}
 		case QUIT:
-		{
 			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
-		}
 		case PRIVMSG:
-		{
 			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
-		}
 		case KICK:
-		{
 			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
-		}
 		case INVITE:
-		{
 			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
-		}
 		case TOPIC:
-		{
 			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
-		}
 		case MODE:
-		{
 			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
-		}
 		default:
-		{
 			std::cout << "CMD NOT IMPLMENTED YET" << std::endl;
 			break;
-		}
 	}
 }

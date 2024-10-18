@@ -4,10 +4,20 @@
 
 #include "ft_irc.hpp"
 
-/**
- * TODO check if Forward declaration of User class is allowed
- * (If not, will have to #include "User.hpp")
- */
+enum command
+{
+	USER,
+	NICK,
+	JOIN,
+	QUIT,
+	PRIVMSG,
+	KICK,
+	INVITE,
+	TOPIC,
+	MODE,
+	TOTAL
+};
+
 class User;
 class Server
 {
@@ -22,6 +32,7 @@ class Server
 		std::string					_tempNick;
 		std::string					_tempPass;
 		std::string					_commands[TOTAL];
+		void						_initCommands();
 	public:
 		Server();
 		Server(int port, std::string password);

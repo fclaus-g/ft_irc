@@ -27,21 +27,7 @@
 #define BLU "\033[34m"
 #define RES "\033[0m"
 
-const int MAX_CLIENTS = 100;
+const int MAX_CLIENTS = 10;
 const int BUFF_SIZE = 1024;
-
-enum command
-{
-	USER,
-	NICK,
-	JOIN,
-	QUIT,
-	PRIVMSG,
-	KICK,
-	INVITE,
-	TOPIC,
-	MODE,
-	TOTAL,
-};
 
 #endif
