@@ -18,11 +18,10 @@ int main (int ac, char **av)
 		signal(SIGINT, Server::signalHandler);
 		signal(SIGQUIT, Server::signalHandler);
 		server.start();
-		server.createChannel("General");
+		//server.createChannel("General");
 	}
 	catch(const std::exception& e)
 	{
-		//AQUI DEBERA CERRAR ES SERVER LIMPIAMENTE(FDS)
 		server.stop();
 		std::cerr << e.what() << '\n';
 	}

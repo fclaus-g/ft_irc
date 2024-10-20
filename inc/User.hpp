@@ -21,26 +21,18 @@ class User
 		User(const User& rhs);
 		User& operator=(const User& rhs);
 		~User();
-		int					getFd() const;
-		bool				getAuthenticated() const;
-		std::string			getIp() const;
-		std::string			getNick() const;
-		std::string			getUserName() const;
-		std::string			getRealName() const;
-
-
-		
-		void				setFd(int fd);
-		void				setIp(std::string ip);
-		void				setAuthenticated(bool authenticated);
-		void				setNick(std::string nick);
-		void				setUserName(std::string userName);
-		void				setRealName(std::string realName);
-		bool				getHexClient() const;
-		void				setHexClient(bool state);
-		void				hexChatUser(std::string msg);
-		bool				getHexStat() const;
-		void				setHexStat(bool state);
+		int getFd() const;
+		std::string getIp() const;
+		bool getAuthenticated() const;
+		std::string getNick() const;
+		std::string getUserName() const;
+		std::string getRealName() const;
+		void setFd(int fd);
+		void setIp(std::string ip);
+		void setAuthenticated(bool authenticated);
+		void setNick(std::string nick);
+		void setUserName(std::string userName);
+		void setRealName(std::string realName);
 };
 
 std::ostream& operator<<(std::ostream& out, const User& user);
