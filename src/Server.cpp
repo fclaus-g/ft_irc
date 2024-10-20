@@ -2,9 +2,8 @@
 
 Server::Server()
 {
-	this->_serverFd = -1;
-	//PENDIENTE DE VER SI HAY QUE TENER CONSTRUCTOR POR DEFECTO O NO
 }
+
 Server::Server(int port, std::string password)
 {
 	this->_port = port;

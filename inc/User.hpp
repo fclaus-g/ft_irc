@@ -24,8 +24,6 @@ class User
 		std::string getNick() const;
 		std::string getUserName() const;
 		std::string getRealName() const;
-
-
 		void setFd(int fd);
 		void setIp(std::string ip);
 		void setAuthenticated(bool authenticated);
