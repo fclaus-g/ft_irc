@@ -5,7 +5,8 @@ CFLAGS		= -std=c++98 -Wall -Wextra -Werror -I./inc
 SRC_PATH	= src/
 OBJ_PATH	= obj/
 
-SRC			= main Server User Channel User_init
+SRC			= main Server Server_init Server_utils Server_cmds Server_channel \
+				User User_init Channel
 
 SRCS		= $(addsuffix .cpp, $(addprefix $(SRC_PATH), $(SRC))) \
 

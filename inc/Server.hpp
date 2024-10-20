@@ -68,12 +68,10 @@ class Server
 		void 			printMap(const std::map<int, User>& map);
 		void 			printVector(const std::vector<Channel>& vector);
 		//Channel methods
-		void 			addChannel(std::string &name);
 		void 			createChannel(const std::string& name);
 		void 			addUserToChannel(const std::string& channelName, User& user);
 		void			removeChannel(const std::string& name);
 		//Commands methods
-		void 			checkCommand(User user);
 		void 			commandUser(User user);
 		void 			commandNick(User user);
 		void 			commandJoin(User user);
