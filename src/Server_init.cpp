@@ -30,3 +30,16 @@ void	Server::_initCommands()
     this->_commands[7] = "TOPIC";
     this->_commands[8] = "MODE";
 }
+
+int Server::getPort() const
+{
+	return this->_port;
+}
+std::string Server::getName() const
+{
+	return this->_name;
+}
+bool Server::getIsRunning() const
+{
+	return this->_isRunning;
+}

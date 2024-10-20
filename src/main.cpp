@@ -27,3 +27,8 @@ int main (int ac, char **av)
 	}
 	return 0;
 }
+
+void	ft_printf(std::string msg)
+{
+	std::cout << msg << std::endl;
+}
