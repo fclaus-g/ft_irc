@@ -20,8 +20,8 @@ void	User::hexChatUser(std::string msg)
 	user = msg.substr(msg.find("USER") + 5);
 	pos = user.find_first_of(" ");
 	user = user.substr(0, pos);
-	this->_nickName(nick);
-	this->_userName(user);
+	this->_nickName = nick;
+	this->_userName = user;
 }
 
 int User::getFd() const

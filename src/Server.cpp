@@ -102,9 +102,20 @@ void	Server::newConnection()
 	_fds.push_back(new_pollfd);
 	_users[client_socket] = new User(client_socket);
 	std::cout << GRE << "New connection established with socket fd " << client_socket << RES << std::endl;
-	welcomeUser(client_socket);
 }
 
+/**
+ * @brief This function handles the message -poll event- sent by the current socket
+ * 	Logic process:
+ * 		- If nothing or error read, kick and delete user
+ * 		- Check if the client is HexChat -> if so, we asumme there are three consecutive
+ * 			fixed messages -poll events- in this socket -> we check three conditions
+ * 		- If not, the socket is for a client using a terminal, then check if this is the
+ * 			first message of the user (extract NICK and PASS)
+ * 		- If nothing above matches and there has not been any errors, we procceed to parse
+ * 			the message (the user is already authenticated and the buffer read is either 
+ * 			a message to send or a command to execute)
+ */
 void	Server::msgHandler(int socketFd)
 {
 	char		buffer[BUFF_SIZE];
@@ -134,22 +145,12 @@ void	Server::msgHandler(int socketFd)
 		parseMsg(socketFd, this->_message);
 }
 
-void	Server::checkHexChatPass(int socketFd)
-{
-	std::string	pass;
-	size_t		pos;
-	size_t		stop;
-
-	pos = msg.find("PASS") + 5;
-	pos = pass.find_first_of("\n");
-	pass = msg.substr(pos);
-	pas = pass.substr(0, );
-}
-
 bool	Server::firstMessage(int userFd, std::string msg)
 {
+
 	if (this->_users[userFd]->getAuthenticated() == true)
 		return (false);
+	welcomeUser(userFd);
 	if (!loginFormat(msg))
 	{
 		std::cout << "New connection with socket fd " << userFd << " tried to login with wrong login format" << std::endl;

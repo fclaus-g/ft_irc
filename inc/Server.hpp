@@ -46,6 +46,8 @@ class Server
 		int 			getPort() const;
 		std::string 	getName() const;
 		bool 			getIsRunning() const;
+		User*			getUserByNick(std::string nick);
+		User*			getUserByFd(int fd);
 		//Server engine methods
 		static void		signalHandler(int signal);
 		void 			prepareSocket();
@@ -87,4 +89,3 @@ class Server
 std::ostream& operator<<(std::ostream& out, const Server& server);
 
 #endif
-
