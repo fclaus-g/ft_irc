@@ -46,13 +46,14 @@ class Server
 		int			getPort() const;
 		std::string	getName() const;
 		bool		getIsRunning() const;
-		//Server methods
+		//Server engine methods
+		static void signalHandler(int signal);
 		void		start();
 		void		run();
 		void		stop();
 		void		prepareSocket();
-		//User methods
 		void 		newConnection();
+		//User methods
 		void		deleteUser(int socketFd);
 		void		welcomeUser(int userFd);
 		void		msgHandler(int socketFd);
@@ -60,6 +61,7 @@ class Server
 		bool		loginFormat(std::string msg);
 		void		sendWarning(int userFd, std::string str);
 		void		checkPass(int userFd);
+		void		checkHexChatPass(int socketFd);
 		void		parseMsg(int userFd, std::string msg);
 		bool		checkCmd(int userFd, std::string msg);
 		void		runCmd(int userFd, int key, std::string cmd);
@@ -81,7 +83,6 @@ class Server
 		void 		commandTopic(User user);
 		void 		commandMode(User user);
 
-		static void signalHandler(int signal);
 		//methods for debugging
 		void		printMap(const std::map<int, User>& map);
 		void		printVector(const std::vector<Channel>& vector);
