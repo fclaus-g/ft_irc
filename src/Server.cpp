@@ -103,6 +103,7 @@ void	Server::newConnection()
 	_users[client_socket] = new User(client_socket);
 	std::cout << GRE << "New connection established with socket fd " << client_socket << RES << std::endl;
 }
+
 /**
  * @brief This function handles the message -poll event- sent by the current socket
  * 	Logic process:
@@ -144,22 +145,12 @@ void	Server::msgHandler(int socketFd)
 		parseMsg(socketFd, this->_message);
 }
 
-void	Server::checkHexChatPass(int socketFd)
-{
-	std::string	pass;
-	size_t		pos;
-	size_t		stop;
-
-	pos = msg.find("PASS") + 5;
-	pos = pass.find_first_of("\n");
-	pass = msg.substr(pos);
-	pas = pass.substr(0, );
-}
-
 bool	Server::firstMessage(int userFd, std::string msg)
 {
+
 	if (this->_users[userFd]->getAuthenticated() == true)
 		return (false);
+	welcomeUser(userFd);
 	if (!loginFormat(msg))
 	{
 		std::cout << "New connection with socket fd " << userFd << " tried to login with wrong login format" << std::endl;

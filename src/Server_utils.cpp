@@ -2,15 +2,15 @@
 
 std::ostream& operator<<(std::ostream& out, const Server& server)
 {
-	out << GRE << "Server: " << server.getName()<< RES << std::endl;
-	out << "Port :" << server.getPort() << std::endl;
+	out  << "Server: " << server.getName() << std::endl;
+	out << "Port: " << server.getPort() << std::endl;
 	if(server.getIsRunning())
 	{
-		out << "Server is running" << std::endl;
+		out << GRE << "Server is running" << RES << std::endl;
 	}
 	else
 	{
-		out << "Server is not running" << std::endl;
+		out << RED << "Server is not running" << RES << std::endl;
 	}
 	return out;
 }
@@ -99,6 +99,41 @@ void	Server::checkPass(int userFd)
 	}
 }
 
+/**
+ * @brief When login using HexChat, this client sends 3 separate messages at start
+ * 	-three consecutive poll events in the same socket- this method checks #2 to see
+ * 	if the password sent by the client matches the one we set for the server
+ * 		#1 = "CAP LS 302\n" - skipeed first time and user->_hexChat = TRUE
+ *		#2 = "PASS <password>\n" - checked in server.checkPassHexChat()
+ * 		#3 = "NICK pgomez-r\nUSER pgomez-r 0 * :realname\n" - let's do it!
+ *	(!)Hexchat needs to have the server password in the network config,
+ *		otherwise, it won't send message #2
+ */
+void	Server::checkHexChatPass(int socketFd)
+{
+	std::string	pass;
+	bool		verified = true;
+
+	if (this->_message.find("PASS ") != 0)
+		verified = false;
+	if (verified)
+	{
+		pass = this->_message.substr(this->_message.find("PASS") + 5);
+		pass.erase(pass.find_last_not_of(" \n\r\t") + 1);
+		if (pass != this->_password)
+			verified = false;
+	}
+	if (!verified)
+	{
+		std::cout << "New HexChat connection with socket fd " << socketFd << " tried to login with wrong password or whithout any" << std::endl;
+		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
+		sendWarning(socketFd, ":MyServer 464 * :Password incorrect\n");
+		deleteUser(socketFd);
+		return ;
+	}
+	this->_users[socketFd]->setAuthenticated(true);
+}
+
 void	Server::deleteUser(int socketFd)
 {
 	std::vector<struct pollfd>::iterator i = this->_fds.begin();
@@ -136,4 +171,31 @@ bool Server::checkCmd(int userFd, std::string msg)
 		}
 	}
 	return (false);
+}
+
+User*	Server::getUserByNick(std::string nick)
+{
+	User	*user_ptr = NULL;
+	std::map<int, User*>::iterator i = this->_users.begin();
+
+	while (i != this->_users.end())
+	{
+		if (i->second->getNick() == nick)
+		{
+			user_ptr = i->second;
+			break ;
+		}
+		i++;
+	}
+	return (user_ptr);
+}
+
+User*	Server::getUserByFd(int fd)
+{
+	User	*user_ptr = NULL;
+	std::map<int, User*>::iterator i = this->_users.find(fd);
+
+	if (i != this->_users.end())
+		user_ptr = i->second;
+	return (user_ptr);
 }
