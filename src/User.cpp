@@ -1,16 +1,15 @@
 #include "ft_irc.hpp"
 
 /**
- * @brief In the case in which the new connection is happening by using
- * 	HexChat client
- * 	When login using this client, it sends two separate messages sent at start
- * 	-to consecutive poll events in the same socket-
- * 		#1 = "CAP LS 302\n"
- * 		#2 = "NICK pgomez-r\nUSER pgomez-r 0 * :realname\n"
- * @param msg is the whole message string sent by the hexchat client
- * TODO: find out what has to be done with the PASS authentication in this case
+ * @brief When login using this client, it sends three separate messages at start
+ * 	-three consecutive poll events in the same socket- this method checks #3
+ * 		#1 = "CAP LS 302\n" - skipeed first time and user->_hexChat = TRUE
+ *		#2 = "PASS <password>\n" - checked in server.checkPassHexChat()
+ * 		#3 = "NICK pgomez-r\nUSER pgomez-r 0 * :realname\n" - let's do it!
+ *	(!)Hexchat needs to have the server password in the network config,
+ *		otherwise, it won't send message #2
  */
-void	User::hexChatLogin(std::string msg)
+void	User::hexChatUser(std::string msg)
 {
 	std::string	nick;
 	std::string user;
@@ -21,9 +20,8 @@ void	User::hexChatLogin(std::string msg)
 	user = msg.substr(msg.find("USER") + 5);
 	pos = user.find_first_of(" ");
 	user = user.substr(0, pos);
-	setNick(nick);
-	setUserName(user);
-	setAuthenticated(true);
+	this->_nickName(nick);
+	this->_userName(user);
 }
 
 int User::getFd() const

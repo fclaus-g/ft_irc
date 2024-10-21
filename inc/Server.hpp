@@ -61,6 +61,7 @@ class Server
 		bool			loginFormat(std::string msg);
 		void			sendWarning(int userFd, std::string str);
 		void			checkPass(int userFd);
+		void			checkHexChatPass(int socketFd);
 		void			parseMsg(int userFd, std::string msg);
 		bool			checkCmd(int userFd, std::string msg);
 		void			runCmd(int userFd, int key, std::string cmd);

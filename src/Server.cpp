@@ -135,18 +135,25 @@ void	Server::msgHandler(int socketFd)
 	this->_message = buffer;
 	std::cout << "RAW MESSAGE = " << this->_message << std::endl;
 	if (this->_message.find("CAP LS") != std::string::npos)
-	{
 		this->_users[socketFd]->setHexClient(true);
-		return ;
-	}
 	else if (this->_users[socketFd]->getHexClient() && !this->_users[socketFd]->getAuthenticated())
-	{
-		this->_users[socketFd]->hexChatLogin(this->_message);
-		this->_users[socketFd]->setAuthenticated(true);
-		return ;
-	}
+		checkHexChatPass(socketFd);
+	else if (this->_users[socketFd]->getHexClient() && this->_users[socketFd]->getAuthenticated())
+		this->_users[socketFd]->hexChatUser(this->_message);
 	else if (!firstMessage(socketFd, this->_message))
 		parseMsg(socketFd, this->_message);
+}
+
+void	Server::checkHexChatPass(int socketFd)
+{
+	std::string	pass;
+	size_t		pos;
+	size_t		stop;
+
+	pos = msg.find("PASS") + 5;
+	pos = pass.find_first_of("\n");
+	pass = msg.substr(pos);
+	pas = pass.substr(0, );
 }
 
 bool	Server::firstMessage(int userFd, std::string msg)
