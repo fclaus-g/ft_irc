@@ -218,10 +218,14 @@ void Server::commandNick(User user)
 
 void Server::commandJoin(User user)
 {
+	std::cout << "Command JOIN" << std::endl;
+	std::cout << user << std::endl;
 	size_t iPos = this->_message.find_first_not_of(" \t");
 	size_t fPos = this->_message.find_first_of(" \t", iPos);
+	std::cout << iPos << fPos << std::endl;
 
-	std::string channel = this->_message.substr(iPos, fPos - iPos);
+	std::cout << this->_message.substr(fPos, this->_message.size() - 1); 
+	std::string channel = this->_message.substr(fPos + 1, this->_message.size() - 1);
 	if (channel[0] != '#')
 	{
 		std::cout << "Error: Invalid channel name" << std::endl;
@@ -232,7 +236,7 @@ void Server::commandJoin(User user)
 	{
 		if (it->getName() == channel)
 		{
-			it->addUserChannel(user);
+			this->addUserToChannel(channel, user);
 			return;
 		}
 	}
@@ -330,12 +334,16 @@ void Server::addUserToChannel(const std::string& channelName, User& user)
 		if (this->_channels[i].getName() == channelName)
 		{
 			this->_channels[i].addUserChannel(user);
-			std::cout << "User added to channel" << std::endl;
+			std::cout<< GRE << "User added to channel" << channelName << std::endl;
 			send(user.getFd(), "You have been added to the channel\n", strlen("You have been added to the channel\n"), 0);
 			return;
 		}
+		// if (i == this->_channels.size() - 1)
+		// {
+		// 	std::cout << "Channel not found" << std::endl;
+		// 	send(user.getFd(), "Channel not found\n", strlen("Channel not found\n"), 0);
+		// }
 	}
-	std::cout << "Channel not found" << std::endl;
 }
 
 void Server::removeChannel(const std::string& name)
@@ -459,6 +467,41 @@ void	Server::checkPass(int userFd)
 	}
 }
 
+/**
+ * @brief When login using HexChat, this client sends 3 separate messages at start
+ * 	-three consecutive poll events in the same socket- this method checks #2 to see
+ * 	if the password sent by the client matches the one we set for the server
+ * 		#1 = "CAP LS 302\n" - skipeed first time and user->_hexChat = TRUE
+ *		#2 = "PASS <password>\n" - checked in server.checkPassHexChat()
+ * 		#3 = "NICK pgomez-r\nUSER pgomez-r 0 * :realname\n" - let's do it!
+ *	(!)Hexchat needs to have the server password in the network config,
+ *		otherwise, it won't send message #2
+ */
+void	Server::checkHexChatPass(int socketFd)
+{
+	std::string	pass;
+	bool		verified = true;
+
+	if (this->_message.find("PASS ") != 0)
+		verified = false;
+	if (verified)
+	{
+		pass = this->_message.substr(this->_message.find("PASS") + 5);
+		pass.erase(pass.find_last_not_of(" \n\r\t") + 1);
+		if (pass != this->_password)
+			verified = false;
+	}
+	if (!verified)
+	{
+		std::cout << "New HexChat connection with socket fd " << socketFd << " tried to login with wrong password or whithout any" << std::endl;
+		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
+		sendWarning(socketFd, ":MyServer 464 * :Password incorrect\n");
+		deleteUser(socketFd);
+		return ;
+	}
+	this->_users[socketFd]->setAuthenticated(true);
+}
+
 void	Server::newConnection()
 {
 	sockaddr_in 		client_addr;
@@ -507,12 +550,14 @@ void	Server::msgHandler(int socketFd)
 	}
 	buffer[read_bytes] = '\0';
 	this->_message = buffer;
+	std::cout << "Message received from socket fd " << socketFd << ": " << this->_message << std::endl;
 	if (!firstMessage(socketFd, this->_message))
 		parseMsg(socketFd, this->_message);
 }
 
 void	Server::parseMsg(int userFd, std::string msg)
 {
+	std::cout << "Parsing message" << std::endl;
 	if (!checkCmd(userFd, msg))
 	{
 		std::string	user_msg = "@" + this->_users[userFd]->getNick() + ": " + msg;
@@ -530,10 +575,13 @@ void	Server::parseMsg(int userFd, std::string msg)
 
 bool Server::checkCmd(int userFd, std::string msg)
 {
+	std::cout << "Checking command" << std::endl;
 	for (int i = 0; i < TOTAL; i++)
 	{
+		std::cout << "Checking command " << _commands[i] << std::endl;
 		if (msg.find(_commands[i]) == 0)
 		{
+			std::cout << "Command found" << std::endl;
 			runCmd(userFd, i, msg);
 			return (true);
 		}
@@ -552,6 +600,7 @@ void	Server::runCmd(int userFd, int key, std::string msg)
 		case NICK:
 			break;
 		case JOIN:
+			commandJoin(*_users[userFd]);
 			break;
 		case QUIT:
 			break;
