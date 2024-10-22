@@ -180,9 +180,12 @@ void Server::checkCommand(User user)
 		default:
 			break;
 	}
+	std::cout << "Command: " << command << std::endl;
+	std::cout << user << std::endl;
+	std::cout << "Message: OUT OF COMMAND "<< std::endl;
 }
 
-void Server::commandUser(User user) //Modificar para que acepte USER jsaavedr 0 * :realname
+void Server::commandUser(User& user) //Modificar para que acepte USER jsaavedr 0 * :realname
 {
 	std::string username;
 	std::string realname;
@@ -207,7 +210,7 @@ void Server::commandUser(User user) //Modificar para que acepte USER jsaavedr 0 
 	(void)user;
 }
 
-void Server::commandNick(User user)
+void Server::commandNick(User& user)
 {
 	size_t iPos = this->_message.find_first_not_of(" \t");
 
@@ -216,15 +219,15 @@ void Server::commandNick(User user)
 
 }
 
-void Server::commandJoin(User user)
+void Server::commandJoin(User& user)
 {
 	std::cout << "Command JOIN" << std::endl;
-	std::cout << user << std::endl;
+	//std::cout << user << std::endl;
 	size_t iPos = this->_message.find_first_not_of(" \t");
 	size_t fPos = this->_message.find_first_of(" \t", iPos);
-	std::cout << iPos << fPos << std::endl;
+	//std::cout << iPos << fPos << std::endl;
 
-	std::cout << this->_message.substr(fPos, this->_message.size() - 1); 
+	//std::cout << this->_message.substr(fPos, this->_message.size() - 1); 
 	std::string channel = this->_message.substr(fPos + 1, this->_message.size() - 1);
 	if (channel[0] != '#')
 	{
@@ -242,6 +245,8 @@ void Server::commandJoin(User user)
 	}
 	this->createChannel(channel);
 	this->addUserToChannel(channel, user);
+	//std::cout << "post add user to channel" << std::endl;
+	//std::cout << user << "------" << std::endl;
 }
 
 void Server::commandQuit(User user)
@@ -315,7 +320,8 @@ void Server::createChannel(const std::string& name)
 	}
 	Channel *newChannel = new Channel(name);
 	this->_channels.push_back(*newChannel);
-	printVector(_channels);
+	this->_channelsMap[name] = *newChannel;
+	//printVector(_channels); for check the vector channel is created correctly
 	std::cout << "Channel created" << std::endl;
 }
 
@@ -323,7 +329,7 @@ void Server::printVector(const std::vector<Channel>& vector)
 {
 	for (size_t i = 0; i < vector.size(); i++)
 	{
-		std::cout << vector[i] << std::endl;
+		std::cout << YEL << vector[i] << RES << std::endl;
 	}
 }
 
@@ -334,7 +340,7 @@ void Server::addUserToChannel(const std::string& channelName, User& user)
 		if (this->_channels[i].getName() == channelName)
 		{
 			this->_channels[i].addUserChannel(user);
-			std::cout<< GRE << "User added to channel" << channelName << std::endl;
+			std::cout<< GRE << "User added to channel " << channelName << std::endl;
 			send(user.getFd(), "You have been added to the channel\n", strlen("You have been added to the channel\n"), 0);
 			return;
 		}
@@ -353,6 +359,7 @@ void Server::removeChannel(const std::string& name)
 		if (this->_channels[i].getName() == name)
 		{
 			this->_channels.erase(this->_channels.begin() + i);
+			this->_channelsMap.erase(name);
 			std::cout << "Channel removed" << std::endl;
 			return;
 		}
@@ -557,7 +564,7 @@ void	Server::msgHandler(int socketFd)
 
 void	Server::parseMsg(int userFd, std::string msg)
 {
-	std::cout << "Parsing message" << std::endl;
+	//std::cout << "Parsing message" << std::endl;
 	if (!checkCmd(userFd, msg))
 	{
 		std::string	user_msg = "@" + this->_users[userFd]->getNick() + ": " + msg;
@@ -575,10 +582,10 @@ void	Server::parseMsg(int userFd, std::string msg)
 
 bool Server::checkCmd(int userFd, std::string msg)
 {
-	std::cout << "Checking command" << std::endl;
+	//std::cout << "Checking command" << std::endl;
 	for (int i = 0; i < TOTAL; i++)
 	{
-		std::cout << "Checking command " << _commands[i] << std::endl;
+		//std::cout << "Checking command " << _commands[i] << std::endl;
 		if (msg.find(_commands[i]) == 0)
 		{
 			std::cout << "Command found" << std::endl;
