@@ -31,6 +31,7 @@ class Server
 		int							_serverFd;
 		std::string					_message;
 		std::vector<Channel>		_channels;//vector of channels
+		std::map<std::string, Channel> _channelsMap;//map of channels
 		std::map<int, User*>		_users;//map of clients file descriptors and their objects
 		//std::map<int, std::string> clients;//map of clients file descriptors and their names
 		std::vector<struct pollfd> 	_fds;//pollfd used for monitoring file descriptors
@@ -69,13 +70,14 @@ class Server
 		void 		createChannel(const std::string& name);
 		void 		addUserToChannel(const std::string& channelName, User& user);
 		void 		removeChannel(const std::string& name);
+
 		//void addChannel(std::string &name);
 
 		//Commands
 		void 		checkCommand(User user);
-		void 		commandUser(User user);
-		void 		commandNick(User user);
-		void 		commandJoin(User user);
+		void 		commandUser(User& user);
+		void 		commandNick(User& user);
+		void 		commandJoin(User& user);
 		void 		commandQuit(User user);
 		void 		commandPrivmsg(User user);
 		void 		commandKick(User user);
