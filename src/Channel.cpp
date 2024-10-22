@@ -177,11 +177,40 @@ bool Channel::channelIsFull()
 		return true;
 	return false;
 }
+/*-----------------------[CHECK METHODS]------------------------*/
+bool Channel::isUserInChannel(User& user)
+{
+	for (size_t i = 0; i < this->_users.size(); i++)
+	{
+		if (this->_users[i].getFd() == user.getFd())
+			return true;
+	}
+	return false;
+}
+
+bool Channel::isOp(User& user)
+{
+	for (size_t i = 0; i < this->_op.size(); i++)
+	{
+		if (this->_op[i].getFd() == user.getFd())
+			return true;
+	}
+	return false;
+}
+
+bool Channel::channelIsFull()
+{
+	if (this->_usersLimit == -1)
+		return false;
+	if (this->_users.size() >= static_cast<size_t>(this->_usersLimit))
+		return true;
+	return false;
+}
 /*-----------------------[METHODS]------------------------*/
 
 void Channel::addUserChannel(User& user)
 {
-	//std::cout << RED << user << std::endl;
+	std::cout << RED << user << std::endl;
 	if (this->isUserInChannel(user))
 	{
 		std::cout << "User already in channel" << std::endl;
@@ -196,13 +225,10 @@ void Channel::addUserChannel(User& user)
 	}
 	else
 	{
-		this->_usersInChannel++;
 		this->_usersMap[user.getFd()] = false;
 		this->_users.push_back(user);
-		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@127.0.0.1 JOIN :" + this->getName() + "\n";
-		send(user.getFd(), msg.c_str(), msg.length(), 0);
 	}
-	//std::cout << *this << std::endl;
+	std::cout << *this << std::endl;
 }
 
 void Channel::removeUserChannel(User& user)
@@ -256,36 +282,6 @@ void Channel::removeOpChannel(int userFd)
 	{
 		std::cout << "User is not op" << std::endl;
 	}
-}
-
-/**
- * @brief Broadcast a message to all users in the channel except the one who sent the message
- * @param message the message to be sent
- * @param userFd the user file descriptor to avoid sending the message to the sender
- * TODO: later, check each user for bans, mutes, etc before sending the message
- */
-void Channel::broadcastMessage(const std::string& message, int userFd)
-{
-	for (size_t i = 0; i < this->_users.size(); i++)
-	{
-		if (this->_users[i].getFd() != userFd)
-			send(this->_users[i].getFd(), message.c_str(), message.size(), 0);
-	}
-}
-
-void Channel::sendTopicMessage(User& user)
-{
-	std::string topicMsg;
-	if (this->_topic.empty())
-	{
-		topicMsg = ":server 331" + user.getNick() + " " + this->_name + " :No topic is set";
-	}
-	else
-	{
-		topicMsg = ":server 332" + user.getNick() + " " + this->_name + " :" + this->_topic;
-	}
-	std::cout << topicMsg << std::endl;
-	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
 }
 
 std::ostream& operator<<(std::ostream& os, const Channel& channel)
