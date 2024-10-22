@@ -228,6 +228,7 @@ void Server::commandJoin(User& user)
 	//std::cout << iPos << fPos << std::endl;
 
 	//std::cout << this->_message.substr(fPos, this->_message.size() - 1); 
+	/*LA SIGUIENTE LINEA DEBE LLEGAR HASTA EL SIGUIENTE ESPACIO NO HASTA EL FINAL*/
 	std::string channel = this->_message.substr(fPos + 1, this->_message.size() - 1);
 	if (channel[0] != '#')
 	{
