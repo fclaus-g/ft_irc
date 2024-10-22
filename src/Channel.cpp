@@ -123,12 +123,57 @@ const std::string& Channel::getPassword() const
 {
 	return this->_password;
 }
+/*-----------------------[CHECK METHODS]------------------------*/
+bool Channel::isUserInChannel(User& user)
+{
+	for (size_t i = 0; i < this->_users.size(); i++)
+	{
+		if (this->_users[i].getFd() == user.getFd())
+			return true;
+	}
+	return false;
+}
 
+bool Channel::isOp(User& user)
+{
+	for (size_t i = 0; i < this->_op.size(); i++)
+	{
+		if (this->_op[i].getFd() == user.getFd())
+			return true;
+	}
+	return false;
+}
+
+bool Channel::channelIsFull()
+{
+	if (this->_usersLimit == -1)
+		return false;
+	if (this->_users.size() >= static_cast<size_t>(this->_usersLimit))
+		return true;
+	return false;
+}
 /*-----------------------[METHODS]------------------------*/
 
 void Channel::addUserChannel(User& user)
 {
-	this->_users.push_back(user);
+	std::cout << RED << user << std::endl;
+	if (this->isUserInChannel(user))
+	{
+		std::cout << "User already in channel" << std::endl;
+		send(user.getFd(), "User already in channel", 21, 0);
+		return;
+	}
+	if (this->channelIsFull())
+	{
+		std::cout << "Channel is full" << std::endl;
+		send(user.getFd(), "Channel is full", 15, 0);
+		return;
+	}
+	else
+	{
+		this->_usersMap[user.getFd()] = false;
+		this->_users.push_back(user);
+	}
 	std::cout << *this << std::endl;
 }
 
@@ -146,25 +191,42 @@ void Channel::removeUserChannel(User& user)
 
 void Channel::addOpChannel(User& user)
 {
-	for (size_t i = 0; i < this->_users.size(); i++)
+	if (this->isOp(user))
 	{
-		if (this->_users[i].getFd() == user.getFd())
-		{
-			this->_op.push_back(this->_users[i]);
-			break;
-		}
+		std::cout << "User is already op" << std::endl;
+		return;
+	}
+	if (this->isUserInChannel(user))
+	{
+		this->_op.push_back(user);
+	}
+	else
+	{
+		std::cout << "User is not in channel" << std::endl;
 	}
 }
 
 void Channel::removeOpChannel(int userFd)
 {
-	for (size_t i = 0; i < this->_op.size(); i++)
+	if (this->_op.empty())
 	{
-		if (this->_op[i].getFd() == userFd)
+		std::cout << "No op in channel" << std::endl;
+		return;
+	}
+	if (this->isOp(this->_users[userFd]))
+	{
+		for (size_t i = 0; i < this->_op.size(); i++)
 		{
-			this->_op.erase(this->_op.begin() + i);
-			break;
+			if (this->_op[i].getFd() == userFd)
+			{
+				this->_op.erase(this->_op.begin() + i);
+				break;
+			}
 		}
+	}
+	else
+	{
+		std::cout << "User is not op" << std::endl;
 	}
 }
 

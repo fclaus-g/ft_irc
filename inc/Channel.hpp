@@ -22,7 +22,7 @@ class Channel
 		std::string _topic;
 		std::vector<User> _users;
 		std::vector<User> _op;
-		//std::map<User &, bool> _users;
+		std::map<int, bool> _usersMap; //
 		bool _inviteMode;
 		bool _topicMode;
 		bool _keyMode;
@@ -33,7 +33,7 @@ class Channel
 		Channel(std::string name);
 		Channel(const Channel &rhs);
 		~Channel();
-
+		//getters
 		Channel& operator=(const Channel &rhs);
 		const std::string& getName() const;
 		const std::string& getTopic() const;
@@ -43,7 +43,7 @@ class Channel
 		bool getKeyMode() const;
 		int getUsersLimit() const;
 		const std::string& getPassword() const;
-
+		//setters
 		void setName(const std::string& name);
 		void setTopic(const std::string& topic);
 		void setInviteMode(const bool inviteMode);
@@ -51,7 +51,11 @@ class Channel
 		void setKeyMode(const bool keyMode);
 		void setUsersLimit(const int usersLimit);
 		void setPassword(const std::string& password);
-
+		//check methods
+		bool isUserInChannel(User& user);
+		bool isOp(User& user);
+		bool channelIsFull();
+		//methods
 		void addUserChannel(User& user);
 		void removeUserChannel(User& user);
 		void addOpChannel(User& user);
