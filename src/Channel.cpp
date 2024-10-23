@@ -125,6 +125,15 @@ const std::string& Channel::getPassword() const
 }
 
 /*-----------------------[METHODS]------------------------*/
+bool Channel::isAdmin(User *user)
+{
+	for (size_t i = 0; i < this->_op.size(); i++)
+	{
+		if (this->_op[i] == user)
+			return (true);
+	}
+	return (false);
+}
 
 void Channel::addUserChannel(User& user)
 {
@@ -144,13 +153,14 @@ void Channel::removeUserChannel(User& user)
 	}
 }
 
-void Channel::addOpChannel(User& user)
+void Channel::addOpChannel(User *user)
 {
 	for (size_t i = 0; i < this->_users.size(); i++)
 	{
-		if (this->_users[i].getFd() == user.getFd())
+		if (this->_users[i].getFd() == user->getFd())
 		{
-			this->_op.push_back(this->_users[i]);
+			//this->_op.push_back(this->_users[i]);
+			this->_op.push_back(user);
 			break;
 		}
 	}
@@ -160,7 +170,7 @@ void Channel::removeOpChannel(int userFd)
 {
 	for (size_t i = 0; i < this->_op.size(); i++)
 	{
-		if (this->_op[i].getFd() == userFd)
+		if (this->_op[i]->getFd() == userFd)
 		{
 			this->_op.erase(this->_op.begin() + i);
 			break;

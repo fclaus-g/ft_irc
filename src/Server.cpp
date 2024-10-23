@@ -180,9 +180,12 @@ void Server::checkCommand(User user)
 		default:
 			break;
 	}
+	std::cout << "Command: " << command << std::endl;
+	std::cout << user << std::endl;
+	std::cout << "Message: OUT OF COMMAND "<< std::endl;
 }
 
-void Server::commandUser(User user) //Modificar para que acepte USER jsaavedr 0 * :realname
+void Server::commandUser(User& user) //Modificar para que acepte USER jsaavedr 0 * :realname
 {
 	std::string username;
 	std::string realname;
@@ -207,7 +210,7 @@ void Server::commandUser(User user) //Modificar para que acepte USER jsaavedr 0 
 	(void)user;
 }
 
-void Server::commandNick(User user)
+void Server::commandNick(User& user)
 {
 	size_t iPos = this->_message.find_first_not_of(" \t");
 
@@ -216,12 +219,17 @@ void Server::commandNick(User user)
 
 }
 
-void Server::commandJoin(User user)
+void Server::commandJoin(User& user)
 {
+	std::cout << "Command JOIN" << std::endl;
+	//std::cout << user << std::endl;
 	size_t iPos = this->_message.find_first_not_of(" \t");
 	size_t fPos = this->_message.find_first_of(" \t", iPos);
+	//std::cout << iPos << fPos << std::endl;
 
-	std::string channel = this->_message.substr(iPos, fPos - iPos);
+	//std::cout << this->_message.substr(fPos, this->_message.size() - 1); 
+	/*LA SIGUIENTE LINEA DEBE LLEGAR HASTA EL SIGUIENTE ESPACIO NO HASTA EL FINAL*/
+	std::string channel = this->_message.substr(fPos + 1, this->_message.size() - 1);
 	if (channel[0] != '#')
 	{
 		std::cout << "Error: Invalid channel name" << std::endl;
@@ -232,12 +240,14 @@ void Server::commandJoin(User user)
 	{
 		if (it->getName() == channel)
 		{
-			it->addUserChannel(user);
+			this->addUserToChannel(channel, user);
 			return;
 		}
 	}
 	this->createChannel(channel);
 	this->addUserToChannel(channel, user);
+	//std::cout << "post add user to channel" << std::endl;
+	//std::cout << user << "------" << std::endl;
 }
 
 void Server::commandQuit(User user)
@@ -274,7 +284,7 @@ void Server::signalHandler(int signal)
 {
 	if (signal == SIGINT || signal == SIGQUIT)
 	{
-		std::cout << "Signal received: " << signal << std::endl;
+		std::cout << " Signal received: " << signal << std::endl;
 		throw std::runtime_error("Server stopped by signal");
 	}
 }
@@ -311,7 +321,8 @@ void Server::createChannel(const std::string& name)
 	}
 	Channel *newChannel = new Channel(name);
 	this->_channels.push_back(*newChannel);
-	printVector(_channels);
+	this->_channelsMap[name] = *newChannel;
+	//printVector(_channels); for check the vector channel is created correctly
 	std::cout << "Channel created" << std::endl;
 }
 
@@ -319,7 +330,7 @@ void Server::printVector(const std::vector<Channel>& vector)
 {
 	for (size_t i = 0; i < vector.size(); i++)
 	{
-		std::cout << vector[i] << std::endl;
+		std::cout << YEL << vector[i] << RES << std::endl;
 	}
 }
 
@@ -330,12 +341,17 @@ void Server::addUserToChannel(const std::string& channelName, User& user)
 		if (this->_channels[i].getName() == channelName)
 		{
 			this->_channels[i].addUserChannel(user);
-			std::cout << "User added to channel" << std::endl;
-			send(user.getFd(), "You have been added to the channel\n", strlen("You have been added to the channel\n"), 0);
+			std::cout<< GRE << "User added to channel " << channelName << std::endl;
+			std::string  message = "You have been added to the channel " + channelName + "\n";
+			send(user.getFd(), message.c_str(), message.size(), 0);
 			return;
 		}
+		// if (i == this->_channels.size() - 1)
+		// {
+		// 	std::cout << "Channel not found" << std::endl;
+		// 	send(user.getFd(), "Channel not found\n", strlen("Channel not found\n"), 0);
+		// }
 	}
-	std::cout << "Channel not found" << std::endl;
 }
 
 void Server::removeChannel(const std::string& name)
@@ -345,6 +361,7 @@ void Server::removeChannel(const std::string& name)
 		if (this->_channels[i].getName() == name)
 		{
 			this->_channels.erase(this->_channels.begin() + i);
+			this->_channelsMap.erase(name);
 			std::cout << "Channel removed" << std::endl;
 			return;
 		}
@@ -370,7 +387,7 @@ std::ostream& operator<<(std::ostream& out, const Server& server)
 void Server::welcomeUser(int userFd)
 {
 	std::string msg;
-	msg = "Wecolme to The Pollitas Server!\n";
+	msg = "Welcome to The Pollitas Server!\n";
 	msg.append("Insert user nick and server password\n");
 	msg.append("Usage \"NICK <your_nickname> PASS <server_password>\"\n");
 	send(userFd, msg.c_str(), msg.length(), 0);
@@ -405,7 +422,10 @@ void	Server::sendWarning(int userFd, std::string str)
 bool	Server::firstMessage(int userFd, std::string msg)
 {
 	if (this->_users[userFd]->getAuthenticated() == true)
+	{
+		std::cout << "User with socket fd " << userFd << " is already authenticated" << std::endl;
 		return (false);
+	}	
 	if (!loginFormat(msg))
 	{
 		std::cout << "New connection with socket fd " << userFd << " tried to login with wrong login format" << std::endl;
@@ -459,6 +479,41 @@ void	Server::checkPass(int userFd)
 	}
 }
 
+/**
+ * @brief When login using HexChat, this client sends 3 separate messages at start
+ * 	-three consecutive poll events in the same socket- this method checks #2 to see
+ * 	if the password sent by the client matches the one we set for the server
+ * 		#1 = "CAP LS 302\n" - skipeed first time and user->_hexChat = TRUE
+ *		#2 = "PASS <password>\n" - checked in server.checkPassHexChat()
+ * 		#3 = "NICK pgomez-r\nUSER pgomez-r 0 * :realname\n" - let's do it!
+ *	(!)Hexchat needs to have the server password in the network config,
+ *		otherwise, it won't send message #2
+ */
+void	Server::checkHexChatPass(int socketFd)
+{
+	std::string	pass;
+	bool		verified = true;
+
+	if (this->_message.find("PASS ") != 0)
+		verified = false;
+	if (verified)
+	{
+		pass = this->_message.substr(this->_message.find("PASS") + 5);
+		pass.erase(pass.find_last_not_of(" \n\r\t") + 1);
+		if (pass != this->_password)
+			verified = false;
+	}
+	if (!verified)
+	{
+		std::cout << "New HexChat connection with socket fd " << socketFd << " tried to login with wrong password or whithout any" << std::endl;
+		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
+		sendWarning(socketFd, ":MyServer 464 * :Password incorrect\n");
+		deleteUser(socketFd);
+		return ;
+	}
+	this->_users[socketFd]->setAuthenticated(true);
+}
+
 void	Server::newConnection()
 {
 	sockaddr_in 		client_addr;
@@ -507,12 +562,33 @@ void	Server::msgHandler(int socketFd)
 	}
 	buffer[read_bytes] = '\0';
 	this->_message = buffer;
-	if (!firstMessage(socketFd, this->_message))
+	std::cout << "RAW MESSAGE = " << this->_message << std::endl;
+	if (this->_message.find("CAP LS") != std::string::npos)
+	{
+		this->_users[socketFd]->setHexClient(true);
+		std::cout << "este es el mensaje CAP LS" << std::endl;
+	}	
+
+	else if (this->_users[socketFd]->getHexClient() && !this->_users[socketFd]->getAuthenticated())
+	{
+		checkHexChatPass(socketFd);
+		std::cout << "este es el mensje PASS" << std::endl;
+	}	
+	else if (!firstMessage(socketFd, this->_message))
+	{
+		std::cout << "este es el mensaje USER" << std::endl;
 		parseMsg(socketFd, this->_message);
+	}	
+	else if (this->_users[socketFd]->getHexClient() && this->_users[socketFd]->getAuthenticated())
+	{
+		this->_users[socketFd]->hexChatUser(this->_message);
+		std::cout << "este es el mensaje NICK" << std::endl;
+	}	
 }
 
 void	Server::parseMsg(int userFd, std::string msg)
 {
+	std::cout << "Parsing message" << std::endl;
 	if (!checkCmd(userFd, msg))
 	{
 		std::string	user_msg = "@" + this->_users[userFd]->getNick() + ": " + msg;
@@ -530,10 +606,13 @@ void	Server::parseMsg(int userFd, std::string msg)
 
 bool Server::checkCmd(int userFd, std::string msg)
 {
+	std::cout << "Checking command" << std::endl;
 	for (int i = 0; i < TOTAL; i++)
 	{
+		//std::cout << "Checking command " << _commands[i] << std::endl;
 		if (msg.find(_commands[i]) == 0)
 		{
+			std::cout << "Command found" << std::endl;
 			runCmd(userFd, i, msg);
 			return (true);
 		}
@@ -552,6 +631,7 @@ void	Server::runCmd(int userFd, int key, std::string msg)
 		case NICK:
 			break;
 		case JOIN:
+			commandJoin(*_users[userFd]);
 			break;
 		case QUIT:
 			break;

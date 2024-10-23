@@ -24,7 +24,7 @@ class Channel
 		std::string _name;
 		std::string _topic;
 		std::vector<User> _users;
-		std::vector<User> _op;
+		std::vector<User *> _op;
 		//std::map<User &, bool> _users;
 		bool _inviteMode;
 		bool _topicMode;
@@ -55,9 +55,10 @@ class Channel
 		void setUsersLimit(const int usersLimit);
 		void setPassword(const std::string& password);
 
+		bool isAdmin(User *user);
 		void addUserChannel(User& user);
 		void removeUserChannel(User& user);
-		void addOpChannel(User& user);
+		void addOpChannel(User *user);
 		void removeOpChannel(int userFd);
 };
 
