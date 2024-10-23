@@ -254,8 +254,9 @@ void Server::addUserToChannel(const std::string& channelName, User& user)
 		if (this->_channels[i].getName() == channelName)
 		{
 			this->_channels[i].addUserChannel(user);
-			std::cout<< GRE << "User added to channel" << channelName << std::endl;
-			send(user.getFd(), "You have been added to the channel\n", strlen("You have been added to the channel\n"), 0);
+			std::cout<< GRE << "User added to channel " << channelName << std::endl;
+			std::string  message = "You have been added to the channel " + channelName + "\n";
+			send(user.getFd(), message.c_str(), message.size(), 0);
 			return;
 		}
 		// if (i == this->_channels.size() - 1)
@@ -333,7 +334,10 @@ void	Server::sendWarning(int userFd, std::string str)
 bool	Server::firstMessage(int userFd, std::string msg)
 {
 	if (this->_users[userFd]->getAuthenticated() == true)
+	{
+		std::cout << "User with socket fd " << userFd << " is already authenticated" << std::endl;
 		return (false);
+	}	
 	if (!loginFormat(msg))
 	{
 		std::cout << "New connection with socket fd " << userFd << " tried to login with wrong login format" << std::endl;
@@ -474,9 +478,28 @@ void	Server::msgHandler(int socketFd)
 	}
 	buffer[read_bytes] = '\0';
 	this->_message = buffer;
-	std::cout << "Message received from socket fd " << socketFd << ": " << this->_message << std::endl;
-	if (!firstMessage(socketFd, this->_message))
+	std::cout << "RAW MESSAGE = " << this->_message << std::endl;
+	if (this->_message.find("CAP LS") != std::string::npos)
+	{
+		this->_users[socketFd]->setHexClient(true);
+		std::cout << "este es el mensje CAP LS" << std::endl;
+	}	
+
+	else if (this->_users[socketFd]->getHexClient() && !this->_users[socketFd]->getAuthenticated())
+	{
+		checkHexChatPass(socketFd);
+		std::cout << "este es el mensje PASS" << std::endl;
+	}	
+	else if (!firstMessage(socketFd, this->_message))
+	{
+		std::cout << "este es el mensje USER" << std::endl;
 		parseMsg(socketFd, this->_message);
+	}	
+	else if (this->_users[socketFd]->getHexClient() && this->_users[socketFd]->getAuthenticated())
+	{
+		this->_users[socketFd]->hexChatUser(this->_message);
+		std::cout << "este es el mensje NICK" << std::endl;
+	}	
 }
 
 void	Server::parseMsg(int userFd, std::string msg)
