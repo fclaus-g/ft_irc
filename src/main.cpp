@@ -1,61 +1,30 @@
-#include "../inc/ircserv.h"
+#include "../inc/ft_irc.hpp"
 
-static bool ft_isnbr(std::string str)
+int main (int ac, char **av)
 {
-	bool	res;
-
-	res = true;
-	for (size_t i = 0; i < str.size(); i++)
+	if (ac != 3)
 	{
-		if (!isdigit(str.at(i)))
-		{
-			res = false;
-			break;
-		}
+		std::cerr << "Usage: " << av[0] << " <port> <password>" << std::endl;
+		return 1;
 	}
-	return (res);
-}
-
-static int ft_stoi(std::string s) 
-{
-    int i;
-
-    std::istringstream(s) >> i;
-    return i;
-}
-
-
-int main(int argc, char **argv)
-{
-	int			port;
-	std::string	pass;
-
-	if (argc != 3)
+	if (std::atoi(av[1]) < 1024 || std::atoi(av[1]) > 49151)
 	{
-		std::cerr << "Usage: ./ircserv port password" << std::endl;
-		exit(1);
+		std::cerr << "Port must be between 1024 and 49151" << std::endl;
+		return 1;
 	}
-	if (!ft_isnbr(argv[1]))
-	{
-        std::cerr << "ERROR: Port is invalid." << std::endl;
-		exit(1);
-    }
-	port = ft_stoi(argv[1]);
-	if (port < 1024  || port > 65535)
-	{
-		std::cerr << "ERROR: Port is invalid." << std::endl;
-		exit(1);
-	}
-	pass = argv[2];
+	Server server(std::atoi(av[1]), av[2]);
 	try
-    {
-		Server server(port, pass);
-		server.startIRCServer();
-        return (0);
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << e.what() << std::endl;
-        return (1);
-    }
+	{
+		signal(SIGINT, Server::signalHandler);
+		signal(SIGQUIT, Server::signalHandler);
+		server.start();
+		server.createChannel("General");
+	}
+	catch(const std::exception& e)
+	{
+		//AQUI DEBERA CERRAR ES SERVER LIMPIAMENTE(FDS)
+		server.stop();
+		std::cerr << e.what() << '\n';
+	}
+	return 0;
 }

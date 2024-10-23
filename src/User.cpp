@@ -2,83 +2,97 @@
 
 User::User()
 {
-
 }
 
-User::User(User const &u)
+User::User(int socket_fd)
 {
-	if (this != &u)
-		*this = u;    
+	this->_fd = socket_fd;
+	this->_authenticated = false;
+	this->_nickName = "";
+	this->_userName = "";
+	this->_realName = "";
 }
 
-User &User::operator=(User const &u)
+User::User(const User& rhs)
 {
-	if (this != &u)
+	*this = rhs;
+}
+
+User& User::operator=(const User& rhs)
+{
+	if (this != &rhs)
 	{
-		this->_userName = u._userName;
-		this->_nickName = u._nickName;
-		this->_realName = u._realName;
-        this->_host = u._host;
-        this->_port = u._port;
-        this->_clientSocket = u._clientSocket;
+		this->_fd = rhs._fd;
+		this->_authenticated = rhs._authenticated;
+		this->_ip = rhs._ip;
+		this->_nickName = rhs._nickName;
+		this->_userName = rhs._userName;
+		this->_realName = rhs._realName;
 	}
-	return (*this);
+	return *this;
 }
 
-User::User(int serverSocket)
-{
-    //need to grow and do many things
-    (void) serverSocket;
-}
-		
 User::~User()
 {
-    //Borrar la lista de canales en los que está el usuario
+}
+
+/*Get*/
+int User::getFd() const
+{
+	return this->_fd;
+}
+
+bool User::getAuthenticated() const
+{
+	return this->_authenticated;
+}
+
+
+std::string User::getIp() const
+{
+	return this->_ip;
+}
+
+std::string User::getNick() const
+{
+	return this->_nickName;
 }
 
 std::string User::getUserName() const
 {
-    return (this->_userName);
-}
-
-std::string User::getNickName() const
-{
-    return (this->_nickName);
+	return this->_userName;
 }
 
 std::string User::getRealName() const
 {
-    return (this->_realName);
+	return this->_realName;
 }
 
-std::string User::getHost() const
+/*Set*/
+
+void User::setFd(int fd)
 {
-    return (this->_host);
+	this->_fd = fd;
 }
 
-int User::getPort() const
+void User::setIp(std::string ip)
 {
-    return (this->_port);
+	this->_ip = ip;
 }
 
-int User::getSocket() const
+void User::setAuthenticated(bool authenticated)
 {
-    return (this->_clientSocket);
+	this->_authenticated = authenticated;
 }
 
-bool User::getAuthent() const
-{
-	return (this->_authent);
-}
-
-void User::setUserName(std::string name)
-{
-	this->_userName = name;
-}
-
-void User::setNickName(std::string nick)
+void User::setNick(std::string nick)
 {
 	this->_nickName = nick;
+}
+
+void User::setUserName(std::string userName)
+{
+	this->_userName = userName;
 }
 
 void User::setRealName(std::string realName)
@@ -86,32 +100,12 @@ void User::setRealName(std::string realName)
 	this->_realName = realName;
 }
 
-void User::setHost(std::string host)
-{
-	this->_host = host;
-}
-
-void User::setPort(int port)
-{
-	this->_port = port;
-}
-
-void User::setSocket(int sock)
-{
-	this->_clientSocket = sock;
-}
-
-void User::setAuthent(bool auth)
-{
-	this->_authent = auth;
-}
-
 std::ostream& operator<<(std::ostream& out, const User& user)
 {
-    out << "User: " << user.getSocket() << std::endl;
-    out << "IP: " << user.getHost() << std::endl;
-    out << "Nick: " << user.getNickName() << std::endl;
-    out << "UserName: " << user.getUserName() << std::endl;
-    out << "RealName: " << user.getRealName() << std::endl;
-    return out;
+	out << "User: " << user.getFd() << std::endl;
+	out << "IP: " << user.getIp() << std::endl;
+	out << "Nick: " << user.getNick() << std::endl;
+	out << "UserName: " << user.getUserName() << std::endl;
+	out << "RealName: " << user.getRealName() << std::endl;
+	return out;
 }

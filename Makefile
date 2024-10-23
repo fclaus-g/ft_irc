@@ -29,7 +29,7 @@ $(OBJ_DIR):
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@$(CC) $(FLAGS) -c $< -o $@
 
-$(NAME): $(OBJS) $(INC_DIR)/ircserv.h
+$(NAME): $(OBJS) $(INC_DIR)/ft_irc.hpp
 	@echo $(GREEN)Compiling...$(NOCOLOR)
 	@$(CC) $(FLAGS) $(SRCS) -o $(NAME)
 	@echo $(GREEN)Program ircserv ready$(NOCOLOR)

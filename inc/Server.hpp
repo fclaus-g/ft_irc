@@ -1,39 +1,90 @@
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
-#pragma once
+#include "ft_irc.hpp"
 
-#include "ircserv.h"
+enum command
+{
+	USER,
+	NICK,
+	JOIN,
+	QUIT,
+	PRIVMSG,
+	KICK,
+	INVITE,
+	TOPIC,
+	MODE,
+	TOTAL
+};
 
-#define MAX_CONNECT_NBR	128
-
+class Channel;
 class User;
 
 class Server
 {
 	private:
-		int			_socket;
-		int			_port;
-		std::string	_pass;
-		std::string	_serverName;
-		bool		_isRunning;
-		//std::vector<Channels *>	_channels;
-		std::map<int, User>			_users;
-		std::vector<struct pollfd>	_fds;
-		Server();
-		Server(Server const &s);
-		Server &operator=(Server const &s);
-
+		int						_port;
+		std::string				_password;
+		std::string				_name;
+		bool					_isRunning;
+		int						_serverFd;
+		std::string				_message;
+		std::vector<Channel>	_channels;//vector of channels
+		std::map<int, User *>	_users;//map of clients file descriptors and their objects
+		//std::map<int, std::string> clients;//map of clients file descriptors and their names
+		std::vector<struct pollfd> 	_fds;//pollfd used for monitoring file descriptors
+		std::string					_tempNick;
+		std::string					_tempPass;
+		std::string					_commands[TOTAL];
+		void						_initCommands();
 	public:
-		Server(int port, std::string pass);
+		Server();
+		Server(int port, std::string password);
 		~Server();
-
+		
 		int getPort() const;
 		std::string getName() const;
 		bool getIsRunning() const;
-		//std::map<int, User *> &getUsers() const;
+		void addChannel(std::string &name);
+		void start();
+		void run();
+		void stop();
+		void prepareSocket();
+		//User methods
+		void 		newConnection();
+		void		deleteUser(int socketFd);
+		void		welcomeUser(int userFd);
+		void		msgHandler(int socketFd);
+		bool		firstMessage(int userFd, std::string msg);
+		bool		loginFormat(std::string msg);
+		void		sendWarning(int userFd, std::string str);
+		void		checkPass(int userFd);
+		void		parseMsg(int userFd, std::string msg);
+		bool		checkCmd(int userFd, std::string msg);
+		void		runCmd(int userFd, int key, std::string cmd);
+		void printMap(const std::map<int, User>& map);
+		void printVector(const std::vector<Channel>& vector);
+		//Channel methods
+		void createChannel(const std::string& name);
+		void addUserToChannel(const std::string& channelName, User& user);
+		void removeChannel(const std::string& name);
 
-		void startIRCServer();
-		void acceptUser();
-		void readUser(int userFd);
-		void addUser(int userFd, struct sockaddr_in userAddr);
+		
+		void checkCommand(User user);
+		void commandUser(User user);
+		void commandNick(User user);
+		void commandJoin(User user);
+		void commandQuit(User user);
+		void commandPrivmsg(User user);
+		void commandKick(User user);
+		void commandInvite(User user);
+		void commandTopic(User user);
+		void commandMode(User user);
+
+		static void signalHandler(int signal);
+
 };
+
 std::ostream& operator<<(std::ostream& out, const Server& server);
+
+#endif
