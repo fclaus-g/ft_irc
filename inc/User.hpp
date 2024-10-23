@@ -8,10 +8,12 @@ class User
 	private:
 		int 			_fd;
 		bool			_authenticated;
+		bool 			_hexChatClient;
 		std::string		_ip;
 		std::string		_nickName;
 		std::string		_userName;
-		std::string 	_realName;
+		std::string 	_realName;		
+
 	public:
 		User();
 		User(int fd);
@@ -32,6 +34,11 @@ class User
 		void setNick(std::string nick);
 		void setUserName(std::string userName);
 		void setRealName(std::string realName);
+
+		bool				getHexClient() const;
+		void				setHexClient(bool state);
+		//Methods
+		void				hexChatUser(std::string msg);
 };
 
 std::ostream& operator<<(std::ostream& out, const User& user);
