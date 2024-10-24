@@ -318,3 +318,90 @@ ssize_t recv(int sockfd, void* buf, size_t len, int flags)
  *  * MSG_TRUNK
  * Seleccionando las flags correctas podemos adaptar la operación de recepción a nuestras necesidades hacienla mas versatil y eficiente.*/
  ```
+
+ ## std::istringstream
+ Clase de la biblioteca standard de C++ que se usa para realizar operaciones con cadenas. Es una especialización de std::basic_istringstream. Permite tratar una cadena como si fuera un flujo de entrada, similar a como se trataría un archivo o la entrada standar.
+ ### Características
+ * **Conversión de cadenas:** Permite convertir una cadena en diferentes tipos de datos.
+ * **Operaciones de entrada:** Soporta las mismas operaciones de entrada que std::istream, como >> y getLine.
+ * **Buffer interno:** Utiliza un buffer para almacenar la cadena de texto.
+ 
+ ### Ejemplo de uso
+ ```cpp
+ #include <iostream>
+#include <sstream>
+#include <string>
+
+int main() {
+    std::string input = "123 45.67 Hello";
+    std::istringstream iss(input);
+
+    int intValue;
+    double doubleValue;
+    std::string stringValue;
+
+    // Leer datos del flujo
+    iss >> intValue >> doubleValue >> stringValue;
+
+    // Mostrar los valores leídos
+    std::cout << "Integer: " << intValue << std::endl;
+    std::cout << "Double: " << doubleValue << std::endl;
+    std::cout << "String: " << stringValue << std::endl;
+
+    return 0;
+}
+/*
+Explicación del Ejemplo
+Inicialización: Se crea una cadena de texto input que contiene los datos a leer.
+Creación del Flujo: Se crea un objeto std::istringstream llamado iss y se inicializa con la cadena input.
+Lectura de Datos: Se utilizan los operadores de extracción (>>) para leer un entero, un doble y una cadena de texto del flujo.
+Mostrar Valores: Se muestran los valores leídos en la salida estándar.
+*/
+```
+## std::getline
+
+std::getline es una función de la biblioteca estándar de C++ que se utiliza para leer una línea completa de texto desde un flujo de entrada y almacenarla en una cadena de texto. Es especialmente útil para leer entradas que contienen espacios, ya que std::cin y el operador >> detienen la lectura en el primer espacio en blanco.
+
+### Características
+* Lectura de Líneas Completas: Lee una línea completa de texto hasta encontrar un carácter de nueva línea (\n).
+* Almacenamiento en std::string: Almacena la línea leída en un objeto std::string.
+* Personalización del Delimitador: Permite especificar un delimitador diferente al carácter de nueva línea.
+
+### Sintaxis
+```cpp
+std::getline(std::istream& is, std::string& str);
+std::getline(std::istream& is, std::string& str, char delim);
+/**
+ * is: El flujo de entrada desde el cual se lee la línea.
+ * str: La cadena de texto donde se almacenará la línea leída.
+ * delim: (Opcional) El carácter delimitador que indica el final de la línea. Por defecto, es el carácter de nueva línea (\n).
+ */
+```
+### Ejemplo de uso
+```cpp
+#include <iostream>
+#include <sstream>
+#include <string>
+
+int main() {
+    // Ejemplo con std::cin
+    std::string inputLine;
+    std::cout << "Enter a line of text: ";
+    std::getline(std::cin, inputLine);//lee del input y almacena en inputLine
+    std::cout << "You entered: " << inputLine << std::endl;
+
+    // Ejemplo con std::istringstream
+    std::string input = "First line\nSecond line\nThird line";
+    std::istringstream iss(input);
+    std::string line;
+    /*El resultado de la siguiente linea mostrará por pantalla lo siguiente:
+        First line
+        Second line
+        Third line*/    
+    while (std::getline(iss, line)) {
+        std::cout << "Read from stringstream: " << line << std::endl;
+    }
+
+    return 0;
+}
+```
