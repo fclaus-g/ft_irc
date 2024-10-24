@@ -57,6 +57,7 @@ class Server
 		void		welcomeUser(int userFd);
 		void		msgHandler(int socketFd);
 		bool		firstMessage(int userFd, std::string msg);
+		bool		checkHexChatPass(int socketFd);
 		bool		loginFormat(std::string msg);
 		void		sendWarning(int userFd, std::string str);
 		void		checkPass(int userFd);
@@ -69,7 +70,9 @@ class Server
 		void createChannel(const std::string& name);
 		void addUserToChannel(const std::string& channelName, User& user);
 		void removeChannel(const std::string& name);
-
+		
+		
+		//Command methods
 		
 		void checkCommand(User user);
 		void commandUser(User user);

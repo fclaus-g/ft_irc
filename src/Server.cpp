@@ -406,6 +406,7 @@ bool	Server::firstMessage(int userFd, std::string msg)
 {
 	if (this->_users[userFd]->getAuthenticated() == true)
 		return (false);
+	welcomeUser(userFd);
 	if (!loginFormat(msg))
 	{
 		std::cout << "New connection with socket fd " << userFd << " tried to login with wrong login format" << std::endl;
@@ -486,9 +487,19 @@ void	Server::newConnection()
 	_fds.push_back(new_pollfd);
 	_users[client_socket] = new User(client_socket);
 	std::cout << GRE << "New connection established with socket fd " << client_socket << RES << std::endl;
-	welcomeUser(client_socket);
 }
-
+/**
+ * @brief This function handles the message -poll event- sent by the current socket
+ * 	Logic process:
+ * 		- If nothing or error read, kick and delete user
+ * 		- Check if the client is HexChat -> if so, we asumme there are three consecutive
+ * 			fixed messages -poll events- in this socket -> we check three conditions
+ * 		- If not, the socket is for a client using a terminal, then check if this is the
+ * 			first message of the user (extract NICK and PASS)
+ * 		- If nothing above matches and there has not been any errors, we procceed to parse
+ * 			the message (the user is already authenticated and the buffer read is either 
+ * 			a message to send or a command to execute)
+ */
 void	Server::msgHandler(int socketFd)
 {
 	char		buffer[BUFF_SIZE];
@@ -507,7 +518,18 @@ void	Server::msgHandler(int socketFd)
 	}
 	buffer[read_bytes] = '\0';
 	this->_message = buffer;
-	if (!firstMessage(socketFd, this->_message))
+	std::cout << "RAW MESSAGE = " << this->_message << std::endl;
+	if (this->_message.find("CAP LS") != std::string::npos)
+		this->_users[socketFd]->setHexClient(true);
+	else if (this->_users[socketFd]->getHexClient() && !this->_users[socketFd]->getAuthenticated())
+		this->_users[socketFd]->setHexStat(checkHexChatPass(socketFd));
+	else if (this->_users[socketFd]->getHexStat() && this->_users[socketFd]->getAuthenticated())
+	{	
+		this->_users[socketFd]->hexChatUser(this->_message);
+		this->_users[socketFd]->setHexStat(false);
+		sendWarning(socketFd, ":MyServer 001 * :Welcome to the Pollitas Internet Relay Network\n");
+	}
+	else if (!firstMessage(socketFd, this->_message))
 		parseMsg(socketFd, this->_message);
 }
 
@@ -526,6 +548,42 @@ void	Server::parseMsg(int userFd, std::string msg)
 			}
 		}
 	}
+}
+
+/**
+ * @brief When login using HexChat, this client sends 3 separate messages at start
+ * 	-three consecutive poll events in the same socket- this method checks #2 to see
+ * 	if the password sent by the client matches the one we set for the server
+ * 		#1 = "CAP LS 302\n" - skipeed first time and user->_hexChat = TRUE
+ *		#2 = "PASS <password>\n" - checked in server.checkPassHexChat()
+ * 		#3 = "NICK pgomez-r\nUSER pgomez-r 0 * :realname\n" - let's do it!
+ *	(!)Hexchat needs to have the server password in the network config,
+ *		otherwise, it won't send message #2
+ */
+bool	Server::checkHexChatPass(int socketFd)
+{
+	std::string	pass;
+	bool		verified = true;
+
+	if (this->_message.find("PASS ") != 0)
+		verified = false;
+	if (verified)
+	{
+		pass = this->_message.substr(this->_message.find("PASS") + 5);
+		pass.erase(pass.find_last_not_of(" \n\r\t") + 1);
+		if (pass != this->_password)
+			verified = false;
+	}
+	if (!verified)
+	{
+		std::cout << "New HexChat connection with socket fd " << socketFd << " tried to login with wrong password or whithout any" << std::endl;
+		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
+		sendWarning(socketFd, ":MyServer 464 * :Password incorrect\n");
+		deleteUser(socketFd);
+		return (false);
+	}
+	this->_users[socketFd]->setAuthenticated(true);
+	return (true);
 }
 
 bool Server::checkCmd(int userFd, std::string msg)
