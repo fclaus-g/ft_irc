@@ -156,7 +156,7 @@ bool Channel::channelIsFull()
 
 void Channel::addUserChannel(User& user)
 {
-	std::cout << RED << user << std::endl;
+	//std::cout << RED << user << std::endl;
 	if (this->isUserInChannel(user))
 	{
 		std::cout << "User already in channel" << std::endl;
@@ -174,7 +174,7 @@ void Channel::addUserChannel(User& user)
 		this->_usersMap[user.getFd()] = false;
 		this->_users.push_back(user);
 	}
-	std::cout << *this << std::endl;
+	//std::cout << *this << std::endl;
 }
 
 void Channel::removeUserChannel(User& user)
