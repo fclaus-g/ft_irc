@@ -318,17 +318,78 @@ ssize_t recv(int sockfd, void* buf, size_t len, int flags)
  *  * MSG_TRUNK
  * Seleccionando las flags correctas podemos adaptar la operación de recepción a nuestras necesidades hacienla mas versatil y eficiente.*/
  ```
+## std::queue 
+Clase de la biblioteca standard de C++ que proporciona una interfaz de cola FIFO, útil para almacenar elementos en el orden que se insertan y procesarlos en el mismo orden.
+### Características:
+* FIFO (First In, First Out): Los elementos se insertan al final de la cola y se eliminan desde el frente.
+* Adaptador de Contenedor: std::queue es un adaptador de contenedor que puede utilizar otros contenedores subyacentes, como std::deque (por defecto) o std::list.
+* Operaciones de Inserción y Eliminación: Proporciona operaciones eficientes para insertar elementos al final y eliminar elementos del frente.
 
- ## std::istringstream
- Clase de la biblioteca standard de C++ que se usa para realizar operaciones con cadenas. Es una especialización de std::basic_istringstream. Permite tratar una cadena como si fuera un flujo de entrada, similar a como se trataría un archivo o la entrada standar.
- ### Características
- * **Conversión de cadenas:** Permite convertir una cadena en diferentes tipos de datos.
- * **Operaciones de entrada:** Soporta las mismas operaciones de entrada que std::istream, como >> y getLine.
- * **Buffer interno:** Utiliza un buffer para almacenar la cadena de texto.
- 
- ### Ejemplo de uso
- ```cpp
- #include <iostream>
+### Métodos Comunes
+
+* Constructores:
+
+    - queue(): Constructor por defecto.
+    - queue(const queue& other): Constructor de copia.
+    - queue(queue&& other): Constructor de movimiento.
+
+* Capacidad:
+
+    - size(): Devuelve el número de elementos en la cola.
+    - empty(): Devuelve true si la cola está vacía.
+
+* Acceso a Elementos:
+
+    - front(): Devuelve una referencia al primer elemento de la cola.
+    - back(): Devuelve una referencia al último elemento de la cola.
+
+* Modificadores:
+
+    - push(const value_type& value): Inserta un elemento al final de la cola.
+    - pop(): Elimina el primer elemento de la cola.
+    - emplace(Args&&... args): Construye y añade un nuevo elemento al final de la cola.
+
+### Ejemplo de uso
+```cpp
+#include <iostream>
+#include <queue>
+#include <string>
+
+int main() {
+    std::queue<std::string> q;
+
+    // Insertar elementos en la cola
+    q.push("First");
+    q.push("Second");
+    q.push("Third");
+
+    // Procesar elementos en la cola
+    while (!q.empty()) {
+        std::cout << "Front: " << q.front() << std::endl;
+        q.pop();
+    }
+
+    return 0;
+}
+/**
+ * Creación de la Cola: Se crea una cola de cadenas de texto q.
+ * Inserción de Elementos: Se insertan tres elementos en la cola utilizando push.
+ * Procesamiento de Elementos: En un bucle while, se procesan los elementos de la cola:
+    + q.front() devuelve una referencia al primer elemento de la cola.
+    + q.pop() elimina el primer elemento de la cola.
+ * El bucle continúa hasta que la cola esté vacía. 
+*/
+```
+## std::istringstream
+Clase de la biblioteca standard de C++ que se usa para realizar operaciones con cadenas. Es una especialización de std::basic_istringstream. Permite tratar una cadena como si fuera un flujo de entrada, similar a como se trataría un archivo o la entrada standar.
+### Características
+* **Conversión de cadenas:** Permite convertir una cadena en diferentes tipos de datos.
+* **Operaciones de entrada:** Soporta las mismas operaciones de entrada que std::istream, como >> y getLine.
+* **Buffer interno:** Utiliza un buffer para almacenar la cadena de texto.
+
+### Ejemplo de uso
+```cpp
+#include <iostream>
 #include <sstream>
 #include <string>
 
