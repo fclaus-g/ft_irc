@@ -8,7 +8,6 @@ class User
 	private:
 		int 			_fd;
 		bool			_authenticated;
-		bool 			_hexChatClient;
 		std::string		_ip;
 		bool			_hexChatClient;
 		bool			_hexChatPass;
