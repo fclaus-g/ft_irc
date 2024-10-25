@@ -47,32 +47,30 @@ class Server
 		bool		loginFormat(std::string msg);
 		void		sendWarning(int userFd, std::string str);
 		void		checkPass(int userFd);
+		bool		checkHexChatPass(int socketFd);
 		void		parseMsg(int userFd, std::string msg);
 		bool		checkCmd(int userFd, std::string msg);
 		void		runCmd(int userFd, int key, std::string cmd);
 		//Channel methods
-		void createChannel(const std::string& name);
-		void addUserToChannel(const std::string& channelName, User& user);
-		void removeChannel(const std::string& name);
-		
+		void		createChannel(const std::string& name);
+		void		addUserToChannel(const std::string& channelName, User& user);
+		void		removeChannel(const std::string& name);
 		
 		//Command methods
 		
-		void checkCommand(User user);
-		void commandUser(User user);
-		void commandNick(User user);
-		void commandJoin(User user);
-		void commandQuit(User user);
-		void commandPrivmsg(User user);
-		void commandKick(User user);
-		void commandInvite(User user);
-		void commandTopic(User user);
-		void commandMode(User user);
+		void		checkCommand(User user);
+		void		commandUser(User user);
+		void		commandNick(User user);
+		void		commandJoin(User user);
+		void		commandQuit(User user);
+		void		commandPrivmsg(User user);
+		void		commandKick(User user);
+		void		commandInvite(User user);
+		void		commandTopic(User user);
+		void		commandMode(User user);
 
-		static void signalHandler(int signal);
-		//methods for debugging
-		void		printMap(const std::map<int, User>& map);
-		void		printVector(const std::vector<Channel>& vector);
+		static void	signalHandler(int signal);
+
 };
 
 std::ostream& operator<<(std::ostream& out, const Server& server);
