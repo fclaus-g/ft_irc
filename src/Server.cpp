@@ -180,9 +180,9 @@ void Server::checkCommand(User user)
 		default:
 			break;
 	}
-	std::cout << "Command: " << command << std::endl;
-	std::cout << user << std::endl;
-	std::cout << "Message: OUT OF COMMAND "<< std::endl;
+	//std::cout << "Command: " << command << std::endl;
+	//std::cout << user << std::endl;
+	//std::cout << "Message: OUT OF COMMAND "<< std::endl;
 }
 
 void Server::commandUser(User& user) //Modificar para que acepte USER jsaavedr 0 * :realname
@@ -425,6 +425,7 @@ bool	Server::firstMessage(int userFd, std::string msg)
 	{
 		std::cout << "User with socket fd " << userFd << " is already authenticated" << std::endl;
 		return (false);
+	}
 	welcomeUser(userFd);
 	if (!loginFormat(msg))
 	{
@@ -477,41 +478,6 @@ void	Server::checkPass(int userFd)
 		std::cout << GRE << "New user with socket fd " << userFd << " has joined the server" << RES << std::endl;
 		sendWarning(userFd, "Login succesfull\n");
 	}
-}
-
-/**
- * @brief When login using HexChat, this client sends 3 separate messages at start
- * 	-three consecutive poll events in the same socket- this method checks #2 to see
- * 	if the password sent by the client matches the one we set for the server
- * 		#1 = "CAP LS 302\n" - skipeed first time and user->_hexChat = TRUE
- *		#2 = "PASS <password>\n" - checked in server.checkPassHexChat()
- * 		#3 = "NICK pgomez-r\nUSER pgomez-r 0 * :realname\n" - let's do it!
- *	(!)Hexchat needs to have the server password in the network config,
- *		otherwise, it won't send message #2
- */
-void	Server::checkHexChatPass(int socketFd)
-{
-	std::string	pass;
-	bool		verified = true;
-
-	if (this->_message.find("PASS ") != 0)
-		verified = false;
-	if (verified)
-	{
-		pass = this->_message.substr(this->_message.find("PASS") + 5);
-		pass.erase(pass.find_last_not_of(" \n\r\t") + 1);
-		if (pass != this->_password)
-			verified = false;
-	}
-	if (!verified)
-	{
-		std::cout << "New HexChat connection with socket fd " << socketFd << " tried to login with wrong password or whithout any" << std::endl;
-		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
-		sendWarning(socketFd, ":MyServer 464 * :Password incorrect\n");
-		deleteUser(socketFd);
-		return ;
-	}
-	this->_users[socketFd]->setAuthenticated(true);
 }
 
 void	Server::newConnection()
@@ -572,7 +538,7 @@ void	Server::msgHandler(int socketFd)
 	}
 	buffer[read_bytes] = '\0';
 	this->_message = buffer;
-	std::cout << "RAW MESSAGE = " << this->_message << std::endl;
+	std::cout << RED << "RAW MESSAGE = " << RES << this->_message << std::endl;
 	if (this->_message.find("CAP LS") != std::string::npos)
 		this->_users[socketFd]->setHexClient(true);
 	else if (this->_users[socketFd]->getHexClient() && !this->_users[socketFd]->getAuthenticated())
@@ -584,8 +550,7 @@ void	Server::msgHandler(int socketFd)
 		sendWarning(socketFd, ":MyServer 001 * :Welcome to the Pollitas Internet Relay Network\n");
 	}
 	else if (!firstMessage(socketFd, this->_message))
-		parseMsg(socketFd, this->_message);
-	}	
+		parseMsg(socketFd, this->_message);	
 	else if (this->_users[socketFd]->getHexClient() && this->_users[socketFd]->getAuthenticated())
 	{
 		this->_users[socketFd]->hexChatUser(this->_message);
@@ -687,6 +652,7 @@ void	Server::runCmd(int userFd, int key, std::string msg)
 		case TOPIC:
 			break;
 		case MODE:
+			std::cout << RED << "MODE" << RES << std::endl;
 			break;
 		default:
 			break;
