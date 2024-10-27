@@ -144,6 +144,22 @@ void Server::printMap(const std::map<int, User>& map)
 	}
 }
 
+bool	Server::channelExist(std::string &name)
+{
+	if (this->_channelsMap.count(name) > 0)
+		return (true);
+	else
+		return (false);
+}
+
+Channel* Server::getChannel(std::string &name)
+{
+	if (this->_channelsMap.count(name) > 0)
+		return (this->_channelsMap[name]);
+	else
+		return (NULL);
+}
+
 void Server::checkCommand(User user)
 {
 	std::string commands[9] = {"USER", "NICK", "JOIN", "QUIT", "PRIVMSG", "KICK", "INVITE", "TOPIC", "MODE"};
@@ -267,7 +283,36 @@ void Server::commandKick(User user)
 
 void Server::commandInvite(User user)
 {
-	(void)user;
+	//(void)user;
+	std::vector<std::string> cmdToks;
+	std::string nickName;
+	std::string channelName;
+
+	//obtenemos el nick y el canal a partir del mensaje
+	cmdToks = this->_message.split(" \t");
+	nickName = cmdToks[1];
+	channelName = cmdToks[2];
+	//si el canal no existe en el servidor, no hacemos nada 
+	if (!this->channelExist(channelName))
+		return ;
+	//obtenemos el canal
+	Channel *channel = this->getChannel(channelName);
+	if (!channel)
+		return ;
+	//ver si el usuario existe en el server
+	std::map<int, User *>::iterator it;
+	it = this->_users.begin();
+	while (it != this->_users.end())
+	{
+		if (it->second.getNick() == nickName)
+		{
+			User *invitedUser = it->second;
+			break ;
+		}
+	}
+	if (!invitedUser)
+		return ;
+	//agregar al usuario al canal
 }
 
 void Server::commandTopic(User user)

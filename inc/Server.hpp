@@ -69,7 +69,8 @@ class Server
 		void 		createChannel(const std::string& name);
 		void 		addUserToChannel(const std::string& channelName, User& user);
 		void 		removeChannel(const std::string& name);
-
+		bool		channelExist(std::string &name);
+		Channel		*getChannel(std::string &name);
 		//void addChannel(std::string &name);
 
 		//Commands
