@@ -30,7 +30,7 @@ class Server
 		int							_serverFd;
 		std::string					_message;
 		std::vector<Channel>		_channels;//vector of channels
-		std::map<std::string, Channel> _channelsMap;//map of channels
+		std::map<std::string, Channel *> _channelsMap;//map of channels
 		std::map<int, User*>		_users;//map of clients file descriptors and their objects
 		//std::map<int, std::string> clients;//map of clients file descriptors and their names
 		std::vector<struct pollfd> 	_fds;//pollfd used for monitoring file descriptors
