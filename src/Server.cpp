@@ -138,9 +138,13 @@ void	Server::msgHandler(int socketFd)
 	if (this->_message.find("CAP LS") != std::string::npos)
 		this->_users[socketFd]->setHexClient(true);
 	else if (this->_users[socketFd]->getHexClient() && !this->_users[socketFd]->getAuthenticated())
-		checkHexChatPass(socketFd);
-	else if (this->_users[socketFd]->getHexClient() && this->_users[socketFd]->getAuthenticated())
+		this->_users[socketFd]->setHexStat(checkHexChatPass(socketFd));
+	else if (this->_users[socketFd]->getHexStat() && this->_users[socketFd]->getAuthenticated())
+	{
 		this->_users[socketFd]->hexChatUser(this->_message);
+		this->_users[socketFd]->setHexStat(false);
+		sendWarning(socketFd, ":MyServer 001 * :Welcome to the Pollitas Internet Relay Network\n");
+	}
 	else if (!firstMessage(socketFd, this->_message))
 		parseMsg(socketFd, this->_message);
 }

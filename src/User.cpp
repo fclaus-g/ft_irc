@@ -24,17 +24,17 @@ void	User::hexChatUser(std::string msg)
 	this->_userName = user;
 }
 
-int User::getFd() const
+int	User::getFd() const
 {
 	return this->_fd;
 }
 
-bool User::getAuthenticated() const
+bool	User::getAuthenticated() const
 {
 	return this->_authenticated;
 }
 
-void User::setAuthenticated(bool authenticated)
+void	User::setAuthenticated(bool authenticated)
 {
 	this->_authenticated = authenticated;
 }
@@ -44,7 +44,7 @@ std::string User::getNick() const
 	return (this->_nickName);
 }
 
-void User::setNick(std::string nick)
+void	User::setNick(std::string nick)
 {
 	this->_nickName = nick;
 }
@@ -53,7 +53,7 @@ std::string User::getUserName() const
 	return this->_userName;
 }
 
-void User::setUserName(std::string userName)
+void	User::setUserName(std::string userName)
 {
 	this->_userName = userName;
 }
@@ -63,7 +63,7 @@ std::string User::getRealName() const
 	return (this->_realName);
 }
 
-void User::setRealName(std::string realName)
+void	User::setRealName(std::string realName)
 {
 	this->_realName = realName;
 }
@@ -76,4 +76,14 @@ bool	User::getHexClient() const
 void	User::setHexClient(bool state)
 {
 	this->_hexChatClient = state;
+}
+
+bool	User::getHexStat() const
+{
+	return this->_hexChatPass;
+}
+
+void	User::setHexStat(bool state)
+{
+	this->_hexChatPass = state;
 }
