@@ -109,7 +109,7 @@ void	Server::checkPass(int userFd)
  *	(!)Hexchat needs to have the server password in the network config,
  *		otherwise, it won't send message #2
  */
-void	Server::checkHexChatPass(int socketFd)
+bool	Server::checkHexChatPass(int socketFd)
 {
 	std::string	pass;
 	bool		verified = true;
@@ -129,9 +129,10 @@ void	Server::checkHexChatPass(int socketFd)
 		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
 		sendWarning(socketFd, ":MyServer 464 * :Password incorrect\n");
 		deleteUser(socketFd);
-		return ;
+		return (false);
 	}
 	this->_users[socketFd]->setAuthenticated(true);
+	return (true);
 }
 
 void	Server::deleteUser(int socketFd)

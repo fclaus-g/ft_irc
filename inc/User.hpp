@@ -7,8 +7,10 @@ class User
 {
 	private:
 		int 				_fd;
+		std::string			_buffer;
 		bool				_authenticated;
 		bool				_hexChatClient;
+		bool				_hexChatPass;
 		std::string			_nickName;
 		std::string			_userName;
 		std::string 		_realName;
@@ -30,6 +32,8 @@ class User
 		void 				setRealName(std::string realName);
 		bool				getHexClient() const;
 		void				setHexClient(bool state);
+		bool				getHexStat() const;
+		void				setHexStat(bool state);
 		//Methods
 		void				hexChatUser(std::string msg);
 };
