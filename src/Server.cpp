@@ -134,7 +134,6 @@ void	Server::msgHandler(int socketFd)
 	}
 	buffer[read_bytes] = '\0';
 	this->_message = buffer;
-	std::cout << "RAW MESSAGE = " << this->_message << std::endl;
 	if (this->_message.find("CAP LS") != std::string::npos)
 		this->_users[socketFd]->setHexClient(true);
 	else if (this->_users[socketFd]->getHexClient() && !this->_users[socketFd]->getAuthenticated())
@@ -169,51 +168,12 @@ bool	Server::firstMessage(int userFd, std::string msg)
 
 void	Server::parseMsg(int userFd, std::string msg)
 {
-	//std::cout << "Parsing message" << std::endl;
-	if (!checkCmd(userFd, msg))
-	{
-		std::string	user_msg = "@" + this->_users[userFd]->getNick() + ": " + msg;
-
-		for (size_t i = 0; i < this->_fds.size(); i++)
-		{
-			if (this->_fds[i].fd != this->_serverFd
-				&& this->_fds[i].fd != userFd)
-			{
-				send(this->_fds[i].fd, user_msg.c_str(), user_msg.length(), 0);
-			}
-		}
-	}
-}
-
-void	Server::runCmd(int userFd, int key, std::string msg)
-{
-	(void)userFd;
-	(void)msg;
-	switch (key)
-	{
-		case USER:
-			break;
-		case NICK:
-			break;
-		case JOIN:
-			commandJoin(*_users[userFd]);
-			break;
-		case QUIT:
-			break;
-		case PRIVMSG:
-			break;
-		case KICK:
-			break;
-		case INVITE:
-			break;
-		case TOPIC:
-			break;
-		case MODE:
-			commandMode(*_users[userFd], msg);
-			break;
-		default:
-			break;
-	}
+	//Later on, we will first handle user->_buffer before handling the command
+	//	this->_users[userFd].updateBuffer(msg);
+	//	if (this->_users[userFd].getBuffer().find(\n, \r...) != npos)
+	//This is only an example, we will find a way to do it correctly later, now just using msg
+	Command	cmd(userFd, msg);
+	cmd.checkCmd(userFd, msg);
 }
 
 bool Server::channelExists(const std::string& name)

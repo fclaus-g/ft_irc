@@ -161,19 +161,6 @@ void Server::stop()
 	std::cout << "Server stopped" << std::endl;
 }
 
-bool Server::checkCmd(int userFd, std::string msg)
-{
-	for (int i = 0; i < TOTAL; i++)
-	{
-		if (msg.find(_commands[i]) == 0)
-		{
-			runCmd(userFd, i, msg);
-			return (true);
-		}
-	}
-	return (false);
-}
-
 User*	Server::getUserByNick(std::string nick)
 {
 	User	*user_ptr = NULL;

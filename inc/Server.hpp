@@ -4,20 +4,6 @@
 
 #include "ft_irc.hpp"
 
-enum command
-{
-	USER,
-	NICK,
-	JOIN,
-	QUIT,
-	PRIVMSG,
-	KICK,
-	INVITE,
-	TOPIC,
-	MODE,
-	TOTAL
-};
-
 class Channel;
 class User;
 
@@ -35,8 +21,6 @@ class Server
 		std::vector<struct pollfd> 		_fds;
 		std::string						_tempNick;
 		std::string						_tempPass;
-		std::string						_commands[TOTAL];
-		void							_initCommands();
 	public:
 		Server();
 		Server(int port, std::string password);
@@ -65,8 +49,6 @@ class Server
 		void			checkPass(int userFd);
 		bool			checkHexChatPass(int socketFd);
 		void			parseMsg(int userFd, std::string msg);
-		bool			checkCmd(int userFd, std::string msg);
-		void			runCmd(int userFd, int key, std::string cmd);
 		//Debug methods
 		void 			printMap(const std::map<int, User>& map);
 		void 			printVector(const std::vector<Channel>& vector);
@@ -74,16 +56,6 @@ class Server
 		void 			createChannel(const std::string& name);
 		void 			addUserToChannel(const std::string& channelName, User& user);
 		void			removeChannel(const std::string& name);
-		//Commands methods
-		void 			commandUser(User user);
-		void 			commandNick(User user);
-		void 			commandJoin(User user);
-		void 			commandQuit(User user);
-		void 			commandPrivmsg(User user);
-		void 			commandKick(User user);
-		void 			commandInvite(User user);
-		void 			commandTopic(User user);
-		void 			commandMode(User user);
 };
 
 std::ostream& operator<<(std::ostream& out, const Server& server);
