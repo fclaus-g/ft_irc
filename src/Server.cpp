@@ -276,33 +276,79 @@ void Server::commandPrivmsg(User user)
 	(void)user;
 }
 
-void Server::commandKick(User user)
-{
-	(void)user;
-}
-
-void Server::commandInvite(User user)
+void Server::commandKick(int userFd, std::string msg)
 {
 	/*
-	/INVITE nick canal
+	/KICK nick
+	expulsa al usuario nick del canal actual
+	puede especificarse una razón
+	el usuario debe ser operador para expulsar a alguien
+	Realmente HexChat agrega el canal al mensaje:
+	/KICK canal nick
 	*/
-	//(void)user;
+
 	std::string nickName;
 	std::string channelName;
 
-	//obtenemos el nick y el canal a partir del mensaje
-	size_t iPos = this->_message.find_first_not_of(" \t");
-	size_t fPos = this->_message.find_first_of(" \t", iPos);
+	size_t iPos = msg.find_first_not_of(" \t");
+	size_t fPos = msg.find_first_of(" \t", iPos);
 	if (fPos == std::string::npos)
 	{
 		std::cout << "Error: Not enough parameters" << std::endl;
 		return;
 	}
-	nickName = this->_message.substr(iPos, fPos - iPos);
-	this->_message = this->_message.substr(fPos + 1);
-	iPos = this->_message.find_first_not_of(" \t", fPos);
-	fPos = this->_message.find_first_of(" \t", iPos);
-	channelName = this->_message.substr(iPos, fPos - iPos);
+	nickName = msg.substr(iPos, fPos - iPos);
+	msg = msg.substr(fPos + 1);
+	iPos = msg.find_first_not_of(" \t", fPos);
+	fPos = msg.find_first_of(" \t", iPos);
+	channelName = msg.substr(iPos, fPos - iPos);
+	Channel *channel;
+	channel = this->getChannel(channelName);
+	if (!channel)
+		return ;
+	if (!channel->isAdmin(this->_users[userFd]))
+		return ;
+	//ver si el usuario existe en el server
+	std::map<int, User *>::iterator it;
+	it = this->_users.begin();
+	User *deleteUser = NULL;
+	while (it != this->_users.end())
+	{
+		if (it->second->getNick() == nickName)
+		{
+			deleteUser = it->second;
+			break ;
+		}
+	}
+	if (!deleteUser)
+		return ;
+	channel->removeUserChannel(*deleteUser);
+}
+
+void Server::commandInvite(int userFd, std::string msg)
+{
+	/*
+	/INVITE nick canal
+	*/
+	
+	std::string nickName;
+	std::string channelName;
+
+	//obtenemos el nick y el canal a partir del mensaje
+	size_t iPos = msg.find_first_not_of(" \t");
+	size_t fPos = msg.find_first_of(" \t", iPos);
+	if (fPos == std::string::npos)
+	{
+		std::cout << "Error: Not enough parameters" << std::endl;
+		return;
+	}
+	nickName = msg.substr(iPos, fPos - iPos);
+	msg = msg.substr(fPos + 1);
+	iPos = msg.find_first_not_of(" \t", fPos);
+	fPos = msg.find_first_of(" \t", iPos);
+	channelName = msg.substr(iPos, fPos - iPos);
+
+	//std::cout << "Nick: " << nickName << ", canal: " << channelName << std::endl;
 
 	//si el canal no existe en el servidor, no hacemos nada 
 	if (!this->channelExist(channelName))
@@ -314,7 +360,7 @@ void Server::commandInvite(User user)
 	//ver si el usuario existe en el server
 	std::map<int, User *>::iterator it;
 	it = this->_users.begin();
-	User *invitedUser;
+	User *invitedUser = NULL;
 	while (it != this->_users.end())
 	{
 		if (it->second->getNick() == nickName)
@@ -326,7 +372,9 @@ void Server::commandInvite(User user)
 	if (!invitedUser)
 		return ;
 	//agregar usuario al canal
-	channel->addUserChannel(*invitedUser);
+	//se puede comprobar si el canal es de solo invitacion
+	if (channel->isAdmin(this->_users[userFd]))
+		this->addUserToChannel(channelName, *invitedUser);
 }
 
 void Server::commandTopic(User user)
@@ -681,8 +729,8 @@ bool Server::checkCmd(int userFd, std::string msg)
 
 void	Server::runCmd(int userFd, int key, std::string msg)
 {
-	(void)userFd;
-	(void)msg;
+	//(void)userFd;
+	//(void)msg;
 	switch (key)
 	{
 		case USER:
@@ -697,8 +745,10 @@ void	Server::runCmd(int userFd, int key, std::string msg)
 		case PRIVMSG:
 			break;
 		case KICK:
+			commandKick(userFd, msg);
 			break;
 		case INVITE:
+			commandInvite(userFd, msg);
 			break;
 		case TOPIC:
 			break;

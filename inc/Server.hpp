@@ -80,8 +80,8 @@ class Server
 		void 		commandJoin(User& user);
 		void 		commandQuit(User user);
 		void 		commandPrivmsg(User user);
-		void 		commandKick(User user);
-		void 		commandInvite(User user);
+		void 		commandKick(int userFd, std::string msg);
+		void 		commandInvite(int userFd, std::string msg);
 		void 		commandTopic(User user);
 		void 		commandMode(User user);
 
