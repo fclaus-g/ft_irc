@@ -14,6 +14,7 @@ class Channel
 		bool				_inviteMode;
 		bool				_topicMode;
 		bool				_keyMode;
+		int					_usersInChannel;
 		int					_usersLimit;
 		std::string			_password;
 	public:
@@ -26,18 +27,21 @@ class Channel
 		Channel& operator=(const Channel &rhs);
 		const std::string&			getName() const;
 		const std::string&			getTopic() const;
+		const std::string			getUsersChannelStr() const;
 		const std::vector<User>&	getUsers() const;
 		bool						getInviteMode() const;
 		bool						getTopicMode() const;
 		bool 						getKeyMode() const;
+		int 						getUsersInChannel() const;
 		int 						getUsersLimit() const;
-		const std::string& getPassword() const;
+		const std::string&			getPassword() const;
 		//setters
 		void 						setName(const std::string& name);
 		void 						setTopic(const std::string& topic);
 		void 						setInviteMode(const bool inviteMode);
 		void 						setTopicMode(const bool topicMode);
 		void 						setKeyMode(const bool keyMode);
+		void						setUsersInChannel(const int usersInChannel);
 		void 						setUsersLimit(const int usersLimit);
 		void 						setPassword(const std::string& password);
 		//check methods
@@ -49,6 +53,8 @@ class Channel
 		void 						removeUserChannel(User& user);
 		void 						addOpChannel(User& user);
 		void 						removeOpChannel(int userFd);
+		void 						broadcastMessage(const std::string& message);
+		void 						sendTopicMessage(User& user);
 };
 
 std::ostream& operator<<(std::ostream& out, const Channel& channel);

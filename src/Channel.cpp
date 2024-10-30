@@ -225,8 +225,11 @@ void Channel::addUserChannel(User& user)
 	}
 	else
 	{
+		this->_usersInChannel++;
 		this->_usersMap[user.getFd()] = false;
 		this->_users.push_back(user);
+		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@127.0.0.1 JOIN :" + this->getName() + "\n";
+		send(user.getFd(), msg.c_str(), msg.length(), 0);
 	}
 	std::cout << *this << std::endl;
 }
@@ -282,6 +285,29 @@ void Channel::removeOpChannel(int userFd)
 	{
 		std::cout << "User is not op" << std::endl;
 	}
+}
+
+void Channel::broadcastMessage(const std::string& message)
+{
+	for (size_t i = 0; i < this->_users.size(); i++)
+	{
+		send(this->_users[i].getFd(), message.c_str(), message.size(), 0);
+	}
+}
+
+void Channel::sendTopicMessage(User& user)
+{
+	std::string topicMsg;
+	if (this->_topic.empty())
+	{
+		topicMsg = ":server 331" + user.getNick() + " " + this->_name + " :No topic is set";
+	}
+	else
+	{
+		topicMsg = ":server 332" + user.getNick() + " " + this->_name + " :" + this->_topic;
+	}
+	std::cout << topicMsg << std::endl;
+	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
 }
 
 std::ostream& operator<<(std::ostream& os, const Channel& channel)
