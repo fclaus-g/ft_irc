@@ -22,6 +22,7 @@
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Server.hpp"
+#include "Command.hpp"
 
 #define RED "\033[31m"
 #define GRE "\033[32m"
