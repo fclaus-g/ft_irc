@@ -344,6 +344,11 @@ void Server::addUserToChannel(const std::string& channelName, User& user)
 			std::cout<< GRE << "User added to channel " << channelName << std::endl;
 			std::string  message = "You have been added to the channel " + channelName + "\n";
 			send(user.getFd(), message.c_str(), message.size(), 0);
+			std::string joinMessage = ":" + user.getNick();
+			joinMessage.append(" JOIN ");
+			joinMessage.append(channelName);
+			std::cout << joinMessage << std::endl;
+			send(user.getFd(), joinMessage.c_str(), joinMessage.size(), 0);
 			return;
 		}
 		// if (i == this->_channels.size() - 1)
