@@ -59,9 +59,10 @@ class Server
 		//Command methods
 		
 		void		checkCommand(User user);
-		void		commandUser(User user);
-		void		commandNick(User user);
-		void		commandJoin(User user);
+		void		commandUser(User& user);
+		void		commandNick(User& user);
+		void		commandJoin(User& user);
+		void 		sendTopicMessage(int userFd, const std::string& channel);
 		void		commandQuit(User user);
 		void		commandPrivmsg(User user);
 		void		commandKick(User user);
