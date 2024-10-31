@@ -105,6 +105,34 @@ void	Server::newConnection()
 }
 
 /**
+ * @brief Aux function to read from a socket and store it message into a _strClassAttribute
+ * 	- Return bool to protect errors when called
+ * 	- If error reading, sends corresponding log message and returns false
+ * 	- If everything goes OK, it updates the string passed as attribute
+ * 	- Need to be aware to treat the stored string before and after call this function as needed
+ * @param store: the string to be updated appending the buffer read from the socket,
+ *	passed as reference so changes remains after leaving the function scope
+ */
+bool	readFromSocket(int socketFd, std::string &store)
+{
+	char		buffer[BUFF_SIZE];
+	int			read_bytes;
+
+	read_bytes = read(socketFd, buffer, sizeof(buffer) - 1);
+	if (read_bytes <= 0)
+	{
+		if (read_bytes == 0)
+			std::cout << RED << "User disconnected" << RES << std::endl;
+		else
+			perror("read");
+		return (false);
+	}
+	buffer[read_bytes] = '\0';
+	store += buffer;
+	return (true);
+}
+
+/**
  * @brief This function handles the message -poll event- sent by the current socket
  * 	Logic process:
  * 		- If nothing or error read, kick and delete user
@@ -118,43 +146,47 @@ void	Server::newConnection()
  */
 void	Server::msgHandler(int socketFd)
 {
-	char		buffer[BUFF_SIZE];
-	int			read_bytes;
-
 	this->_message.clear();
-	read_bytes = read(socketFd, buffer, sizeof(buffer) - 1);
-	if (read_bytes <= 0)
-	{
-		if (read_bytes == 0)
-			std::cout << RED << "User disconnected" << RES << std::endl;
-		else
-			perror("read");
-		deleteUser(socketFd);
-		return ;
-	}
-	buffer[read_bytes] = '\0';
-	this->_message = buffer;
-	if (this->_message.find("CAP LS") != std::string::npos)
-		this->_users[socketFd]->setHexClient(true);
-	else if (this->_users[socketFd]->getHexClient() && !this->_users[socketFd]->getAuthenticated())
-		this->_users[socketFd]->setHexStat(checkHexChatPass(socketFd));
-	else if (this->_users[socketFd]->getHexStat() && this->_users[socketFd]->getAuthenticated())
-	{
-		this->_users[socketFd]->hexChatUser(this->_message);
-		this->_users[socketFd]->setHexStat(false);
-		sendWarning(socketFd, ":MyServer 001 * :Welcome to the Pollitas Internet Relay Network\n");
-	}
-	else if (!firstMessage(socketFd, this->_message))
+	if (!readFromSocket(socketFd, &this->_message))
+		return (deleteUser(socketFd), NULL);
+	if (this->_users[socketFd]->getAuthenticated() == true)
 		parseMsg(socketFd, this->_message);
+	else if (this->_message.find("CAP LS") != std::string::npos)
+		hexChatLogin(socketFd);
+	else
+		ncLogin(socketFd);
 }
 
-bool	Server::firstMessage(int userFd, std::string msg)
-{
+/**
+ * @brief When login using HexChat, this client sends 3 separate messages at start
+ * 	-three consecutive poll events in the same socket-
+ * 		#1 = "CAP LS 302\n" - user->_hexChat = TRUE
+ *		#2 = "PASS <password>\n" - checked in server.checkPassHexChat()
+ * 		#3 = "NICK pgomez-r\nUSER pgomez-r 0 * :realname\n" - parsed in user.hexChatUser() 
+ *	(!)Hexchat needs to have the server password in the network config,
+ *		otherwise, it won't send message #2
+ */
 
-	if (this->_users[userFd]->getAuthenticated() == true)
-		return (false);
-	welcomeUser(userFd);
-	if (!loginFormat(msg))
+void	Server::hexChatLogin(int socketFd)
+{
+	this->_users[socketFd]->setHexClient(true);
+	this->_message.clear();
+	if (!readFromSocket(socketFd, &this->_message))
+		return (deleteUser(socketFd), NULL);
+	if (checkHexChatPass(socketFd))
+	{
+		this->_message.clear();
+		if (!readFromSocket(socketFd, &this->_message))
+			return (deleteUser(socketFd), NULL);
+		this->_users[socketFd]->hexChatUser(this->_message);
+		sendWarning(socketFd, ":MyServer 001 * :Welcome to the Pollitas Internet Relay Network\n");
+	}
+}
+
+void	Server::ncLogin(int userFd)
+{
+	//welcome message - usage?
+	if (!loginFormat(this->_message))
 	{
 		std::cout << "New connection with socket fd " << userFd << " tried to login with wrong login format" << std::endl;
 		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
@@ -163,7 +195,6 @@ bool	Server::firstMessage(int userFd, std::string msg)
 	}
 	else
 		checkPass(userFd);
-	return (true);
 }
 
 void	Server::parseMsg(int userFd, std::string msg)

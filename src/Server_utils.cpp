@@ -99,16 +99,6 @@ void	Server::checkPass(int userFd)
 	}
 }
 
-/**
- * @brief When login using HexChat, this client sends 3 separate messages at start
- * 	-three consecutive poll events in the same socket- this method checks #2 to see
- * 	if the password sent by the client matches the one we set for the server
- * 		#1 = "CAP LS 302\n" - skipeed first time and user->_hexChat = TRUE
- *		#2 = "PASS <password>\n" - checked in server.checkPassHexChat()
- * 		#3 = "NICK pgomez-r\nUSER pgomez-r 0 * :realname\n" - let's do it!
- *	(!)Hexchat needs to have the server password in the network config,
- *		otherwise, it won't send message #2
- */
 bool	Server::checkHexChatPass(int socketFd)
 {
 	std::string	pass;

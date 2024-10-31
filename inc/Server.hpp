@@ -39,13 +39,14 @@ class Server
 		void 			run();
 		void 			stop();
 		void 			newConnection();
-		//Message-user handle methods
 		void			deleteUser(int socketFd);
+		//Message-user handle methods
 		void			welcomeUser(int userFd);
-		void			msgHandler(int socketFd);
-		bool			firstMessage(int userFd, std::string msg);
-		bool			loginFormat(std::string msg);
 		void			sendWarning(int userFd, std::string str);
+		void			msgHandler(int socketFd);
+		bool			loginFormat(std::string msg);
+		void			hexChatLogin(int socketFd);
+		void			ncLogin(int userFd);
 		void			checkPass(int userFd);
 		bool			checkHexChatPass(int socketFd);
 		void			parseMsg(int userFd, std::string msg);
