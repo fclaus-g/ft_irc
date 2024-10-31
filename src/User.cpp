@@ -77,13 +77,3 @@ void	User::setHexClient(bool state)
 {
 	this->_hexChatClient = state;
 }
-
-bool	User::getHexStat() const
-{
-	return this->_hexChatPass;
-}
-
-void	User::setHexStat(bool state)
-{
-	this->_hexChatPass = state;
-}
