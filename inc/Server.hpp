@@ -76,6 +76,7 @@ class Server
 		void		commandUser(User& user);
 		void		commandNick(User& user);
 		void		commandJoin(User& user);
+		void 		sendTopicMessage(int userFd, const std::string& channel);
 		void		commandQuit(User user);
 		void		commandPrivmsg(User user);
 		void		commandKick(User user);

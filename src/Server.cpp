@@ -221,33 +221,38 @@ void Server::commandNick(User& user)
 
 void Server::commandJoin(User& user)
 {
-	std::cout << "Command JOIN" << std::endl;
-	//std::cout << user << std::endl;
-	size_t iPos = this->_message.find_first_not_of(" \t");
+	size_t iPos = this->_message.find_first_not_of(" \t") + 5;// saltar JOIN
 	size_t fPos = this->_message.find_first_of(" \t", iPos);
-	//std::cout << iPos << fPos << std::endl;
-
-	//std::cout << this->_message.substr(fPos, this->_message.size() - 1); 
-	/*LA SIGUIENTE LINEA DEBE LLEGAR HASTA EL SIGUIENTE ESPACIO NO HASTA EL FINAL*/
-	std::string channel = this->_message.substr(fPos + 1, this->_message.size() - 1);
+	std::string channel = this->_message.substr(iPos, fPos - iPos);
+	
 	if (channel[0] != '#')
 	{
 		std::cout << "Error: Invalid channel name" << std::endl;
 		return;
 	}
-	std::vector<Channel> channels = this->_channels;
-	for(std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
+	bool channelExists = false;
+	for(std::vector<Channel>::iterator it = this->_channels.begin(); it < this->_channels.end(); ++it)
 	{
+		std::cout << "Channel: " << it->getName() << std::endl;
 		if (it->getName() == channel)
 		{
+			channelExists = true;
 			this->addUserToChannel(channel, user);
-			return;
+			break;
 		}
 	}
-	this->createChannel(channel);
-	this->addUserToChannel(channel, user);
-	//std::cout << "post add user to channel" << std::endl;
-	//std::cout << user << "------" << std::endl;
+	if (!channelExists)
+	{
+		this->createChannel(channel);//crea canal con el nombre channel en lugar del pasado
+		this->addUserToChannel(channel, user);
+		//this->_channelsMap[channel].addOpChannel(user);
+		return;
+	}
+	this->_channelsMap[channel].sendTopicMessage(user);//en teoria hay que mandar un mensaje con el topic si existe
+	//this->_channelsMap[channel].broadcastMessage("JOIN " + user.getNick() + " " + channel + "\n");
+	std::string namreply = ":" + this->getName() + " 353 " + user.getNick() + " = " + this->_channelsMap[channel].getName() + " :@"+ this->_channelsMap[channel].getUsersChannelStr();
+	// std::cout << "Users in channel: " << this->_channelsMap[channel].getUsersChannelStr() << std::endl;
+	send(user.getFd(), namreply.c_str(), namreply.size(), 0);
 }
 
 void Server::commandQuit(User user)
@@ -291,6 +296,7 @@ void Server::signalHandler(int signal)
 
 void Server::createChannel(const std::string& name)
 {
+	std::cout << "Creating channel" << RED << name << std::endl;
 	if (name == "")
 	{
 		std::cout << "Channel name can't be empty" << std::endl;
@@ -320,6 +326,7 @@ void Server::createChannel(const std::string& name)
 		}
 	}
 	Channel *newChannel = new Channel(name);
+	std::cout << name << std::endl;
 	this->_channels.push_back(*newChannel);
 	this->_channelsMap[name] = *newChannel;
 	//printVector(_channels); for check the vector channel is created correctly
@@ -341,21 +348,8 @@ void Server::addUserToChannel(const std::string& channelName, User& user)
 		if (this->_channels[i].getName() == channelName)
 		{
 			this->_channels[i].addUserChannel(user);
-			std::cout<< GRE << "User added to channel " << channelName << std::endl;
-			std::string  message = "You have been added to the channel " + channelName + "\n";
-			send(user.getFd(), message.c_str(), message.size(), 0);
-			std::string joinMessage = ":" + user.getNick();
-			joinMessage.append(" JOIN ");
-			joinMessage.append(channelName);
-			std::cout << joinMessage << std::endl;
-			send(user.getFd(), joinMessage.c_str(), joinMessage.size(), 0);
 			return;
 		}
-		// if (i == this->_channels.size() - 1)
-		// {
-		// 	std::cout << "Channel not found" << std::endl;
-		// 	send(user.getFd(), "Channel not found\n", strlen("Channel not found\n"), 0);
-		// }
 	}
 }
 
@@ -565,7 +559,7 @@ void	Server::msgHandler(int socketFd)
 
 void	Server::parseMsg(int userFd, std::string msg)
 {
-	std::cout << "Parsing message" << std::endl;
+	//std::cout << "Parsing message" << std::endl;
 	if (!checkCmd(userFd, msg))
 	{
 		std::string	user_msg = "@" + this->_users[userFd]->getNick() + ": " + msg;
@@ -619,13 +613,13 @@ bool	Server::checkHexChatPass(int socketFd)
 
 bool Server::checkCmd(int userFd, std::string msg)
 {
-	std::cout << "Checking command" << std::endl;
+	//std::cout << "Checking command" << std::endl;
 	for (int i = 0; i < TOTAL; i++)
 	{
 		//std::cout << "Checking command " << _commands[i] << std::endl;
 		if (msg.find(_commands[i]) == 0)
 		{
-			std::cout << "Command found" << std::endl;
+			//std::cout << "Command found" << std::endl;
 			runCmd(userFd, i, msg);
 			return (true);
 		}

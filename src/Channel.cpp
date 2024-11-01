@@ -7,17 +7,19 @@ Channel::Channel()
 	this->_inviteMode = false;
 	this->_topicMode = false;
 	this->_keyMode = false;
+	this->_usersInChannel = 0;
 	this->_usersLimit = -1;
 	this->_password = "";
 }
 
-Channel::Channel(std::string name)
+Channel::Channel(const std::string& name)
 {
 	this->_name = name;
 	this->_topic = "";
 	this->_inviteMode = false;
 	this->_topicMode = false;
 	this->_keyMode = false;
+	this->_usersInChannel = 0;
 	this->_usersLimit = -1;
 	this->_password = "";
 }
@@ -37,11 +39,15 @@ Channel& Channel::operator=(const Channel &rhs)
 	{
 		this->_name = rhs._name;
 		this->_topic = rhs._topic;
-		this->_inviteMode = rhs._inviteMode;
-		this->_usersLimit = rhs._usersLimit;
-		this->_password = rhs._password;
 		this->_users = rhs._users;
 		this->_op = rhs._op;
+		this->_usersMap = rhs._usersMap;
+		this->_inviteMode = rhs._inviteMode;
+		this->_topicMode = rhs._topicMode;
+		this->_keyMode = rhs._keyMode;
+		this->_usersInChannel = rhs._usersInChannel;
+		this->_usersLimit = rhs._usersLimit;
+		this->_password = rhs._password;
 	}
 	return *this;
 }
@@ -71,6 +77,10 @@ void Channel::setKeyMode(const bool keyMode)
 	this->_keyMode = keyMode;
 }
 
+void Channel::setUsersInChannel(const int usersInChannel)
+{
+	this->_usersInChannel = usersInChannel;
+}
 
 void Channel::setUsersLimit(const int usersLimit)
 {
@@ -94,6 +104,16 @@ const std::string& Channel::getTopic() const
 	return this->_topic;
 }
 
+const std::string Channel::getUsersChannelStr() const
+{
+	std::string usersStr;
+	for (size_t i = 0; i < this->_users.size(); i++)
+	{
+		usersStr += this->_users[i].getNick() + " ";
+	}
+	return usersStr;
+}
+
 const std::vector<User>& Channel::getUsers() const
 {
 	return this->_users;
@@ -112,6 +132,11 @@ bool Channel::getTopicMode() const
 bool Channel::getKeyMode() const
 {
 	return this->_keyMode;
+}
+
+int Channel::getUsersInChannel() const
+{
+	return this->_usersInChannel;
 }
 
 int Channel::getUsersLimit() const
@@ -171,8 +196,11 @@ void Channel::addUserChannel(User& user)
 	}
 	else
 	{
+		this->_usersInChannel++;
 		this->_usersMap[user.getFd()] = false;
 		this->_users.push_back(user);
+		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@127.0.0.1 JOIN :" + this->getName() + "\n";
+		send(user.getFd(), msg.c_str(), msg.length(), 0);
 	}
 	//std::cout << *this << std::endl;
 }
@@ -230,6 +258,29 @@ void Channel::removeOpChannel(int userFd)
 	}
 }
 
+void Channel::broadcastMessage(const std::string& message)
+{
+	for (size_t i = 0; i < this->_users.size(); i++)
+	{
+		send(this->_users[i].getFd(), message.c_str(), message.size(), 0);
+	}
+}
+
+void Channel::sendTopicMessage(User& user)
+{
+	std::string topicMsg;
+	if (this->_topic.empty())
+	{
+		topicMsg = ":server 331" + user.getNick() + " " + this->_name + " :No topic is set";
+	}
+	else
+	{
+		topicMsg = ":server 332" + user.getNick() + " " + this->_name + " :" + this->_topic;
+	}
+	std::cout << topicMsg << std::endl;
+	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
+}
+
 std::ostream& operator<<(std::ostream& os, const Channel& channel)
 {
 	os << "Channel name: " << channel.getName() << std::endl;
@@ -240,7 +291,7 @@ std::ostream& operator<<(std::ostream& os, const Channel& channel)
 		os << channel.getUsers()[i] << " "; 
 	
 	}
-	os << "users in channel : " << channel.getUsers().size() << std::endl;	
+	os << "users in channel : " << channel.getUsersInChannel() << std::endl;	
 	os << std::endl;
 	return os;
 }
