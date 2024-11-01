@@ -102,34 +102,7 @@ void	Server::newConnection()
 	_fds.push_back(new_pollfd);
 	_users[client_socket] = new User(client_socket);
 	std::cout << GRE << "New connection established with socket fd " << client_socket << RES << std::endl;
-}
-
-/**
- * @brief Aux function to read from a socket and store it message into a _strClassAttribute
- * 	- Return bool to protect errors when called
- * 	- If error reading, sends corresponding log message and returns false
- * 	- If everything goes OK, it updates the string passed as attribute
- * 	- Need to be aware to treat the stored string before and after call this function as needed
- * @param store: the string to be updated appending the buffer read from the socket,
- *	passed as reference so changes remains after leaving the function scope
- */
-bool	readFromSocket(int socketFd, std::string &store)
-{
-	char		buffer[BUFF_SIZE];
-	int			read_bytes;
-
-	read_bytes = read(socketFd, buffer, sizeof(buffer) - 1);
-	if (read_bytes <= 0)
-	{
-		if (read_bytes == 0)
-			std::cout << RED << "User disconnected" << RES << std::endl;
-		else
-			perror("read");
-		return (false);
-	}
-	buffer[read_bytes] = '\0';
-	store += buffer;
-	return (true);
+	welcomeUser(client_socket);
 }
 
 /**
@@ -149,13 +122,11 @@ void	Server::msgHandler(int socketFd)
 	this->_message.clear();
 	if (!readFromSocket(socketFd, this->_message))
 		return (deleteUser(socketFd));
-	std::cout << "Mensaje recogido msgHanlder (x)" << std::endl;
-	if (this->_users[socketFd]->getAuthenticated() == true)
-		parseMsg(socketFd, this->_message);
-	else if (this->_message.find("CAP LS") != std::string::npos)
-		hexChatLogin(socketFd);
-	else
-		ncLogin(socketFd);
+	parseMsg(socketFd, this->_message);
+	// else if (this->_message.find("CAP LS") != std::string::npos)
+	// 	hexChatLogin(socketFd);
+	// else
+	// 	ncLogin(socketFd);
 }
 
 /**
@@ -169,19 +140,15 @@ void	Server::msgHandler(int socketFd)
  */
 void	Server::hexChatLogin(int socketFd)
 {
-	std::cout << "Entramos en hexChatLogin" << std::endl;
 	this->_users[socketFd]->setHexClient(true);
 	this->_message.clear();
 	if (!readFromSocket(socketFd, this->_message))
 		return (deleteUser(socketFd));
-	std::cout << "Mensaje recogido en hexChatLogin" << std::endl;
 	if (checkHexChatPass(socketFd))
 	{
-		std::cout << "Pasamos hexChatPass" << std::endl;
 		this->_message.clear();
 		if (!readFromSocket(socketFd, this->_message))
 			return (deleteUser(socketFd));
-		std::cout << "Mensaje recogido después de hexChatLogin" << std::endl;
 		this->_users[socketFd]->hexChatUser(this->_message);
 		sendWarning(socketFd, ":MyServer 001 * :Welcome to the Pollitas Internet Relay Network\n");
 	}
@@ -207,6 +174,6 @@ void	Server::parseMsg(int userFd, std::string msg)
 	//	this->_users[userFd].updateBuffer(msg);
 	//	if (this->_users[userFd].getBuffer().find(\n, \r...) != npos)
 	//This is only an example, we will find a way to do it correctly later, now just using msg
-	Command	cmd(userFd, msg);
+	Command	cmd(userFd, msg, *(this->_users[userFd]));
 	cmd.checkCmd(userFd, msg);
 }
