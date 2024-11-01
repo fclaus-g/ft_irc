@@ -45,8 +45,8 @@ void Server::welcomeUser(int userFd)
 {
 	std::string msg;
 	msg = "Wecolme to The Pollitas Server!\n";
-	msg.append("Insert user nick and server password\n");
-	msg.append("Usage \"NICK <your_nickname> PASS <server_password>\"\n");
+	msg.append("Registration process usage:\n");
+	msg.append("Message #1 - \"PASS <server_password>\" Message #2\"NICK <server_password>\"\n");
 	send(userFd, msg.c_str(), msg.length(), 0);
 }
 

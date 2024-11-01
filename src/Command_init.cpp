@@ -1,23 +1,24 @@
 #include "ft_irc.hpp"
 
-Command::Command(int socketFd, const std::string msg)
+Command::Command(int socketFd, const std::string msg, User &user)
+	: _socketFd(socketFd), _msg(msg), _user(user)
 {
-	this->_socketFd = socketFd;
-	this->_msg = msg;
 	_initCommands();
 }
 
 void	Command::_initCommands()
 {
-	this->_commands[0] = "USER";
-    this->_commands[1] = "NICK";
-    this->_commands[2] = "JOIN";
-    this->_commands[3] = "QUIT";
-    this->_commands[4] = "PRIVMSG";
-    this->_commands[5] = "KICK";
-    this->_commands[6] = "INVITE";
-    this->_commands[7] = "TOPIC";
-    this->_commands[8] = "MODE";
+	this->_commands[0] = "CAPLS";
+	this->_commands[1] = "PASS";
+	this->_commands[2] = "USER";
+	this->_commands[3] = "NICK";
+	this->_commands[4] = "JOIN";
+	this->_commands[5] = "QUIT";
+	this->_commands[6] = "PRIVMSG";
+	this->_commands[7] = "KICK";
+	this->_commands[8] = "INVITE";
+	this->_commands[9] = "TOPIC";
+	this->_commands[10] = "MODE";
 }
 
 Command::~Command()
@@ -43,6 +44,11 @@ void	Command::runCmd(int userFd, int key, std::string msg)
 	(void)msg;
 	switch (key)
 	{
+		case CAPLS:
+
+			break;
+		case PASS:
+			break;
 		case USER:
 			break;
 		case NICK:

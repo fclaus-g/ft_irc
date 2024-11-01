@@ -5,6 +5,8 @@
 
 enum command
 {
+	CAPLS,
+	PASS,
 	USER,
 	NICK,
 	JOIN,
@@ -17,6 +19,7 @@ enum command
 	TOTAL
 };
 
+class	User;
 class Command
 {
     private:
@@ -24,8 +27,9 @@ class Command
 		int					_socketFd;
 		std::string			_commands[TOTAL];
 		void				_initCommands();
+		User				&_user;
     public:
-		Command(int socketFd, const std::string msg);
+		Command(int socketFd, const std::string msg, User &user);
 		~Command();
 
 		//Commands methods
