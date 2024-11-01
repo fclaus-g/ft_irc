@@ -20,9 +20,7 @@ class Channel
 	private:
 		std::string			_name;
 		std::string			_topic;
-		std::vector<User>	_users;
-		std::vector<User>	_op;
-		std::map<int, bool> _usersMap; //
+		std::map<User*, bool> _usersMap;
 		bool				_inviteMode;
 		bool				_topicMode;
 		bool				_keyMode;
@@ -39,7 +37,7 @@ class Channel
 		const std::string&			getName() const;
 		const std::string&			getTopic() const;
 		const std::string			getUsersChannelStr() const;
-		const std::vector<User>&	getUsers() const;
+		const std::map<User*, bool>&	getUsers() const;
 		bool						getInviteMode() const;
 		bool						getTopicMode() const;
 		bool 						getKeyMode() const;
@@ -63,7 +61,7 @@ class Channel
 		void 						addUserChannel(User& user);
 		void 						removeUserChannel(User& user);
 		void 						addOpChannel(User& user);
-		void 						removeOpChannel(int userFd);
+		void 						removeOpChannel(User& user);
 		void 						broadcastMessage(const std::string& message);
 		void 						sendTopicMessage(User& user);
 };

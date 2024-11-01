@@ -38,6 +38,20 @@ User::~User()
 {
 }
 
+bool User::operator==(const User& rhs)
+{
+	if (this->_fd == rhs.getFd())
+		return true;
+	return false;
+}
+
+bool User::operator==(const int userFd)
+{
+	if (this->_fd == userFd)
+		return true;
+	return false;
+}
+
 /*Get*/
 bool User::getHexStat() const
 {
@@ -122,7 +136,7 @@ void	User::hexChatUser(std::string msg)
 	size_t		pos;
 
 	pos = msg.find_first_of("\n");
-	nick = msg.substr(5, pos - 5);
+	nick = msg.substr(5, pos - 6);
 	user = msg.substr(msg.find("USER") + 5);
 	pos = user.find_first_of(" ");
 	user = user.substr(0, pos);

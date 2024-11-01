@@ -39,8 +39,6 @@ Channel& Channel::operator=(const Channel &rhs)
 	{
 		this->_name = rhs._name;
 		this->_topic = rhs._topic;
-		this->_users = rhs._users;
-		this->_op = rhs._op;
 		this->_usersMap = rhs._usersMap;
 		this->_inviteMode = rhs._inviteMode;
 		this->_topicMode = rhs._topicMode;
@@ -107,16 +105,15 @@ const std::string& Channel::getTopic() const
 const std::string Channel::getUsersChannelStr() const
 {
 	std::string usersStr;
-	for (size_t i = 0; i < this->_users.size(); i++)
-	{
-		usersStr += this->_users[i].getNick() + " ";
-	}
+	std::map<User*, bool> usersMap = this->_usersMap;
+	for (std::map<User*, bool>::iterator it = usersMap.begin(); it != usersMap.end(); it++)
+		usersStr += it->first->getNick() + " ";
 	return usersStr;
 }
 
-const std::vector<User>& Channel::getUsers() const
+const std::map<User*, bool>& Channel::getUsers() const
 {
-	return this->_users;
+	return this->_usersMap;
 }
 
 bool Channel::getInviteMode() const
@@ -151,21 +148,17 @@ const std::string& Channel::getPassword() const
 /*-----------------------[CHECK METHODS]------------------------*/
 bool Channel::isUserInChannel(User& user)
 {
-	for (size_t i = 0; i < this->_users.size(); i++)
-	{
-		if (this->_users[i].getFd() == user.getFd())
+	for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
+		if (it->first == &user)
 			return true;
-	}
 	return false;
 }
 
 bool Channel::isOp(User& user)
 {
-	for (size_t i = 0; i < this->_op.size(); i++)
-	{
-		if (this->_op[i].getFd() == user.getFd())
+	for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
+		if (it->first == &user && it->second == true)
 			return true;
-	}
 	return false;
 }
 
@@ -173,7 +166,7 @@ bool Channel::channelIsFull()
 {
 	if (this->_usersLimit == -1)
 		return false;
-	if (this->_users.size() >= static_cast<size_t>(this->_usersLimit))
+	if (this->_usersMap.size() >= static_cast<size_t>(this->_usersLimit))
 		return true;
 	return false;
 }
@@ -197,9 +190,10 @@ void Channel::addUserChannel(User& user)
 	else
 	{
 		this->_usersInChannel++;
-		this->_usersMap[user.getFd()] = false;
-		this->_users.push_back(user);
-		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@127.0.0.1 JOIN :" + this->getName() + "\n";
+		this->_usersMap[&user] = false;
+		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@localhost JOIN :" + this->getName();
+		//std::string msg = ":" + user.getNick() + " JOIN " + this->getName();
+		std::cout << msg << std::endl;
 		send(user.getFd(), msg.c_str(), msg.length(), 0);
 	}
 	//std::cout << *this << std::endl;
@@ -207,14 +201,10 @@ void Channel::addUserChannel(User& user)
 
 void Channel::removeUserChannel(User& user)
 {
-	for (size_t i = 0; i < this->_users.size(); i++)
-	{
-		if (this->_users[i].getFd() == user.getFd())
-		{
-			this->_users.erase(this->_users.begin() + i);
-			break;
-		}
-	}
+	for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
+		if (it->first == &user)
+			this->_usersMap.erase(&user);
+
 }
 
 void Channel::addOpChannel(User& user)
@@ -225,72 +215,48 @@ void Channel::addOpChannel(User& user)
 		return;
 	}
 	if (this->isUserInChannel(user))
-	{
-		this->_op.push_back(user);
-	}
+		this->_usersMap[&user] = true;
 	else
-	{
 		std::cout << "User is not in channel" << std::endl;
-	}
 }
 
-void Channel::removeOpChannel(int userFd)
+void Channel::removeOpChannel(User& user)
 {
-	if (this->_op.empty())
+	if (this->isOp(user))
 	{
-		std::cout << "No op in channel" << std::endl;
-		return;
-	}
-	if (this->isOp(this->_users[userFd]))
-	{
-		for (size_t i = 0; i < this->_op.size(); i++)
-		{
-			if (this->_op[i].getFd() == userFd)
-			{
-				this->_op.erase(this->_op.begin() + i);
-				break;
-			}
-		}
+		for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
+			if (it->first == &user && it->second == true)
+				it->second = false;
 	}
 	else
-	{
 		std::cout << "User is not op" << std::endl;
-	}
 }
 
 void Channel::broadcastMessage(const std::string& message)
 {
-	for (size_t i = 0; i < this->_users.size(); i++)
-	{
-		send(this->_users[i].getFd(), message.c_str(), message.size(), 0);
-	}
+	for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
+		send(it->first->getFd(), message.c_str(), message.size(), 0);
 }
 
 void Channel::sendTopicMessage(User& user)
 {
 	std::string topicMsg;
 	if (this->_topic.empty())
-	{
 		topicMsg = ":server 331" + user.getNick() + " " + this->_name + " :No topic is set";
-	}
 	else
-	{
 		topicMsg = ":server 332" + user.getNick() + " " + this->_name + " :" + this->_topic;
-	}
 	std::cout << topicMsg << std::endl;
 	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
 }
 
 std::ostream& operator<<(std::ostream& os, const Channel& channel)
 {
+	std::map<User*, bool> usersMap = channel.getUsers();
 	os << "Channel name: " << channel.getName() << std::endl;
 	os << "Channel topic: " << channel.getTopic() << std::endl;
 	os << "Channel users: ";
-	for (size_t i = 0; i < channel.getUsers().size(); i++)
-	{
-		os << channel.getUsers()[i] << " "; 
-	
-	}
+	for (std::map<User*, bool>::iterator it = usersMap.begin(); it != usersMap.end(); it++)
+		os << it->first << " ";
 	os << "users in channel : " << channel.getUsersInChannel() << std::endl;	
 	os << std::endl;
 	return os;

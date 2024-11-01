@@ -238,7 +238,7 @@ void Server::commandJoin(User& user)
 		{
 			channelExists = true;
 			this->addUserToChannel(channel, user);
-			break;
+			return;
 		}
 	}
 	if (!channelExists)
@@ -248,11 +248,11 @@ void Server::commandJoin(User& user)
 		//this->_channelsMap[channel].addOpChannel(user);
 		return;
 	}
-	this->_channelsMap[channel].sendTopicMessage(user);//en teoria hay que mandar un mensaje con el topic si existe
-	//this->_channelsMap[channel].broadcastMessage("JOIN " + user.getNick() + " " + channel + "\n");
-	std::string namreply = ":" + this->getName() + " 353 " + user.getNick() + " = " + this->_channelsMap[channel].getName() + " :@"+ this->_channelsMap[channel].getUsersChannelStr();
-	// std::cout << "Users in channel: " << this->_channelsMap[channel].getUsersChannelStr() << std::endl;
-	send(user.getFd(), namreply.c_str(), namreply.size(), 0);
+	// this->_channelsMap[channel].sendTopicMessage(user);//en teoria hay que mandar un mensaje con el topic si existe
+	// //this->_channelsMap[channel].broadcastMessage("JOIN " + user.getNick() + " " + channel + "\n");
+	// std::string namreply = ":" + this->getName() + " 353 " + user.getNick() + " = " + this->_channelsMap[channel].getName() + " :@"+ this->_channelsMap[channel].getUsersChannelStr();
+	// // std::cout << "Users in channel: " << this->_channelsMap[channel].getUsersChannelStr() << std::endl;
+	// send(user.getFd(), namreply.c_str(), namreply.size(), 0);
 }
 
 void Server::commandQuit(User user)
@@ -449,6 +449,7 @@ bool	Server::loginFormat(std::string msg)
 		return (false);
 	if (nick_pos != 0 || nick_pos > pass_pos)
 		return (false);
+	std::cout << msg << "flag" << std::endl;
 	this->_tempNick = msg.substr(nick_pos + 5, pass_pos - (nick_pos + 5));
 	this->_tempPass = msg.substr(pass_pos + 6);
 	if (this->_tempNick.empty() || this->_tempPass.empty())

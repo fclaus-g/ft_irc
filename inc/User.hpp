@@ -21,6 +21,10 @@ class User
 		User(const User& rhs);
 		User& operator=(const User& rhs);
 		~User();
+
+		bool operator==(const User& rhs);
+		bool operator==(const int userFd);
+
 		int					getFd() const;
 		bool				getAuthenticated() const;
 		std::string			getIp() const;
@@ -28,8 +32,6 @@ class User
 		std::string			getUserName() const;
 		std::string			getRealName() const;
 
-
-		
 		void				setFd(int fd);
 		void				setIp(std::string ip);
 		void				setAuthenticated(bool authenticated);
