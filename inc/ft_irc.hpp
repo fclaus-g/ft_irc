@@ -33,6 +33,6 @@
 const int MAX_CLIENTS = 10;
 const int BUFF_SIZE = 1024;
 
-void	ft_printf(std::string msg);
+bool	readFromSocket(int socketFd, std::string &store);
 
 #endif

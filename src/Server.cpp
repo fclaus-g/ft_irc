@@ -147,8 +147,9 @@ bool	readFromSocket(int socketFd, std::string &store)
 void	Server::msgHandler(int socketFd)
 {
 	this->_message.clear();
-	if (!readFromSocket(socketFd, &this->_message))
-		return (deleteUser(socketFd), NULL);
+	if (!readFromSocket(socketFd, this->_message))
+		return (deleteUser(socketFd));
+	std::cout << "Mensaje recogido msgHanlder (x)" << std::endl;
 	if (this->_users[socketFd]->getAuthenticated() == true)
 		parseMsg(socketFd, this->_message);
 	else if (this->_message.find("CAP LS") != std::string::npos)
@@ -166,18 +167,21 @@ void	Server::msgHandler(int socketFd)
  *	(!)Hexchat needs to have the server password in the network config,
  *		otherwise, it won't send message #2
  */
-
 void	Server::hexChatLogin(int socketFd)
 {
+	std::cout << "Entramos en hexChatLogin" << std::endl;
 	this->_users[socketFd]->setHexClient(true);
 	this->_message.clear();
-	if (!readFromSocket(socketFd, &this->_message))
-		return (deleteUser(socketFd), NULL);
+	if (!readFromSocket(socketFd, this->_message))
+		return (deleteUser(socketFd));
+	std::cout << "Mensaje recogido en hexChatLogin" << std::endl;
 	if (checkHexChatPass(socketFd))
 	{
+		std::cout << "Pasamos hexChatPass" << std::endl;
 		this->_message.clear();
-		if (!readFromSocket(socketFd, &this->_message))
-			return (deleteUser(socketFd), NULL);
+		if (!readFromSocket(socketFd, this->_message))
+			return (deleteUser(socketFd));
+		std::cout << "Mensaje recogido después de hexChatLogin" << std::endl;
 		this->_users[socketFd]->hexChatUser(this->_message);
 		sendWarning(socketFd, ":MyServer 001 * :Welcome to the Pollitas Internet Relay Network\n");
 	}
