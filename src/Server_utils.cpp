@@ -41,6 +41,9 @@ void Server::signalHandler(int signal)
 	}
 }
 
+/**
+ * @brief Sends a message to the user with the registration process usage
+ */
 void Server::welcomeUser(int userFd)
 {
 	std::string msg;
@@ -50,6 +53,12 @@ void Server::welcomeUser(int userFd)
 	send(userFd, msg.c_str(), msg.length(), 0);
 }
 
+/**
+ * @brief Auxiliary function to send a message from server to the user
+ * (!) Uses the send() function from sys/socket.h
+ * @param userFd the user socket file descriptor
+ * @param str the message to be sent
+ */
 void	Server::sendWarning(int userFd, std::string str)
 {
 	std::string	msg = "";
@@ -58,73 +67,13 @@ void	Server::sendWarning(int userFd, std::string str)
 
 }
 
-bool	Server::loginFormat(std::string msg)
-{
-	size_t		nick_pos = msg.find("NICK ");
-	size_t		pass_pos = msg.find(" PASS ");
-
-	this->_tempNick.clear();
-	this->_tempPass.clear();
-	if (nick_pos == std::string::npos || pass_pos == std::string::npos)
-		return (false);
-	if (nick_pos != 0 || nick_pos > pass_pos)
-		return (false);
-	this->_tempNick = msg.substr(nick_pos + 5, pass_pos - (nick_pos + 5));
-	this->_tempPass = msg.substr(pass_pos + 6);
-	if (this->_tempNick.empty() || this->_tempPass.empty())
-		return (false);
-	if (this->_tempNick.find(" ") != std::string::npos
-		|| this->_tempPass.find(" ") != std::string::npos)
-			return (false);
-	return (true);
-}
-
-void	Server::checkPass(int userFd)
-{
-	if (this->_tempPass[this->_tempPass.length() - 1] == '\n')
-		this->_tempPass.erase(this->_tempPass.length() - 1);
-	if (this->_tempPass != this->_password)
-	{
-		std::cout << "New user with socket fd " << userFd << " tried to login with wrong password" << std::endl;
-		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
-		sendWarning(userFd, "Wrong password, your are being disconnected\n");
-		deleteUser(userFd);
-	}
-	else
-	{
-		this->_users[userFd]->setNick(this->_tempNick);
-		this->_users[userFd]->setAuthenticated(true);
-		std::cout << GRE << "New user with socket fd " << userFd << " has joined the server" << RES << std::endl;
-		sendWarning(userFd, "Login succesfull\n");
-	}
-}
-
-bool	Server::checkHexChatPass(int socketFd)
-{
-	std::string	pass;
-	bool		verified = true;
-
-	if (this->_message.find("PASS ") != 0)
-		verified = false;
-	if (verified)
-	{
-		pass = this->_message.substr(this->_message.find("PASS") + 5);
-		pass.erase(pass.find_last_not_of(" \n\r\t") + 1);
-		if (pass != this->_password)
-			verified = false;
-	}
-	if (!verified)
-	{
-		std::cout << "New HexChat connection with socket fd " << socketFd << " tried to login with wrong password or whithout any" << std::endl;
-		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
-		sendWarning(socketFd, ":MyServer 464 * :Password incorrect\n");
-		deleteUser(socketFd);
-		return (false);
-	}
-	this->_users[socketFd]->setAuthenticated(true);
-	return (true);
-}
-
+/**
+ * @brief Aux function to properly delete a user from the server: getting its pollfd
+ *	out of the poll vector, deleting the object and closing the socket
+ * (!) It is important to keep this order to avoid unexpected behaviors
+ * @param i vector iterator to find the user's pollfd strucut to be deleted
+ * @param socketFd the user socket file descriptor
+ */
 void	Server::deleteUser(int socketFd)
 {
 	std::vector<struct pollfd>::iterator i = this->_fds.begin();
@@ -143,6 +92,10 @@ void	Server::deleteUser(int socketFd)
 	close(socketFd);
 }
 
+/**
+ * @brief end the server, close all fds if still opened including the server fd
+ * TODO: Only a draft of the function, needs to be checked and improved if needed
+ */
 void Server::stop()
 {
 	this->_isRunning = false;
@@ -151,7 +104,10 @@ void Server::stop()
 	std::cout << "Server stopped" << std::endl;
 }
 
-User*	Server::getUserByNick(std::string nick)
+/**
+ * @brief Returns a pointer to the user object with the given nick
+ */
+User	*Server::getUserByNick(std::string nick)
 {
 	User	*user_ptr = NULL;
 	std::map<int, User*>::iterator i = this->_users.begin();
@@ -168,7 +124,10 @@ User*	Server::getUserByNick(std::string nick)
 	return (user_ptr);
 }
 
-User*	Server::getUserByFd(int fd)
+/**
+ * @brief Returns a pointer to the user object with the given socket fd
+ */
+User	*Server::getUserByFd(int fd)
 {
 	User	*user_ptr = NULL;
 	std::map<int, User*>::iterator i = this->_users.find(fd);

@@ -1,5 +1,8 @@
 #include "ft_irc.hpp"
 
+/**
+ * @brief Main program process: prepare server socket, run poll check loop, stop and clean exit
+ */
 void Server::start()
 {
 	prepareSocket();
@@ -7,6 +10,12 @@ void Server::start()
 	stop();
 }
 
+/**
+ * @brief Set the server socket; open socket fd, non blocking, bind and listen in selected port;
+ *	then its fd	gets to the vector of pollfd strutc
+ * @param poll_fd the struct pollfd needed by poll() function, where all server and client sockets 
+ *	will be stored to be checked for events later on
+ */
 void Server::prepareSocket()
 {
 	struct sockaddr_in server_addr;
@@ -56,6 +65,14 @@ void Server::prepareSocket()
 	std::cout << *this << std::endl;
 }
 
+/**
+ * @brief Running loop that runs through all sockets file descriptors stored in
+ *	pollfd vector, checking if there is any new event (revents & POLLIN)
+ *	(!) The poll() function will block the program until there is a new event
+ *	If the event happens in the server fd, it means that there is a new connection
+ *	attemp - newConnection()
+ *	Otherwise, there is a new event coming from a client fd - msgHandler()
+ */
 void	Server::run()
 {
 	while (this->_isRunning)
@@ -75,6 +92,14 @@ void	Server::run()
 	}
 }
 
+/**
+ * @brief New connection is handled quite similar to the way the server is set; the
+ *	socket fd is set to be non-blocking, the pollfd struct is created and push to the
+ *	last position of the vector, but in this case we also create a new User object
+ *	At the end, we send a welcome message -with usage instructions- to the client
+ * @param new_pollfd the struct pollfd needed by poll() function, where all client sockets 
+ *	will be stored to be checked for events during the program lifecycle
+ */
 void	Server::newConnection()
 {
 	sockaddr_in 		client_addr;
@@ -107,75 +132,22 @@ void	Server::newConnection()
 
 /**
  * @brief This function handles the message -poll event- sent by the current socket
- * 	Logic process:
- * 		- If nothing or error read, kick and delete user
- * 		- Check if the client is HexChat -> if so, we asumme there are three consecutive
- * 			fixed messages -poll events- in this socket -> we check three conditions
- * 		- If not, the socket is for a client using a terminal, then check if this is the
- * 			first message of the user (extract NICK and PASS)
- * 		- If nothing above matches and there has not been any errors, we procceed to parse
- * 			the message (the user is already authenticated and the buffer read is either 
- * 			a message to send or a command to execute)
+ *	(!) readFromSocket() is a helper function that reads the message from the socket
+ *		and stores it in a string (currently using server._message, later on will be user._buffer)
+ * 		- if the message is empty, it means that the client disconnected, so we delete the user
+ *	(!) Command class is created to handle the message, check if it is a valid command and run it
  */
 void	Server::msgHandler(int socketFd)
 {
 	this->_message.clear();
 	if (!readFromSocket(socketFd, this->_message))
 		return (deleteUser(socketFd));
-	parseMsg(socketFd, this->_message);
-	// else if (this->_message.find("CAP LS") != std::string::npos)
-	// 	hexChatLogin(socketFd);
-	// else
-	// 	ncLogin(socketFd);
-}
-
-/**
- * @brief When login using HexChat, this client sends 3 separate messages at start
- * 	-three consecutive poll events in the same socket-
- * 		#1 = "CAP LS 302\n" - user->_hexChat = TRUE
- *		#2 = "PASS <password>\n" - checked in server.checkPassHexChat()
- * 		#3 = "NICK pgomez-r\nUSER pgomez-r 0 * :realname\n" - parsed in user.hexChatUser() 
- *	(!)Hexchat needs to have the server password in the network config,
- *		otherwise, it won't send message #2
- */
-void	Server::hexChatLogin(int socketFd)
-{
-	this->_users[socketFd]->setHexClient(true);
-	this->_message.clear();
-	if (!readFromSocket(socketFd, this->_message))
-		return (deleteUser(socketFd));
-	if (checkHexChatPass(socketFd))
-	{
-		this->_message.clear();
-		if (!readFromSocket(socketFd, this->_message))
-			return (deleteUser(socketFd));
-		this->_users[socketFd]->hexChatUser(this->_message);
-		sendWarning(socketFd, ":MyServer 001 * :Welcome to the Pollitas Internet Relay Network\n");
-	}
-}
-
-void	Server::ncLogin(int userFd)
-{
-	//welcome message - usage?
-	if (!loginFormat(this->_message))
-	{
-		std::cout << "New connection with socket fd " << userFd << " tried to login with wrong login format" << std::endl;
-		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
-		sendWarning(userFd, "Wrong format for login authentication, your are being disconnected\n");
-		deleteUser(userFd);
-	}
-	else
-		checkPass(userFd);
-}
-
-void	Server::parseMsg(int userFd, std::string msg)
-{
 	//Later on, we will first handle user->_buffer before handling the command
 	//	this->_users[userFd].updateBuffer(msg);
 	//	if (this->_users[userFd].getBuffer().find(\n, \r...) != npos)
-	//This is only an example, we will find a way to do it correctly later, now just using msg
-	Command	cmd(userFd, msg, *(this->_users[userFd]));
-	cmd.checkCmd(userFd, msg);
+	//This is only an example, we will find a way to do it correctly later, now just using this->_message
+	Command	cmd(socketFd, this->_message, *(this->_users[socketFd]), *(this));
+	cmd.checkCmd(socketFd);
 }
 
 bool Server::channelExists(const std::string& name)

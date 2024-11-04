@@ -32,8 +32,6 @@ class User
 		void 				setRealName(std::string realName);
 		bool				getHexClient() const;
 		void				setHexClient(bool state);
-		//Methods
-		void				hexChatUser(std::string msg);
 };
 
 std::ostream& operator<<(std::ostream& out, const User& user);

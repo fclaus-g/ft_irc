@@ -23,18 +23,24 @@ class	User;
 class Command
 {
     private:
-		std::string			_msg;
 		int					_socketFd;
+		std::string			_msg;
 		std::string			_commands[TOTAL];
 		void				_initCommands();
 		User				&_user;
+		Server				&_server;
     public:
-		Command(int socketFd, const std::string msg, User &user);
+		Command(int socketFd, const std::string msg, User &user, Server &server);
 		~Command();
-
+		//Aux Methods	
+		bool 			checkCmd(int userFd);
+		void			runCmd(int userFd, int key);
+		void			kickNonAuthenticatedUser(int userFd);
 		//Commands methods
+		void 			cmdNick();
+		void 			cmdPass();
+		void 			cmdUser();
 		void 			commandPrivmsg(int userFd, const std::string msg);
-		void 			commandUser(User user);
 		void 			commandNick(User user);
 		void 			commandJoin(User user);
 		void 			commandQuit(User user);
@@ -42,8 +48,6 @@ class Command
 		void 			commandInvite(User user);
 		void 			commandTopic(User user);
 		void 			commandMode(User user);
-		bool 			checkCmd(int userFd, std::string msg);
-		void			runCmd(int userFd, int key, std::string msg);
 };
 
 #endif
