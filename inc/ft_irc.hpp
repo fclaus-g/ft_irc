@@ -2,22 +2,23 @@
 #define FT_IRC_HPP
 
 
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <poll.h>
-#include <map>
-#include <vector>
-#include <cstring>
-#include <cstdlib>
-#include <signal.h>
-#include <exception>
-#include <fcntl.h>
-#include <arpa/inet.h>
+#include <iostream>//for cout
+#include <string>//for string
+#include <sstream>//for istringstream
+#include <fstream>//for file
+#include <sys/socket.h>//for socket
+#include <sys/types.h>//for socket
+#include <netinet/in.h>//for sockaddr_in
+#include <unistd.h> //for close
+#include <poll.h>//for poll
+#include <map>//for map
+#include <vector>//for vector
+#include <cstring>//for memset
+#include <cstdlib>//for atoi
+#include <signal.h>//for signal
+#include <exception>//for exception
+#include <fcntl.h>//for fcntl
+#include <arpa/inet.h>//for inet_ntoa
 
 #include "User.hpp"
 #include "Channel.hpp"
