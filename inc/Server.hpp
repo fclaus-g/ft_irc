@@ -83,7 +83,7 @@ class Server
 		void 		commandKick(int userFd, std::string msg);
 		void 		commandInvite(int userFd, std::string msg);
 		void 		commandTopic(User user);
-		void 		commandMode(User user);
+		void 		commandMode(int userFd, std::string msg);
 
 		//methods for debugging
 		void		printMap(const std::map<int, User>& map);

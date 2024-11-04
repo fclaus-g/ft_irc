@@ -382,9 +382,36 @@ void Server::commandTopic(User user)
 	(void)user;
 }
 
-void Server::commandMode(User user)
+void Server::commandMode(int userFd, std::string msg)
 {
-	(void)user;
+	/*
+	/MODE canal [modestring [modearguments]]
+	
+	modestring 	= 1*( modeset )
+	modeset 	= plusminus *( modechar )
+	plusminus	= %x2B / %x2D
+				; + or -
+	modechar = ALPHA
+	modearguments : argumentos de la opción (no todas tienen)
+	*/
+	
+	std::string channelName;
+
+	//obtenemos el canal a partir del mensaje
+	size_t iPos = msg.find_first_not_of(" \t");
+	size_t fPos = msg.find_first_of(" \t", iPos);
+	channelName = msg.substr(iPos, fPos - iPos);
+	Channel *channel = this->getChannel(channelName);
+	if (!channel)
+	{
+		/*
+		Devolver respuesta ERR_NOSUCHCHANNEL al cliente
+		*/
+		return ;
+	}	
+
+	// Parsear el resto del mensaje para obtener los modos a cambiar
+	std::cout << userFd << std::endl;
 }
 
 void Server::signalHandler(int signal)
