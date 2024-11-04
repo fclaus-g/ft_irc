@@ -1,29 +1,5 @@
 #include "ft_irc.hpp"
 
-/**
- * @brief When login using this client, it sends three separate messages at start
- * 	-three consecutive poll events in the same socket- this method checks #3
- * 		#1 = "CAP LS 302\n" - skipeed first time and user->_hexChat = TRUE
- *		#2 = "PASS <password>\n" - checked in server.checkPassHexChat()
- * 		#3 = "NICK pgomez-r\nUSER pgomez-r 0 * :realname\n" - let's do it!
- *	(!)Hexchat needs to have the server password in the network config,
- *		otherwise, it won't send message #2
- */
-void	User::hexChatUser(std::string msg)
-{
-	std::string	nick;
-	std::string user;
-	size_t		pos;
-
-	pos = msg.find_first_of("\n");
-	nick = msg.substr(5, pos - 5);
-	user = msg.substr(msg.find("USER") + 5);
-	pos = user.find_first_of(" ");
-	user = user.substr(0, pos);
-	this->_nickName = nick;
-	this->_userName = user;
-}
-
 int	User::getFd() const
 {
 	return this->_fd;

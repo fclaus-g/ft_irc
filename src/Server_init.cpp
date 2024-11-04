@@ -29,3 +29,11 @@ bool Server::getIsRunning() const
 {
 	return this->_isRunning;
 }
+
+/**
+ * @brief Getter to the server password, for future pass check
+ */
+const std::string Server::getPassword() const
+{
+	return this->_password;
+}
