@@ -32,7 +32,7 @@ void	Command::cmdPass()
 void	Command::cmdNick()
 {
 	if (!this->_user.getAuthenticated())
-		kickNonAuthenticatedUser(this->_user.getFd());
+		return (kickNonAuthenticatedUser(this->_user.getFd()));
 	std::string	nick;
 	size_t		pos;
 
@@ -60,7 +60,7 @@ void	Command::cmdNick()
 void Command::cmdUser()
 {
 	if (!this->_user.getAuthenticated())
-		kickNonAuthenticatedUser(this->_user.getFd());
+		return (kickNonAuthenticatedUser(this->_user.getFd()));
 	std::string user;
 	size_t		pos;
 
