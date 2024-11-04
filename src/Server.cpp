@@ -245,14 +245,9 @@ void Server::commandJoin(User& user)
 	{
 		this->createChannel(channel);//crea canal con el nombre channel en lugar del pasado
 		this->addUserToChannel(channel, user);
-		//this->_channelsMap[channel].addOpChannel(user);
+		this->_channelsMap[channel].addOpChannel(user);
 		return;
 	}
-	this->_channelsMap[channel].sendTopicMessage(user);//en teoria hay que mandar un mensaje con el topic si existe
-	//this->_channelsMap[channel].broadcastMessage("JOIN " + user.getNick() + " " + channel + "\n");
-	std::string namreply = ":" + this->getName() + " 353 " + user.getNick() + " = " + this->_channelsMap[channel].getName() + " :@"+ this->_channelsMap[channel].getUsersChannelStr();
-	// std::cout << "Users in channel: " << this->_channelsMap[channel].getUsersChannelStr() << std::endl;
-	send(user.getFd(), namreply.c_str(), namreply.size(), 0);
 }
 
 void Server::commandQuit(User user)
@@ -280,9 +275,33 @@ void Server::commandTopic(User user)
 	(void)user;
 }
 
-void Server::commandMode(User user)
+void Server::commandMode(User& user, std::string msg)
 {
-	(void)user;
+	std::istringstream iss(msg);
+	std::string command, channelName, mode, nick;
+	iss >> command >> channelName >> mode >> nick;
+	//verificar si se proporciona nombre de canal
+	if (channelName.empty())
+	{
+		send(user.getFd(), ":Server 461 MODE :Not enough parameters\n", 38, 0);
+		return;
+	}
+	//verificar si el canal existe
+	if (!channelExists(channelName))
+	{
+		std::string response = ":Server 403 " + channelName + " :No such channel\n";
+		send(user.getFd(),response.c_str(), response.size(), 0);
+		return;
+	}
+	//TO_DO ver como voy a gestionar los modos de un canal
+	//verificar si se proporciona modo
+	if (mode.empty())
+	{
+		std::string response = ":" + user.getNick() + " MODE " + channelName + "\n";
+		send(user.getFd(), response.c_str(), response.size(), 0);
+		return;
+	}
+
 }
 
 void Server::signalHandler(int signal)
@@ -651,9 +670,19 @@ void	Server::runCmd(int userFd, int key, std::string msg)
 		case TOPIC:
 			break;
 		case MODE:
-			std::cout << RED << "MODE" << RES << std::endl;
+			commandMode(*_users[userFd], msg);
 			break;
 		default:
 			break;
 	}
+}
+
+bool Server::channelExists(const std::string& name)
+{
+	for (size_t i = 0; i < this->_channels.size(); i++)
+	{
+		if (this->_channels[i].getName() == name)
+			return (true);
+	}
+	return (false);
 }

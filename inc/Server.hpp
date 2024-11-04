@@ -69,7 +69,7 @@ class Server
 		void		createChannel(const std::string& name);
 		void		addUserToChannel(const std::string& channelName, User& user);
 		void		removeChannel(const std::string& name);
-		
+		bool 		channelExists(const std::string& name);
 		//Command methods
 		
 		void		checkCommand(User user);
@@ -82,7 +82,7 @@ class Server
 		void		commandKick(User user);
 		void		commandInvite(User user);
 		void		commandTopic(User user);
-		void		commandMode(User user);
+		void		commandMode(User& user, std::string msg);
 
 		static void	signalHandler(int signal);
 		void		printMap(const std::map<int, User>& map);
