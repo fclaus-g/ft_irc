@@ -249,6 +249,14 @@ void Channel::sendTopicMessage(User& user)
 	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
 }
 
+bool Channel::operator==(std::string &channelName) const
+{
+	if (this->_name == channelName)
+		return true;
+	return false;
+}
+
+
 std::ostream& operator<<(std::ostream& os, const Channel& channel)
 {
 	std::map<User*, bool> usersMap = channel.getUsers();

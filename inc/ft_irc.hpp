@@ -18,6 +18,7 @@
 #include <exception>//for exception
 #include <fcntl.h>//for fcntl
 #include <arpa/inet.h>//for inet_ntoa
+#include <algorithm>
 
 #include "User.hpp"
 #include "Channel.hpp"

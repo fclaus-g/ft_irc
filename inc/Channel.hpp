@@ -64,6 +64,7 @@ class Channel
 		void 						removeOpChannel(User& user);
 		void 						broadcastMessage(const std::string& message);
 		void 						sendTopicMessage(User& user);
+		bool 						operator==(std::string &channelName) const;
 };
 
 std::ostream& operator<<(std::ostream& out, const Channel& channel);

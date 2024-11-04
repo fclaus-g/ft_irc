@@ -277,7 +277,19 @@ void Server::commandInvite(User user)
 
 void Server::commandTopic(User user)
 {
-	(void)user;
+	size_t	iPos = this->_message.find_first_not_of(" \t") + 5;
+	size_t	cPos = this->_message.find_first_of(" \t", iPos);
+	std::vector<Channel>::iterator channelIt = std::find(this->_channels.begin(), this->_channels.end(), this->_message.substr(iPos, cPos - iPos));
+	if (!channelIt->isOp(user) && channelIt->getTopicMode())
+		return ;
+	size_t	fPos = this->_message.find_first_not_of(" \t");
+	if (fPos == std::string::npos)
+	{
+		channelIt->sendTopicMessage(user);
+		return ;
+	}
+	std::string topic = this->_message.substr(fPos, this->_message.size() - fPos);
+	channelIt->setTopic(topic);
 }
 
 void Server::commandMode(User user)
