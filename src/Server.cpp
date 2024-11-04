@@ -148,6 +148,9 @@ void	Server::msgHandler(int socketFd)
 	//This is only an example, we will find a way to do it correctly later, now just using this->_message
 	Command	cmd(socketFd, this->_message, *(this->_users[socketFd]), *(this));
 	cmd.checkCmd(socketFd);
+	//(!)If we add some code after cmd.checkCmd(), need to be checked and protected if command went wrong and/or user deleted!
+	// std::cout << "User with fd " << socketFd << "state of authentication: " << this->_users[socketFd]->getAuthenticated() << std::endl;
+	// std::cout << "User with fd " << socketFd << "current nick: " << this->_users[socketFd]->getNick() << std::endl;
 }
 
 bool Server::channelExists(const std::string& name)

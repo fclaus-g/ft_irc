@@ -63,6 +63,7 @@ bool Command::checkCmd(int userFd)
  * @param userFd the user file descriptor
  * @param key the command key
  * TODO: Implement the command methods =)
+ * TODO: If not used, remove USER from here, enum, _initCommands()
  */
 void	Command::runCmd(int userFd, int key)
 {
@@ -78,6 +79,7 @@ void	Command::runCmd(int userFd, int key)
 		case USER:
 			break;
 		case NICK:
+			cmdNick();
 			break;
 		case JOIN:
 			break;
