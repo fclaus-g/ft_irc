@@ -4,6 +4,7 @@
 
 #include <iostream>//for cout
 #include <string>//for string
+#include <sstream>//for istringstream
 #include <fstream>//for file
 #include <sys/socket.h>//for socket
 #include <sys/types.h>//for socket
