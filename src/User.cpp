@@ -34,10 +34,6 @@ void	User::setUserName(std::string userName)
 	this->_userName = userName;
 }
 
-void	User::setUserName(std::string userName)
-{
-	this->_userName = userName;
-}
 
 std::string User::getRealName() const
 {

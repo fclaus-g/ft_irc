@@ -91,7 +91,7 @@ void Command::commandJoin(User& user)
 	size_t iPos = this->_msg.find_first_not_of(" \t") + 5;
 	size_t fPos = this->_msg.find_first_of(" \t", iPos);
 	std::string channel = this->_msg.substr(iPos, fPos - iPos);
-	
+
 	if (channel[0] != '#')
 	{
 		std::cout << "Error: Invalid channel name" << std::endl;
@@ -184,7 +184,19 @@ void Command::commandInvite(User user)
 
 void Command::commandTopic(User user)
 {
-	(void)user;
+	// size_t  iPos = this->_msg.find_first_not_of(" \t") + 5;
+	// size_t  cPos = this->_msg.find_first_of(" \t", iPos);
+	// std::vector<Channel>::iterator channelIt = std::find(this->_channels.begin(), this->_channels.end(), this->_msg.substr(iPos, cPos - iPos));
+	// if (!channelIt->isOp(user) && channelIt->getTopicMode())
+	// 	return ;
+	// size_t  fPos = this->_msg.find_first_not_of(" \t");
+	// if (fPos == std::string::npos)
+	// {
+	// 	channelIt->sendTopicMessage(user);
+	// 	return ;
+	// }
+	// std::string topic = this->_msg.substr(fPos, this->_msg.size() - fPos);
+	// channelIt->setTopic(topic);
 }
 
 void Command::commandMode(User user)

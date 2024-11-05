@@ -246,10 +246,11 @@ void Channel::removeOpChannel(User& user)
 		std::cout << "User is not op" << std::endl;
 }
 
-void Channel::broadcastMessage(const std::string& message)
+void Channel::broadcastMessage(const std::string& message, int userFd)
 {
 	for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
-		send(it->first->getFd(), message.c_str(), message.size(), 0);
+		if (it->second != userFd)
+			send(it->first->getFd(), message.c_str(), message.size(), 0);
 }
 
 void Channel::sendTopicMessage(User& user)

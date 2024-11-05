@@ -18,7 +18,6 @@ class Channel
 	public:
 		Channel();
 		Channel(const std::string& name);
-		Channel(const std::string& name);
 		Channel(const Channel &rhs);
 		~Channel();
 		//getters
@@ -51,7 +50,7 @@ class Channel
 		void 						removeUserChannel(User& user);
 		void 						addOpChannel(User& user);
 		void 						removeOpChannel(User& user);
-		void 						broadcastMessage(const std::string& message);
+		void 						broadcastMessage(const std::string& message, int userFd);
 		void 						sendTopicMessage(User& user);
 		bool 						operator==(std::string &channelName) const;
 };
