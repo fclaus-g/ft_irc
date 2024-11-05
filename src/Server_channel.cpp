@@ -2,6 +2,7 @@
 
 void Server::createChannel(const std::string& name)
 {
+	std::cout << "Creating channel" << RED << name << std::endl;
 	if (name == "")
 	{
 		std::cout << "Channel name can't be empty" << std::endl;
@@ -31,8 +32,10 @@ void Server::createChannel(const std::string& name)
 		}
 	}
 	Channel *newChannel = new Channel(name);
+	std::cout << name << std::endl;
 	this->_channels.push_back(*newChannel);
-	printVector(_channels);
+	this->_channelsMap[name] = *newChannel;
+	//printVector(_channels); for check the vector channel is created correctly
 	std::cout << "Channel created" << std::endl;
 }
 
@@ -43,12 +46,9 @@ void Server::addUserToChannel(const std::string& channelName, User& user)
 		if (this->_channels[i].getName() == channelName)
 		{
 			this->_channels[i].addUserChannel(user);
-			std::cout << "User added to channel" << std::endl;
-			send(user.getFd(), "You have been added to the channel\n", strlen("You have been added to the channel\n"), 0);
 			return;
 		}
 	}
-	std::cout << "Channel not found" << std::endl;
 }
 
 void Server::removeChannel(const std::string& name)
@@ -58,9 +58,34 @@ void Server::removeChannel(const std::string& name)
 		if (this->_channels[i].getName() == name)
 		{
 			this->_channels.erase(this->_channels.begin() + i);
+			this->_channelsMap.erase(name);
 			std::cout << "Channel removed" << std::endl;
 			return;
 		}
 	}
 	std::cout << "Channel not found" << std::endl;
+}
+
+bool Server::channelExists(const std::string& name)
+{
+	for (size_t i = 0; i < this->_channels.size(); i++)
+	{
+		if (this->_channels[i].getName() == name)
+			return (true);
+	}
+	return (false);
+}
+
+/**
+ * @brief Returns a [pointer to a] channel by its name if found, NULL otherwise
+ * TODO: Check if _channelsMap should be <std::string, Channel*> instead
+ */
+Channel	*Server::getChannelByName(std::string name)
+{
+	Channel	*channel_ptr = NULL;
+	std::map<std::string, Channel>::iterator i = this->_channelsMap.find(name);
+
+	if (i != this->_channelsMap.end())
+		channel_ptr = &i->second;
+	return (channel_ptr);
 }

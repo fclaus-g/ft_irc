@@ -3,6 +3,8 @@
 
 #include "ft_irc.hpp"
 
+class	User;
+
 enum command
 {
 	CAPLS,
@@ -19,7 +21,6 @@ enum command
 	TOTAL
 };
 
-class	User;
 class Command
 {
     private:
@@ -40,9 +41,8 @@ class Command
 		void 			cmdNick();
 		void 			cmdPass();
 		void 			cmdUser();
-		void 			commandPrivmsg(int userFd, const std::string msg);
-		void 			commandNick(User user);
-		void 			commandJoin(User user);
+		void 			cmdPrivmsg();
+		void 			commandJoin(User &user);
 		void 			commandQuit(User user);
 		void 			commandKick(User user);
 		void 			commandInvite(User user);

@@ -17,23 +17,43 @@ Server::~Server()
 {
 }
 
-int Server::getPort() const
+int	Server::getPort() const
 {
-	return this->_port;
+	return (this->_port);
 }
-std::string Server::getName() const
+
+std::string	Server::getName() const
 {
-	return this->_name;
+	return (this->_name);
 }
-bool Server::getIsRunning() const
+
+bool	Server::getIsRunning() const
 {
-	return this->_isRunning;
+	return (this->_isRunning);
 }
 
 /**
  * @brief Getter to the server password, for future pass check
  */
-const std::string Server::getPassword() const
+const std::string	Server::getPassword() const
 {
-	return this->_password;
+	return (this->_password);
+}
+
+/**
+ * @brief Getter to the server channels vector;
+ *	returns a reference to the vector so we can modify it
+ */
+std::vector<Channel>	&Server::getChannels()
+{
+    return (_channels);
+}
+
+/**
+ * @brief Getter to the server channels map;
+ *	returns a reference to the vector so we can modify it
+ */
+std::map<std::string, Channel>	&Server::getChannelsMap()
+{
+    return (_channelsMap);
 }

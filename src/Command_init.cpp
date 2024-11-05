@@ -82,6 +82,7 @@ void	Command::runCmd(int userFd, int key)
 			cmdNick();
 			break;
 		case JOIN:
+			commandJoin(this->_user);
 			break;
 		case QUIT:
 			break;

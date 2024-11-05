@@ -258,11 +258,18 @@ void Channel::removeOpChannel(int userFd)
 	}
 }
 
-void Channel::broadcastMessage(const std::string& message)
+/**
+ * @brief Broadcast a message to all users in the channel except the one who sent the message
+ * @param message the message to be sent
+ * @param userFd the user file descriptor to avoid sending the message to the sender
+ * TODO: later, check each user for bans, mutes, etc before sending the message
+ */
+void Channel::broadcastMessage(const std::string& message, int userFd)
 {
 	for (size_t i = 0; i < this->_users.size(); i++)
 	{
-		send(this->_users[i].getFd(), message.c_str(), message.size(), 0);
+		if (this->_users[i].getFd() != userFd)
+			send(this->_users[i].getFd(), message.c_str(), message.size(), 0);
 	}
 }
 

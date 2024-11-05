@@ -2,39 +2,28 @@
 #define CHANNEL_HPP
 
 #include "ft_irc.hpp"
-/** + Debe poder autenticarse, establecer un apodo, un nombre de usuario, unirse a un canal, enviar y recibir mensajes privados utilizando el cliente de referencia.
-	+ Todos los mensajes enviados desde un cliente a un canal deben reenviarse a todos los demás clientes que se hayan unido al canal.
-	+ Debe tener operadores y usuarios regulares.
-	+ Luego, debe implementar los comandos que son específicos para los operadores de canal:
-		* KICK: expulsa a un cliente del canal
-		* INVITE: invita a un cliente a un canal
-		* TOPIC: cambia o visualiza el tema del canal
-		* MODE: cambia el modo del canal:
-			* i: establece o elimina el canal solo para invitados
-			* t: establece o elimina las restricciones del comando TOPIC para los operadores de canal
-			* k: establece o elimina la clave del canal (contraseña)
-			* o: otorga o quita privilegios de operador de canal
-			* l: Establecer/eliminar el número de users para el canal.*/
+
 class Channel
 {
 	private:
-		std::string			_name;
-		std::string			_topic;
-		std::vector<User>	_users;
-		std::vector<User>	_op;
-		std::map<int, bool> _usersMap; //
-		bool				_inviteMode;
-		bool				_topicMode;
-		bool				_keyMode;
-		int					_usersInChannel;
-		int					_usersLimit;
-		std::string			_password;
+		std::string				_name;
+		std::string				_topic;
+		std::vector<User>		_users;
+		std::vector<User>		_op;
+		std::map<int, bool>		_usersMap;
+		bool					_inviteMode;
+		bool					_topicMode;
+		bool					_keyMode;
+		int						_usersInChannel;
+		int						_usersLimit;
+		std::string				_password;
 	public:
 		Channel();
 		Channel(const std::string& name);
+		Channel(const std::string& name);
 		Channel(const Channel &rhs);
 		~Channel();
-		//getters
+		//Getters
 		Channel& operator=(const Channel &rhs);
 		const std::string&			getName() const;
 		const std::string&			getTopic() const;
@@ -46,7 +35,7 @@ class Channel
 		int 						getUsersInChannel() const;
 		int 						getUsersLimit() const;
 		const std::string&			getPassword() const;
-		//setters
+		//Setters
 		void 						setName(const std::string& name);
 		void 						setTopic(const std::string& topic);
 		void 						setInviteMode(const bool inviteMode);
@@ -55,16 +44,16 @@ class Channel
 		void						setUsersInChannel(const int usersInChannel);
 		void 						setUsersLimit(const int usersLimit);
 		void 						setPassword(const std::string& password);
-		//check methods
+		//Check methods
 		bool 						isUserInChannel(User& user);
 		bool 						isOp(User& user);
 		bool 						channelIsFull();
-		//methods
+		//Channel methods
 		void 						addUserChannel(User& user);
 		void 						removeUserChannel(User& user);
 		void 						addOpChannel(User& user);
 		void 						removeOpChannel(int userFd);
-		void 						broadcastMessage(const std::string& message);
+		void 						broadcastMessage(const std::string& message, int userFd);
 		void 						sendTopicMessage(User& user);
 };
 
