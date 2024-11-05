@@ -8,10 +8,12 @@ Channel::Channel()
 	this->_topicMode = false;
 	this->_keyMode = false;
 	this->_usersInChannel = 0;
+	this->_usersInChannel = 0;
 	this->_usersLimit = -1;
 	this->_password = "";
 }
 
+Channel::Channel(const std::string& name)
 Channel::Channel(const std::string& name)
 {
 	this->_name = name;
@@ -19,6 +21,7 @@ Channel::Channel(const std::string& name)
 	this->_inviteMode = false;
 	this->_topicMode = false;
 	this->_keyMode = false;
+	this->_usersInChannel = 0;
 	this->_usersInChannel = 0;
 	this->_usersLimit = -1;
 	this->_password = "";
@@ -41,6 +44,9 @@ Channel& Channel::operator=(const Channel &rhs)
 		this->_topic = rhs._topic;
 		this->_usersMap = rhs._usersMap;
 		this->_inviteMode = rhs._inviteMode;
+		this->_topicMode = rhs._topicMode;
+		this->_keyMode = rhs._keyMode;
+		this->_usersInChannel = rhs._usersInChannel;
 		this->_topicMode = rhs._topicMode;
 		this->_keyMode = rhs._keyMode;
 		this->_usersInChannel = rhs._usersInChannel;
@@ -75,6 +81,10 @@ void Channel::setKeyMode(const bool keyMode)
 	this->_keyMode = keyMode;
 }
 
+void Channel::setUsersInChannel(const int usersInChannel)
+{
+	this->_usersInChannel = usersInChannel;
+}
 void Channel::setUsersInChannel(const int usersInChannel)
 {
 	this->_usersInChannel = usersInChannel;
@@ -129,6 +139,11 @@ bool Channel::getTopicMode() const
 bool Channel::getKeyMode() const
 {
 	return this->_keyMode;
+}
+
+int Channel::getUsersInChannel() const
+{
+	return this->_usersInChannel;
 }
 
 int Channel::getUsersInChannel() const
