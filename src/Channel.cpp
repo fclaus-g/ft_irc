@@ -14,7 +14,6 @@ Channel::Channel()
 }
 
 Channel::Channel(const std::string& name)
-Channel::Channel(const std::string& name)
 {
 	this->_name = name;
 	this->_topic = "";
