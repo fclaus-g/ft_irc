@@ -39,7 +39,7 @@ void	Command::cmdNick()
 	size_t		pos;
 
 	pos = this->_msg.find_first_of("\n");
-	nick = this->_msg.substr(5, pos - 5);
+	nick = this->_msg.substr(5, pos - 6);
 	this->_user.setNick(nick);
 	if (this->_user.getHexClient() && this->_msg.find("USER") != std::string::npos)
 		cmdUser();
