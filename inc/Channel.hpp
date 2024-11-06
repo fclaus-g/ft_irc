@@ -2,7 +2,11 @@
 #define CHANNEL_HPP
 
 #include "ft_irc.hpp"
-
+/**
+ * @brief TO_DO Eliminar los vectores de user y op y usar el map de users
+ * para ello hay que cambiar varias cosas en el codigo dentro de channel.cpp
+ * 
+ */
 class Channel
 {
 	private:
@@ -22,8 +26,9 @@ class Channel
 		Channel(const std::string& name);
 		Channel(const Channel &rhs);
 		~Channel();
-		//Getters
 		Channel& operator=(const Channel &rhs);
+		
+		//Getters
 		const std::string&			getName() const;
 		const std::string&			getTopic() const;
 		const std::string			getUsersChannelStr() const;
@@ -34,6 +39,7 @@ class Channel
 		int 						getUsersInChannel() const;
 		int 						getUsersLimit() const;
 		const std::string&			getPassword() const;
+		
 		//Setters
 		void 						setName(const std::string& name);
 		void 						setTopic(const std::string& topic);
@@ -43,10 +49,12 @@ class Channel
 		void						setUsersInChannel(const int usersInChannel);
 		void 						setUsersLimit(const int usersLimit);
 		void 						setPassword(const std::string& password);
+		
 		//Check methods
 		bool 						isUserInChannel(User& user);
 		bool 						isOp(User& user);
 		bool 						channelIsFull();
+		
 		//Channel methods
 		void 						addUserChannel(User& user);
 		void 						removeUserChannel(User& user);
@@ -54,6 +62,10 @@ class Channel
 		void 						removeOpChannel(int userFd);
 		void 						broadcastMessage(const std::string& message, int userFd);
 		void 						sendTopicMessage(User& user);
+
+		//Debug
+		void						printUsersInChannel() const;
+		void						printUserMap() const;
 };
 
 std::ostream& operator<<(std::ostream& out, const Channel& channel);

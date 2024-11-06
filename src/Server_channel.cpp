@@ -2,7 +2,7 @@
 
 void Server::createChannel(const std::string& name)
 {
-	std::cout << "Creating channel" << RED << name << std::endl;
+	std::cout << "Creating channel" << RED << name << RES << std::endl;
 	if (name == "")
 	{
 		std::cout << "Channel name can't be empty" << std::endl;
@@ -32,11 +32,8 @@ void Server::createChannel(const std::string& name)
 		}
 	}
 	Channel *newChannel = new Channel(name);
-	std::cout << name << std::endl;
 	this->_channels.push_back(*newChannel);
 	this->_channelsMap[name] = *newChannel;
-	//printVector(_channels); for check the vector channel is created correctly
-	std::cout << "Channel created" << std::endl;
 }
 
 void Server::addUserToChannel(const std::string& channelName, User& user)

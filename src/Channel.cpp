@@ -149,16 +149,39 @@ const std::string& Channel::getPassword() const
 	return this->_password;
 }
 /*-----------------------[CHECK METHODS]------------------------*/
+/**
+ * @brief Check if a user is in the channel
+ * 
+ * @param user 
+ * @return true 
+ * @return false 
+ */
 bool Channel::isUserInChannel(User& user)
 {
+	std::cout << "User fd on isUserInChannel: " << user.getFd() << std::endl;
+	printUsersInChannel();
 	for (size_t i = 0; i < this->_users.size(); i++)
 	{
+		std::cout << "User fd in channel: " << this->_users[i].getFd() << std::endl;
 		if (this->_users[i].getFd() == user.getFd())
+		{
+			std::cout << this->_users[i].getNick() << " is in channel" << std::endl;
+			std::cout << "User fd: " << user.getFd() << std::endl;
+			std::cout << "User fd in channel: " << this->_users[i].getFd() << std::endl;
 			return true;
+		}
+			
 	}
 	return false;
 }
 
+/**
+ * @brief Check if a user is an op in the channel
+ * 
+ * @param user 
+ * @return true 
+ * @return false 
+ */
 bool Channel::isOp(User& user)
 {
 	for (size_t i = 0; i < this->_op.size(); i++)
@@ -169,6 +192,12 @@ bool Channel::isOp(User& user)
 	return false;
 }
 
+/**
+ * @brief Check if the channel is full
+ * static cast the int to size_t to compare the size of the vector
+ * @return true 
+ * @return false 
+ */
 bool Channel::channelIsFull()
 {
 	if (this->_usersLimit == -1)
@@ -179,9 +208,17 @@ bool Channel::channelIsFull()
 }
 /*-----------------------[METHODS]------------------------*/
 
+/**
+ * @brief add a user to the channel after checking if the user is already in the channel and if the channel is full
+ * send a message to the user if the user is already in the channel or if the channel is full.
+ * If the user is not in the channel and the channel is not full, add the user to the channel and send a message to the user
+ * for joining the channel and create the channel window on client side
+ * 
+ * @param user 
+ */
 void Channel::addUserChannel(User& user)
 {
-	//std::cout << RED << user << std::endl;
+	std::cout << user.getNick() << "getNick" << std::endl;	
 	if (this->isUserInChannel(user))
 	{
 		std::cout << "User already in channel" << std::endl;
@@ -202,9 +239,14 @@ void Channel::addUserChannel(User& user)
 		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@127.0.0.1 JOIN :" + this->getName() + "\n";
 		send(user.getFd(), msg.c_str(), msg.length(), 0);
 	}
-	//std::cout << *this << std::endl;
+	printUsersInChannel();
+	std::cout << "addUserChannel: " << user.getNick() << std::endl;
 }
-
+/**
+ * @brief Remove a user from the channel checking if the user is in the vector of users
+ * 
+ * @param user 
+ */
 void Channel::removeUserChannel(User& user)
 {
 	for (size_t i = 0; i < this->_users.size(); i++)
@@ -217,16 +259,26 @@ void Channel::removeUserChannel(User& user)
 	}
 }
 
+/**
+ * @brief add a user to the op vector after checking if the user is already an op
+ * 
+ * @param user 
+ */
 void Channel::addOpChannel(User& user)
 {
 	if (this->isOp(user))
 	{
 		std::cout << "User is already op" << std::endl;
+		send(user.getFd(), "User is already op", 18, 0);
 		return;
 	}
 	if (this->isUserInChannel(user))
 	{
 		this->_op.push_back(user);
+		if (this->_usersMap[user.getFd()] == false)
+		{
+			this->_usersMap[user.getFd()] = true;
+		}
 	}
 	else
 	{
@@ -272,7 +324,11 @@ void Channel::broadcastMessage(const std::string& message, int userFd)
 			send(this->_users[i].getFd(), message.c_str(), message.size(), 0);
 	}
 }
-
+/**
+ * @brief send a message to the user with the channel topic if the topic is empty send a message to the user that no topic is set
+ * 
+ * @param user 
+ */
 void Channel::sendTopicMessage(User& user)
 {
 	std::string topicMsg;
@@ -301,4 +357,28 @@ std::ostream& operator<<(std::ostream& os, const Channel& channel)
 	os << "users in channel : " << channel.getUsersInChannel() << std::endl;	
 	os << std::endl;
 	return os;
+}
+
+//DEBUG
+
+void Channel::printUsersInChannel() const
+{
+	std::cout << "Users in channel: ";
+	for (size_t i = 0; i < this->_users.size(); i++)
+	{
+		std::cout << this->_users[i].getNick() << " ";
+	}
+	std::cout << std::endl;
+}
+
+void Channel::printUserMap() const
+{
+	std::map<int, bool>::const_iterator it = this->_usersMap.begin();
+	std::cout << "Users in channel: ";
+	while (it != this->_usersMap.end())
+	{
+		std::cout << it->first << " ";
+		it++;
+	}
+	std::cout << std::endl;
 }

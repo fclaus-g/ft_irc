@@ -31,7 +31,13 @@ void Server::printVector(const std::vector<Channel>& vector)
 		std::cout << vector[i] << std::endl;
 	}
 }
-
+/**
+ * @brief handle the signal sent to the terminal to stop the server
+ * TO_DO - Check if the server is running and if it is, stop it
+ * TO_DO - close all the sockets and free the memory for exit cleanly
+ * 
+ * @param signal 
+ */
 void Server::signalHandler(int signal)
 {
 	if (signal == SIGINT || signal == SIGQUIT)
