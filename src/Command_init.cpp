@@ -87,10 +87,13 @@ void	Command::runCmd(int userFd, int key)
 		case QUIT:
 			break;
 		case PRIVMSG:
+			cmdPrivmsg();
 			break;
 		case KICK:
+			commandKick();
 			break;
 		case INVITE:
+			commandInvite();
 			break;
 		case TOPIC:
 			break;
@@ -109,7 +112,8 @@ void	Command::runCmd(int userFd, int key)
 void	Command::kickNonAuthenticatedUser(int userFd)
 {
 	std::cout << "User with socket fd " << userFd << " tried to use a command before authentication" << std::endl;
-	this->_server.sendWarning(userFd, ":MyServer: You need to authenticate before using commands\n:MyServer: You are being disconnected\n");
+	this->_server.sendWarning(userFd, "You need to authenticate before using commands\n");
+	this->_server.sendWarning(userFd, "You are being disconnected\n");
 	this->_server.deleteUser(userFd);
 	std::cout << RED << "User kicked and socket closed" << RES << std::endl;
 }

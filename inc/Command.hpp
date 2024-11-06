@@ -43,9 +43,10 @@ class Command
 		void 			cmdUser();
 		void 			cmdPrivmsg();
 		void 			commandJoin(User &user);
+		void 			commandKick();
+		void 			commandInvite();
+		//Command methods (empty yet)
 		void 			commandQuit(User user);
-		void 			commandKick(User user);
-		void 			commandInvite(User user);
 		void 			commandTopic(User user);
 		void 			commandMode(User user);
 };
