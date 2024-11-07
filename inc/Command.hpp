@@ -42,7 +42,7 @@ class Command
 		void 			cmdPass();
 		void 			cmdUser();
 		void 			cmdPrivmsg();
-		void 			commandJoin(User &user);
+		void 			cmdJoin();
 		void 			commandKick();
 		void 			commandInvite();
 		//Command methods (empty yet)

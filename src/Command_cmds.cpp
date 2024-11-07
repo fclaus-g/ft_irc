@@ -84,37 +84,40 @@ void Command::cmdUser()
  * (!) Diff from original: Addeded getter methods for channels vector and map
  * TODO: Channel related methods have been left in Server as original; move them to Command?
  */
-void Command::commandJoin(User& user)
+void Command::cmdJoin()
 {
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
-
-	size_t iPos = this->_msg.find_first_not_of(" \t") + 5;
-	size_t fPos = this->_msg.find_first_of(" \t", iPos);
-	std::string channel = this->_msg.substr(iPos, fPos - iPos);
-	
-	if (channel[0] != '#')
-		return (this->_server.sendWarning(this->_user.getFd(), "Error: Invalid channel name\n"));
-	
-	bool channelExists = false;
-	for(std::vector<Channel>::iterator it = this->_server.getChannels().begin();
-		it < this->_server.getChannels().end(); ++it)
+	std::string channelName = this->_msg.substr(this->_msg.find("JOIN") + 5);
+	channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
+	if (channelName[0] != '#')
 	{
-		std::cout << "Channel: " << it->getName() << std::endl;
-		if (it->getName() == channel)
-		{
-			channelExists = true;
-			this->_server.addUserToChannel(channel, user);
-			break ;
-		}
+		std::string	error = ":MyServer " + channelName + " :No such nick/channel\n";
+		send(this->_user.getFd(), error.c_str(), error.length(), 0);
+		return ;
 	}
-	if (!channelExists)
+	Channel	*channel = this->_server.getChannelByName(channelName);
+	if (!channel)
 	{
-		this->_server.createChannel(channel);
-		this->_server.addUserToChannel(channel, user);
-		this->_server.getChannelsMap()[channel].addOpChannel(user);
+		this->_server.createChannel(channelName);
+		this->_server.addUserToChannel(channelName, this->_user);
+		this->_server.getChannelsMap()[channelName]->addOpChannel(this->_user);
+		channel = this->_server.getChannelByName(channelName);
+	}
+	std::cout << "Channel: " << *channel << std::endl;
+	if (channel->isUserInChannel(this->_user))
+	{
+		std::string error = ":MyServer " + channelName + " :You're already in that channel\n";
+		send(this->_user.getFd(), error.c_str(), error.length(), 0);
+	}
+	else
+	{
+		channel->addUserChannel(this->_user);
+		std::string msg = ":" + this->_user.getNick() + "!" + this->_user.getUserName() + " JOIN " + channelName + "\n";
+		channel->broadcastMessage(msg, this->_user.getFd());
 	}
 }
+
 
 /**
  * @brief Command to send a message to a user or channel

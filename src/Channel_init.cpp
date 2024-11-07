@@ -40,8 +40,6 @@ Channel& Channel::operator=(const Channel &rhs)
 	{
 		this->_name = rhs._name;
 		this->_topic = rhs._topic;
-		this->_users = rhs._users;
-		this->_op = rhs._op;
 		this->_usersMap = rhs._usersMap;
 		this->_inviteMode = rhs._inviteMode;
 		this->_topicMode = rhs._topicMode;
@@ -56,19 +54,18 @@ Channel& Channel::operator=(const Channel &rhs)
 /*-----------------------[OVERLOAD]------------------------*/
 std::ostream& operator<<(std::ostream& os, const Channel& channel)
 {
+	std::map<User*, bool>::const_iterator	i;
+
 	os << "Channel name: " << channel.getName() << std::endl;
 	os << "Channel topic: " << channel.getTopic() << std::endl;
 	os << "Channel users: ";
-	for (size_t i = 0; i < channel.getUsers().size(); i++)
+	for (i = channel.getUsers().begin(); i != channel.getUsers().end(); ++i)
 	{
-		os << channel.getUsers()[i] << " "; 
-	
+		os << i->first->getNick() << " ";
 	}
-	os << "users in channel : " << channel.getUsersInChannel() << std::endl;	
 	os << std::endl;
 	return os;
 }
-
 
 /*-----------------------[GETTERS]------------------------*/
 const std::string& Channel::getName() const
@@ -84,16 +81,17 @@ const std::string& Channel::getTopic() const
 const std::string Channel::getUsersChannelStr() const
 {
 	std::string usersStr;
-	for (size_t i = 0; i < this->_users.size(); i++)
+	std::map<User*, bool>::const_iterator i;
+	for (i = this->_usersMap.begin(); i != this->_usersMap.end(); ++i)
 	{
-		usersStr += this->_users[i].getNick() + " ";
+		usersStr += i->first->getNick() + " ";
 	}
-	return usersStr;
+	return (usersStr);
 }
 
-const std::vector<User>& Channel::getUsers() const
+const std::map<User*, bool>	&Channel::getUsers() const
 {
-	return this->_users;
+	return this->_usersMap;
 }
 
 bool Channel::getInviteMode() const

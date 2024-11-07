@@ -3,32 +3,35 @@
 /*-----------------------[CHECK METHODS]------------------------*/
 bool Channel::isUserInChannel(User& user)
 {
-	for (size_t i = 0; i < this->_users.size(); i++)
-	{
-		if (this->_users[i].getFd() == user.getFd())
-			return true;
-	}
-	return false;
+	if (this->_usersMap.find(&user) != this->_usersMap.end())
+		return (true);
+	return (false);
 }
 
 /**
  * @brief Check if a user is administrator in the current channel
+ * - Creates an iterator which finds an aim to the user passed as argument
+ * - Then checks (if the user exists in list) if the user is op or not
  */
 bool Channel::isOp(User& user)
 {
-	for (size_t i = 0; i < this->_op.size(); i++)
-	{
-		if (this->_op[i].getFd() == user.getFd())
-			return true;
-	}
-	return false;
+	std::map<User *, bool>::iterator i;
+
+	i = this->_usersMap.find(&user);
+	if (i != this->_usersMap.end() && i->second == true)
+		return (true);
+	return (false);
 }
 
+/**
+ * @brief Check if the channel is full before a new user can join
+ * (!) IF userLimit == -1 NO USERS LIMIT
+ */
 bool Channel::channelIsFull()
 {
 	if (this->_usersLimit == -1)
 		return false;
-	if (this->_users.size() >= static_cast<size_t>(this->_usersLimit))
+	if (this->_usersMap.size() >= static_cast<size_t>(this->_usersLimit))
 		return true;
 	return false;
 }
@@ -51,8 +54,7 @@ void Channel::addUserChannel(User& user)
 	else
 	{
 		this->_usersInChannel++;
-		this->_usersMap[user.getFd()] = false;
-		this->_users.push_back(user);
+		this->_usersMap[&user] = false;
 		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@127.0.0.1 JOIN :" + this->getName() + "\n";
 		send(user.getFd(), msg.c_str(), msg.length(), 0);
 	}
@@ -65,55 +67,39 @@ void Channel::addUserChannel(User& user)
  */
 void Channel::removeUserChannel(User& user)
 {
-	for (size_t i = 0; i < this->_users.size(); i++)
-	{
-		if (this->_users[i].getFd() == user.getFd())
-		{
-			this->_users.erase(this->_users.begin() + i);
-			break;
-		}
-	}
+	std::map<User *, bool>::iterator i;
+
+	i = this->_usersMap.find(&user);
+	if (i != this->_usersMap.end())
+		this->_usersMap.erase(i);
 }
 
+/**
+ * @brief add a user to the op vector after checking if the user is already an op
+ * (!) Changed, since no op_vector if user is in channel and not op, set bool TRUE
+ * Now is more like a setOpUser than addOp since it does not add to any vector
+ * @param user 
+ */
 void Channel::addOpChannel(User& user)
 {
-	if (this->isOp(user))
-	{
-		std::cout << "User is already op" << std::endl;
-		return;
-	}
-	if (this->isUserInChannel(user))
-	{
-		this->_op.push_back(user);
-	}
-	else
-	{
-		std::cout << "User is not in channel" << std::endl;
-	}
-}
+	std::map <User*, bool>::iterator	aux;
 
-void Channel::removeOpChannel(int userFd)
-{
-	if (this->_op.empty())
+	aux = this->_usersMap.find(&user);
+	if (isUserInChannel(user))
 	{
-		std::cout << "No op in channel" << std::endl;
-		return;
-	}
-	if (this->isOp(this->_users[userFd]))
-	{
-		for (size_t i = 0; i < this->_op.size(); i++)
+		if (isOp(user))
 		{
-			if (this->_op[i].getFd() == userFd)
-			{
-				this->_op.erase(this->_op.begin() + i);
-				break;
-			}
+			std::cout << "addOpChannel: User is already op" << std::endl;
+			send(user.getFd(), "User is already op", 18, 0);
+			return ;
 		}
 	}
 	else
 	{
-		std::cout << "User is not op" << std::endl;
+		std::cout << "addOpChannel: User is not in channel" << std::endl;
+		return ;	
 	}
+	aux->second = true;
 }
 
 /**
@@ -124,10 +110,12 @@ void Channel::removeOpChannel(int userFd)
  */
 void Channel::broadcastMessage(const std::string& message, int userFd)
 {
-	for (size_t i = 0; i < this->_users.size(); i++)
+	std::map<User *, bool>::iterator	i;
+
+	for (i = this->_usersMap.begin(); i != this->_usersMap.end(); ++i)
 	{
-		if (this->_users[i].getFd() != userFd)
-			send(this->_users[i].getFd(), message.c_str(), message.size(), 0);
+		if (i->first->getFd() != userFd)
+			send(i->first->getFd(), message.c_str(), message.size(), 0);
 	}
 }
 

@@ -44,7 +44,7 @@ const std::string	Server::getPassword() const
  * @brief Getter to the server channels vector;
  *	returns a reference to the vector so we can modify it
  */
-std::vector<Channel>	&Server::getChannels()
+std::vector<Channel *>	&Server::getChannels()
 {
     return (_channels);
 }
@@ -53,7 +53,7 @@ std::vector<Channel>	&Server::getChannels()
  * @brief Getter to the server channels map;
  *	returns a reference to the vector so we can modify it
  */
-std::map<std::string, Channel>	&Server::getChannelsMap()
+std::map<std::string, Channel *>	&Server::getChannelsMap()
 {
     return (_channelsMap);
 }
