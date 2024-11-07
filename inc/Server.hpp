@@ -50,7 +50,7 @@ class Server
 		void							sendWarning(int userFd, std::string str);
 		void							msgHandler(int socketFd);
 		//Debug methods
-		void 							printMap(const std::map<int, User>& map);
+		void 							printMap(const std::map<std::string, Channel>& map);
 		void 							printVector(const std::vector<Channel>& vector);
 		//Channel methods
 		void							createChannel(const std::string& name);

@@ -15,9 +15,9 @@ std::ostream& operator<<(std::ostream& out, const Server& server)
 	return out;
 }
 
-void Server::printMap(const std::map<int, User>& map)
+void Server::printMap(const std::map<std::string, Channel>& map)
 {
-	for (std::map<int, User>::const_iterator it = map.begin(); it != map.end(); ++it)
+	for (std::map<std::string, Channel>::const_iterator it = map.begin(); it != map.end(); ++it)
 	{
 		std::cout << "Key: " << it->first << std::endl;
 		std::cout << it->second << std::endl;
