@@ -25,24 +25,26 @@ void Server::createChannel(const std::string& name)
 	}
 	for (size_t i = 0; i < this->_channels.size(); i++)
 	{
-		if (this->_channels[i].getName() == name)
+		if (this->_channels[i]->getName() == name)
 		{
 			std::cout << "Channel already exists" << std::endl;
 			return;
 		}
 	}
 	Channel *newChannel = new Channel(name);
-	this->_channels.push_back(*newChannel);
-	this->_channelsMap[name] = *newChannel;
+	std::cout << name << std::endl;
+	this->_channels.push_back(newChannel);
+	this->_channelsMap[name] = newChannel;
+	std::cout << "Channel created" << std::endl;
 }
 
 void Server::addUserToChannel(const std::string& channelName, User& user)
 {
 	for (size_t i = 0; i < this->_channels.size(); i++)
 	{
-		if (this->_channels[i].getName() == channelName)
+		if (this->_channels[i]->getName() == channelName)
 		{
-			this->_channels[i].addUserChannel(user);
+			this->_channels[i]->addUserChannel(user);
 			return;
 		}
 	}
@@ -52,7 +54,7 @@ void Server::removeChannel(const std::string& name)
 {
 	for (size_t i = 0; i < this->_channels.size(); i++)
 	{
-		if (this->_channels[i].getName() == name)
+		if (this->_channels[i]->getName() == name)
 		{
 			this->_channels.erase(this->_channels.begin() + i);
 			this->_channelsMap.erase(name);
@@ -67,7 +69,7 @@ bool Server::channelExists(const std::string& name)
 {
 	for (size_t i = 0; i < this->_channels.size(); i++)
 	{
-		if (this->_channels[i].getName() == name)
+		if (this->_channels[i]->getName() == name)
 			return (true);
 	}
 	return (false);
@@ -80,9 +82,9 @@ bool Server::channelExists(const std::string& name)
 Channel	*Server::getChannelByName(std::string name)
 {
 	Channel	*channel_ptr = NULL;
-	std::map<std::string, Channel>::iterator i = this->_channelsMap.find(name);
+	std::map<std::string, Channel*>::iterator i = this->_channelsMap.find(name);
 
 	if (i != this->_channelsMap.end())
-		channel_ptr = &i->second;
+		channel_ptr = i->second;
 	return (channel_ptr);
 }

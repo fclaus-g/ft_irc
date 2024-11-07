@@ -62,12 +62,13 @@ void Server::welcomeUser(int userFd)
 /**
  * @brief Auxiliary function to send a message from server to the user
  * (!) Uses the send() function from sys/socket.h
+ * First, set the beginning of the message with the server name then append str received
  * @param userFd the user socket file descriptor
  * @param str the message to be sent
  */
 void	Server::sendWarning(int userFd, std::string str)
 {
-	std::string	msg = "";
+	std::string	msg = ":" + this->_name + " :";
 	msg.append(str);
 	send(userFd, msg.c_str(), msg.length(), 0);
 

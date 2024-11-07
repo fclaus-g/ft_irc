@@ -39,31 +39,24 @@ class Channel
 		int 						getUsersLimit() const;
 		
 		//Setters
-		void 						setName(const std::string& name);
-		void 						setTopic(const std::string& topic);
-		void 						setInviteMode(const bool inviteMode);
-		void 						setTopicMode(const bool topicMode);
-		void 						setKeyMode(const bool keyMode);
-		void						setUsersInChannel(const int usersInChannel);
-		void 						setUsersLimit(const int usersLimit);
-		void 						setPassword(const std::string& password);
-		
+		void							setName(const std::string& name);
+		void							setTopic(const std::string& topic);
+		void							setInviteMode(const bool inviteMode);
+		void							setTopicMode(const bool topicMode);
+		void							setKeyMode(const bool keyMode);
+		void							setUsersInChannel(const int usersInChannel);
+		void							setUsersLimit(const int usersLimit);
+		void							setPassword(const std::string& password);
 		//Check methods
-		bool 						isUserInChannel(User& user);
-		bool 						isOp(User& user);
-		bool 						channelIsFull();
-		
+		bool							isUserInChannel(User& user);
+		bool							isOp(User& user);
+		bool							channelIsFull();
 		//Channel methods
-		void 						addUserChannel(User& user);
-		void 						removeUserChannel(User& user);
-		void 						addOpChannel(User& user);
-		void 						removeOpChannel(int userFd);
-		void 						broadcastMessage(const std::string& message, int userFd);
-		void 						sendTopicMessage(User& user);
-
-		//Debug
-		void						printUsersInChannel() const;
-		void						printUserMap() const;
+		void							addUserChannel(User& user);
+		void							removeUserChannel(User& user);
+		void							broadcastMessage(const std::string& message, int userFd);
+		void							sendTopicMessage(User& user);
+		void							addOpChannel(User& user);
 		//Copilot suggestions
 		// void addUser(User* user, bool isOp = false);
 		// void setOp(User* user, bool isOp);
