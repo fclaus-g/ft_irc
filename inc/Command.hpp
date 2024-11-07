@@ -42,6 +42,7 @@ class Command
 		void 			cmdPass();
 		void 			cmdUser();
 		void 			cmdPrivmsg();
+		void cmdJoin();
 		void 			commandJoin(User &user);
 		void 			commandQuit(User user);
 		void 			commandKick(User user);
