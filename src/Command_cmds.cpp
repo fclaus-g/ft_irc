@@ -40,6 +40,7 @@ void	Command::cmdNick()
 
 	pos = this->_msg.find_first_of("\n");
 	nick = this->_msg.substr(5, pos - 5);
+	nick.erase(nick.find_last_not_of(" \r\t\n") + 1);
 	this->_user.setNick(nick);
 	if (this->_user.getHexClient() && this->_msg.find("USER") != std::string::npos)
 		cmdUser();
@@ -149,11 +150,7 @@ void Command::cmdPrivmsg()
 	{
 		User	*target_user = this->_server.getUserByNick(target);
 		if (!target_user)
-		{
-			std::string	error = ":MyServer " + target + " :No such nick/channel\n";
-			send(this->_user.getFd(), error.c_str(), error.length(), 0);
-			return ;
-		}
+			return (this->_server.sendWarning(this->_user.getFd(), "Error: No such nick/channel\n"));
 		send(target_user->getFd(), msg_text.c_str(), msg_text.length(), 0);
 	}
 }
