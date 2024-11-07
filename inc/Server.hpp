@@ -16,9 +16,9 @@ class Server
 		bool							_isRunning;
 		int								_serverFd;
 		std::string						_message;
-		std::vector<Channel>			_channels;
-		std::map<std::string, Channel>	_channelsMap;
-		std::map<int, User *>			_users;
+		std::vector<Channel*>			_channels;
+		std::map<std::string, Channel*>	_channelsMap;
+		std::map<int, User*>			_users;
 		std::vector<struct pollfd> 		_fds;
 		std::string						_tempNick;
 		std::string						_tempPass;
@@ -34,8 +34,8 @@ class Server
 		User							*getUserByNick(std::string nick);
 		User							*getUserByFd(int fd);
 		const std::string				getPassword() const;
-		std::vector<Channel>			&getChannels();
-    	std::map<std::string, Channel>	&getChannelsMap();
+		//std::vector<Channel>			&getChannels();
+    	//std::map<std::string, Channel>	&getChannelsMap();
 		Channel							*getChannelByName(std::string name);
 		//Server engine methods
 		static void						signalHandler(int signal);

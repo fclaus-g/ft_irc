@@ -12,9 +12,7 @@ class Channel
 	private:
 		std::string				_name;
 		std::string				_topic;
-		std::vector<User>		_users;
-		std::vector<User>		_op;
-		std::map<int, bool>		_usersMap;
+		std::map<User*, bool>	_usersMap;
 		bool					_inviteMode;
 		bool					_topicMode;
 		bool					_keyMode;
@@ -29,16 +27,16 @@ class Channel
 		Channel& operator=(const Channel &rhs);
 		
 		//Getters
-		const std::string&			getName() const;
-		const std::string&			getTopic() const;
+		const std::string			getName() const;
+		const std::string			getTopic() const;
 		const std::string			getUsersChannelStr() const;
+		const std::string			getPassword() const;
 		const std::vector<User>&	getUsers() const;
 		bool						getInviteMode() const;
 		bool						getTopicMode() const;
 		bool 						getKeyMode() const;
 		int 						getUsersInChannel() const;
 		int 						getUsersLimit() const;
-		const std::string&			getPassword() const;
 		
 		//Setters
 		void 						setName(const std::string& name);
@@ -66,6 +64,9 @@ class Channel
 		//Debug
 		void						printUsersInChannel() const;
 		void						printUserMap() const;
+		//Copilot suggestions
+		// void addUser(User* user, bool isOp = false);
+		// void setOp(User* user, bool isOp);
 };
 
 std::ostream& operator<<(std::ostream& out, const Channel& channel);
