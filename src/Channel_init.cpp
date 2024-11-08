@@ -68,12 +68,12 @@ std::ostream& operator<<(std::ostream& os, const Channel& channel)
 }
 
 /*-----------------------[GETTERS]------------------------*/
-const std::string& Channel::getName() const
+const std::string Channel::getName() const
 {
 	return this->_name;
 }
 
-const std::string& Channel::getTopic() const
+const std::string Channel::getTopic() const
 {
 	return this->_topic;
 }
@@ -119,7 +119,7 @@ int Channel::getUsersLimit() const
 	return this->_usersLimit;
 }
 
-const std::string& Channel::getPassword() const
+const std::string Channel::getPassword() const
 {
 	return this->_password;
 }
