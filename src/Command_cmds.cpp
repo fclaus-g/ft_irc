@@ -91,27 +91,20 @@ void Command::cmdJoin()
 	std::string channelName = this->_msg.substr(this->_msg.find("JOIN") + 5);
 	channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
 	if (channelName[0] != '#')
-	{
-		std::string	error = ":MyServer " + channelName + " :No such nick/channel\n";
-		send(this->_user.getFd(), error.c_str(), error.length(), 0);
-		return ;
-	}
+		return (this->_server.sendWarning(this->_user.getFd(),
+			"JOIN: Error: No such nick/channel\n"));
 	Channel	*channel = this->_server.getChannelByName(channelName);
 	if (!channel)
 	{
 		this->_server.createChannel(channelName);
 		this->_server.addUserToChannel(channelName, this->_user);
 		this->_server.getChannelsMap()[channelName]->addOpChannel(this->_user);
-		channel = this->_server.getChannelByName(channelName);
-	}
-	std::cout << "Channel: " << *channel << std::endl;
-	if (channel->isUserInChannel(this->_user))
-	{
-		std::string error = ":MyServer " + channelName + " :You're already in that channel\n";
-		send(this->_user.getFd(), error.c_str(), error.length(), 0);
 	}
 	else
 	{
+		if (channel->isUserInChannel(this->_user))
+			return (this->_server.sendWarning(this->_user.getFd(),
+				"JOIN: Error: You are already in that channel\n"));
 		channel->addUserChannel(this->_user);
 		std::string msg = ":" + this->_user.getNick() + "!" + this->_user.getUserName() + " JOIN " + channelName + "\n";
 		channel->broadcastMessage(msg, this->_user.getFd());

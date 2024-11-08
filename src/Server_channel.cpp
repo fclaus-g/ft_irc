@@ -2,7 +2,7 @@
 
 void Server::createChannel(const std::string& name)
 {
-	std::cout << "Creating channel" << RED << name << RES << std::endl;
+	std::cout << "Creating channel" << name << std::endl;
 	if (name == "")
 	{
 		std::cout << "Channel name can't be empty" << std::endl;
@@ -50,12 +50,18 @@ void Server::addUserToChannel(const std::string& channelName, User& user)
 	}
 }
 
+/**
+ * @brief Remove a channel from containers (vector, map) and also delete the object
+ * @param name The name of the channel to remove
+ * TODO: Check if the order delete-erase is correct and not access invalid memory
+ */
 void Server::removeChannel(const std::string& name)
 {
 	for (size_t i = 0; i < this->_channels.size(); i++)
 	{
 		if (this->_channels[i]->getName() == name)
 		{
+			delete this->_channels[i];
 			this->_channels.erase(this->_channels.begin() + i);
 			this->_channelsMap.erase(name);
 			std::cout << "Channel removed" << std::endl;

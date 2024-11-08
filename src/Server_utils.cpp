@@ -106,8 +106,21 @@ void	Server::deleteUser(int socketFd)
 void Server::stop()
 {
 	this->_isRunning = false;
-	for (size_t i = 1; i < _fds.size(); i++)
-		close(_fds[i].fd);
+	std::vector<int>	userFds;
+	std::map<int, User*>::iterator	it;
+	for (it = _users.begin(); it != _users.end(); ++it)
+	{
+		userFds.push_back(it->first);
+	}
+	for (size_t i = 0; i < userFds.size(); ++i)
+	{
+		deleteUser(userFds[i]);
+	}
+	close(_serverFd);
+	_fds.clear();
+	_users.clear();
+	_channels.clear();
+	_channelsMap.clear();
 	std::cout << "Server stopped" << std::endl;
 }
 
