@@ -82,33 +82,62 @@ void Command::cmdUser()
  * (!) Diff from original: Command._msg is the message received to parse
  * (!) Diff from original: Added first check if user is authenticated
  * (!) Diff from original: Addeded getter methods for channels vector and map
+ * 
  * TODO: Channel related methods have been left in Server as original; move them to Command?
  */
+/*
+IRC usa una serie de códigos numéricos para indicar el estado de los comandos. Para JOIN, estos son algunos de los mensajes que deberás enviar desde el servidor al cliente:
+
+001 (RPL_WELCOME): Al usuario al conectarse al servidor.
+332 (RPL_TOPIC): Devuelve el tema del canal si tiene uno.
+353 (RPL_NAMREPLY): Muestra la lista de usuarios en el canal.
+366 (RPL_ENDOFNAMES): Indica el fin de la lista de usuarios.*/
 void Command::cmdJoin()
 {
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
 	std::string channelName = this->_msg.substr(this->_msg.find("JOIN") + 5);
 	channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
-	if (channelName[0] != '#')
+
+	if (channelName.empty() || channelName[0] != '#'){
 		return (this->_server.sendWarning(this->_user.getFd(),
-			"JOIN: Error: No such nick/channel\n"));
-	Channel	*channel = this->_server.getChannelByName(channelName);
+				"JOIN: Error: No such nick/channel\n"));}
+	Channel *channel = this->_server.getChannelByName(channelName);
 	if (!channel)
 	{
+		std::cout << "Channel does not exist, creating new channel" << std::endl;
 		this->_server.createChannel(channelName);
-		this->_server.addUserToChannel(channelName, this->_user);
-		this->_server.getChannelsMap()[channelName]->addOpChannel(this->_user);
+		channel = this->_server.getChannelByName(channelName);
+		if (!channel)
+		{
+			std::cerr << "Failed to create or retrieve channel" << std::endl;
+			return;
+		}
+		//this->_server.addUserToChannel(channelName, this->_user);
+		channel->addUserChannel(this->_user);
+		channel->addOpChannel(this->_user);
 	}
 	else
 	{
+		std::cout << "Channel exists, adding user to channel" << std::endl;
 		if (channel->isUserInChannel(this->_user))
 			return (this->_server.sendWarning(this->_user.getFd(),
 				"JOIN: Error: You are already in that channel\n"));
 		channel->addUserChannel(this->_user);
 		std::string msg = ":" + this->_user.getNick() + "!" + this->_user.getUserName() + " JOIN " + channelName + "\n";
 		channel->broadcastMessage(msg, this->_user.getFd());
+		std::cout << "User " << this->_user.getNick() << " joined channel " << channelName << std::endl;
 	}
+	//send RPL_NAMEREPLY
+	std::string userList = ":server 353 " + this->_user.getNick() + " = " + channelName + ":";
+	userList += channel->getUsersChannelStr() + "\n";
+	std::cout << userList << std::endl;
+	send(this->_user.getFd(), userList.c_str(), userList.size(), 0);
+	//send RPL_ENDOFNAMES
+	std::string endOfNames = "server 366 " + this->_user.getNick() + " " + channelName + " End of /NAMES list.\n";
+	send(this->_user.getFd(), endOfNames.c_str(), endOfNames.size(), 0);
+	//send RPLTOPIC
+	channel->sendTopicMessage(this->_user);
 }
 
 
