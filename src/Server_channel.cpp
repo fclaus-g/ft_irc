@@ -2,15 +2,9 @@
 
 void Server::createChannel(const std::string& name)
 {
-	std::cout << "Creating channel" << name << std::endl;
 	if (name == "")
 	{
 		std::cout << "Channel name can't be empty" << std::endl;
-		return;
-	}
-	if (name[0] != '#')
-	{
-		std::cout << "Channel name must start with #" << std::endl;
 		return;
 	}
 	if (name.size() < 2)
