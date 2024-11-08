@@ -49,7 +49,7 @@ class Channel
 		void							setPassword(const std::string& password);
 		//Check methods
 		bool							isUserInChannel(User& user);
-		bool							isOp(User& user);
+		bool							isOp(User& user) const;
 		bool							channelIsFull();
 		//Channel methods
 		void							addUserChannel(User& user);

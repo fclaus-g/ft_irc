@@ -13,9 +13,9 @@ bool Channel::isUserInChannel(User& user)
  * - Creates an iterator which finds an aim to the user passed as argument
  * - Then checks (if the user exists in list) if the user is op or not
  */
-bool Channel::isOp(User& user)
+bool Channel::isOp(User& user) const
 {
-	std::map<User *, bool>::iterator i;
+	std::map<User *, bool>::const_iterator i;
 
 	i = this->_usersMap.find(&user);
 	if (i != this->_usersMap.end() && i->second == true)
@@ -36,7 +36,13 @@ bool Channel::channelIsFull()
 	return false;
 }
 /*-----------------------[METHODS]------------------------*/
-
+/**
+ * @brief add a user to the channel before checking if the user is already in the channel
+ * - If the user is already in the channel, send a message to the user
+ * - If the channel is full, send a message to the user
+ * TODO: if channel is full must send a message ERR_CHANNELISFULL to the client
+ * @param user 
+ */
 void Channel::addUserChannel(User& user)
 {
 	if (this->isUserInChannel(user))
@@ -119,16 +125,23 @@ void Channel::broadcastMessage(const std::string& message, int userFd)
 	}
 }
 
+/**
+ * @brief send a message to the user with the channel topic
+ * - If the topic is empty, send a message with no topic
+ * - If the topic is not empty, send a message with the topic
+ * 
+ * @param user 
+ */
 void Channel::sendTopicMessage(User& user)
 {
 	std::string topicMsg;
 	if (this->_topic.empty())
 	{
-		topicMsg = ":server 331" + user.getNick() + " " + this->_name + " :No topic is set";
+		topicMsg = ":server 331 " + user.getNick() + " " + this->_name + " :No topic is set";
 	}
 	else
 	{
-		topicMsg = ":server 332" + user.getNick() + " " + this->_name + " :" + this->_topic;
+		topicMsg = ":server 332 " + user.getNick() + " " + this->_name + " :" + this->_topic;
 	}
 	std::cout << topicMsg << std::endl;
 	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
