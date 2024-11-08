@@ -27,16 +27,16 @@ class Channel
 		Channel& operator=(const Channel &rhs);
 		
 		//Getters
-		const std::string			getName() const;
-		const std::string			getTopic() const;
-		const std::string			getUsersChannelStr() const;
-		const std::string			getPassword() const;
-		const std::vector<User>&	getUsers() const;
-		bool						getInviteMode() const;
-		bool						getTopicMode() const;
-		bool 						getKeyMode() const;
-		int 						getUsersInChannel() const;
-		int 						getUsersLimit() const;
+		const std::string				getName() const;
+		const std::string				getTopic() const;
+		const std::string				getUsersChannelStr() const;
+		const std::string				getPassword() const;
+		const std::map<User*, bool>&	getUsers() const;
+		bool							getInviteMode() const;
+		bool							getTopicMode() const;
+		bool 							getKeyMode() const;
+		int 							getUsersInChannel() const;
+		int 							getUsersLimit() const;
 		
 		//Setters
 		void							setName(const std::string& name);
