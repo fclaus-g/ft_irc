@@ -1,4 +1,3 @@
-
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
@@ -34,8 +33,8 @@ class Server
 		User							*getUserByNick(std::string nick);
 		User							*getUserByFd(int fd);
 		const std::string				getPassword() const;
-		//std::vector<Channel>			&getChannels();
-    	//std::map<std::string, Channel>	&getChannelsMap();
+		std::vector<Channel*>			&getChannels();
+    	std::map<std::string, Channel*>	&getChannelsMap();
 		Channel							*getChannelByName(std::string name);
 		//Server engine methods
 		static void						signalHandler(int signal);
@@ -50,8 +49,9 @@ class Server
 		void							sendWarning(int userFd, std::string str);
 		void							msgHandler(int socketFd);
 		//Debug methods
-		void 							printMap(const std::map<std::string, Channel>& map);
-		void 							printVector(const std::vector<Channel>& vector);
+		//void 							printMap(const std::map<int, User>& map) const;
+		void 							printChannelMap(const std::map<std::string, Channel*>& map) const;	
+		void					printVector(const std::vector<Channel>& vector);
 		//Channel methods
 		void							createChannel(const std::string& name);
 		void							addUserToChannel(const std::string& channelName, User& user);
