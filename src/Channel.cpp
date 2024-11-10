@@ -109,15 +109,15 @@ void Channel::addOpChannel(User& user)
  * @param userFd the user file descriptor to avoid sending the message to the sender
  * TODO: later, check each user for bans, mutes, etc before sending the message
  */
-void Channel::broadcastMessage(const std::string& message, int userFd)
+void Channel::broadcastMessage(const std::string& message, User &sender)
 {
 	std::map<User *, bool>::iterator	i;
 	std::string							command_msg;
 
-	command_msg = ":" + this->_user.getNick() + message;
+	command_msg = ":" + sender.getNick() + " " + message;
 	for (i = this->_usersMap.begin(); i != this->_usersMap.end(); ++i)
 	{
-		if (i->first->getFd() != userFd)
+		if (i->first->getFd() != sender.getFd())
 			send(i->first->getFd(), command_msg.c_str(), command_msg.size(), 0);
 	}
 }

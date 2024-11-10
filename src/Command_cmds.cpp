@@ -107,7 +107,7 @@ void Command::cmdJoin()
 				"JOIN: Error: You are already in that channel\n"));
 		channel->addUserChannel(this->_user);
 		std::string msg = ":" + this->_user.getNick() + "!" + this->_user.getUserName() + " JOIN " + channelName + "\n";
-		channel->broadcastMessage(msg, this->_user.getFd());
+		channel->broadcastMessage(msg, this->_user);
 	}
 }
 
@@ -138,7 +138,7 @@ void Command::cmdPrivmsg()
 		if (!target_channel)
 			return (this->_server.sendWarning(this->_user.getFd(), "Error: No such nick/channel\n"));
 		if (target_channel->isUserInChannel(this->_user))
-			target_channel->broadcastMessage(msg_text, this->_user.getFd());
+			target_channel->broadcastMessage(msg_text, this->_user);
 		else
 			this->_server.sendWarning(this->_user.getFd(), "Error: You are not channel member\n");
 	}
@@ -152,12 +152,13 @@ void Command::cmdPrivmsg()
 }
 
 /**
- * @brief Command to kick a user from a channel
+ * @brief Command to kick a user from a channel - Parameters: <channel> <user> *( "," <user> ) [<comment>]
  *	(!) First - if the user is not authenticated, kick the user
  *	- Check if enough parameters are given in the message
  *	- Get the nickName and channelName from the message
  *	- Check if the channel exists, if so, check if the user is operator
  *	- Check if the user to be kicked exists in the channel; if so, remove it
+ * TODO: PARAMS ORDER WRONG! swap nick-channelName
  * TODO: check error messages - to the client or server? ERROR responses?
  * TODO: check if user is in channel, and if it has been found and removed
  * TODO: send message both success and error
