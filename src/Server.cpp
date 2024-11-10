@@ -382,6 +382,15 @@ void Server::commandTopic(User user)
 	(void)user;
 }
 
+bool	isModeValid(char m)
+{
+	std::string validModes = "itokl";
+
+	if (validModes.find(m) == std::string::npos)
+		return (false);
+	return (true);
+}
+
 void Server::commandMode(int userFd, std::string msg)
 {
 	/*
@@ -393,7 +402,13 @@ void Server::commandMode(int userFd, std::string msg)
 				; + or -
 	modechar = ALPHA
 	modearguments : argumentos de la opción (no todas tienen)
-	*/
+	
+	Example:
+	/MODE #canal +i				-> establece el canal como privado
+	/MODE #canal +k password	-> establece la contraseña especificada al canal
+	/MODE #canal -k				-> elimina la contraseña del canal 
+
+ 	*/
 	
 	std::string channelName;
 
@@ -410,8 +425,18 @@ void Server::commandMode(int userFd, std::string msg)
 		return ;
 	}	
 
+	// Si el usuario no es admin no hacer nada
+	User *user = this->_users[userFd];
+	if (!channel->isAdmin(user))
+	{
+		/*
+		Devolver respuesta ERR_CHANOPRIVSNEEDED al cliente
+		*/
+		return ;
+	}
+	
 	// Parsear el resto del mensaje para obtener los modos a cambiar
-	std::cout << userFd << std::endl;
+	
 }
 
 void Server::signalHandler(int signal)
