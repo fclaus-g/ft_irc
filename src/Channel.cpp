@@ -104,18 +104,21 @@ void Channel::addOpChannel(User& user)
 
 /**
  * @brief Broadcast a message to all users in the channel except the one who sent the message
- * @param message the message to be sent
+ * @param message the text message to be sent
+ * @param command_msg the message to be sent formatted as irc protocol needs
  * @param userFd the user file descriptor to avoid sending the message to the sender
  * TODO: later, check each user for bans, mutes, etc before sending the message
  */
 void Channel::broadcastMessage(const std::string& message, int userFd)
 {
 	std::map<User *, bool>::iterator	i;
+	std::string							command_msg;
 
+	command_msg = ":" + this->_user.getNick() + message;
 	for (i = this->_usersMap.begin(); i != this->_usersMap.end(); ++i)
 	{
 		if (i->first->getFd() != userFd)
-			send(i->first->getFd(), message.c_str(), message.size(), 0);
+			send(i->first->getFd(), command_msg.c_str(), command_msg.size(), 0);
 	}
 }
 
