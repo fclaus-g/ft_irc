@@ -158,7 +158,7 @@ void Command::cmdPrivmsg()
  *	- Get the nickName and channelName from the message
  *	- Check if the channel exists, if so, check if the user is operator
  *	- Check if the user to be kicked exists in the channel; if so, remove it
- * TODO: PARAMS ORDER WRONG! swap nick-channelName
+ * TODO: PARAMS ORDER WRONG! swap nick-channelName -> order changed
  * TODO: check error messages - to the client or server? ERROR responses?
  * TODO: check if user is in channel, and if it has been found and removed
  * TODO: send message both success and error
@@ -177,11 +177,11 @@ void Command::commandKick()
 	if (fPos == std::string::npos)
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Not enough parameters\n"));
 	
-	nickName = this->_msg.substr(iPos, fPos - iPos);
+	channelName = this->_msg.substr(iPos, fPos - iPos);
 	this->_msg = this->_msg.substr(fPos + 1);
 	iPos = this->_msg.find_first_not_of(" \t", fPos);
 	fPos = this->_msg.find_first_of(" \t", iPos);
-	channelName = this->_msg.substr(iPos, fPos - iPos);
+	nickName = this->_msg.substr(iPos, fPos - iPos);
 	
 	Channel *channel;
 	channel = this->_server.getChannelByName(channelName);

@@ -49,7 +49,7 @@ class Command
 		//Command methods (empty yet)
 		void 			commandQuit(User user);
 		void 			commandTopic(User user);
-		void 			commandMode(User user);
+		void 			commandMode(/*User user*/);
 };
 
 #endif
