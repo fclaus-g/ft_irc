@@ -106,7 +106,7 @@ void Command::cmdJoin()
 			return (this->_server.sendWarning(this->_user.getFd(),
 				"JOIN: Error: You are already in that channel\n"));
 		channel->addUserChannel(this->_user);
-		std::string msg = ":" + this->_user.getNick() + "!" + this->_user.getUserName() + " JOIN " + channelName + "\n";
+		std::string msg = "JOIN " + channelName + "\n";
 		channel->broadcastMessage(msg, this->_user);
 	}
 }
@@ -138,7 +138,7 @@ void Command::cmdPrivmsg()
 		if (!target_channel)
 			return (this->_server.sendWarning(this->_user.getFd(), "Error: No such nick/channel\n"));
 		if (target_channel->isUserInChannel(this->_user))
-			target_channel->broadcastMessage(msg_text, this->_user);
+			target_channel->broadcastMessage(this->_msg, this->_user);
 		else
 			this->_server.sendWarning(this->_user.getFd(), "Error: You are not channel member\n");
 	}

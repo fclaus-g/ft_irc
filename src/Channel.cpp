@@ -114,7 +114,8 @@ void Channel::broadcastMessage(const std::string& message, User &sender)
 	std::map<User *, bool>::iterator	i;
 	std::string							command_msg;
 
-	command_msg = ":" + sender.getNick() + " " + message;
+	command_msg.clear();
+	command_msg = ":" + sender.getNick() + "!" + sender.getUserName() + " " + message;
 	for (i = this->_usersMap.begin(); i != this->_usersMap.end(); ++i)
 	{
 		if (i->first->getFd() != sender.getFd())
