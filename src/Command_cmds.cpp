@@ -97,24 +97,20 @@ void Command::commandJoin(User& user)
 		std::cout << "Error: Invalid channel name" << std::endl;
 		return ;
 	}
-	bool channelExists = false;
 	for(std::vector<Channel>::iterator it = this->_server.getChannels().begin();
 		it < this->_server.getChannels().end(); ++it)
 	{
-		std::cout << "Channel: " << it->getName() << std::endl;
 		if (it->getName() == channel)
 		{
-			channelExists = true;
 			this->_server.addUserToChannel(channel, user);
-			break ;
+			return ;
 		}
 	}
-	if (!channelExists)
-	{
-		this->_server.createChannel(channel);
-		this->_server.addUserToChannel(channel, user);
-		this->_server.getChannelsMap()[channel].addOpChannel(user);
-	}
+
+	this->_server.createChannel(channel);
+	this->_server.addUserToChannel(channel, user);
+	this->_server.getChannelsMap()[channel].addOpChannel(user);
+	std::cout << BLU << this->_server.getChannelsMap()[channel] << std::endl;
 }
 
 /**
@@ -184,19 +180,20 @@ void Command::commandInvite(User user)
 
 void Command::commandTopic(User user)
 {
-	// size_t  iPos = this->_msg.find_first_not_of(" \t") + 5;
-	// size_t  cPos = this->_msg.find_first_of(" \t", iPos);
-	// std::vector<Channel>::iterator channelIt = std::find(this->_channels.begin(), this->_channels.end(), this->_msg.substr(iPos, cPos - iPos));
-	// if (!channelIt->isOp(user) && channelIt->getTopicMode())
-	// 	return ;
-	// size_t  fPos = this->_msg.find_first_not_of(" \t");
-	// if (fPos == std::string::npos)
-	// {
-	// 	channelIt->sendTopicMessage(user);
-	// 	return ;
-	// }
-	// std::string topic = this->_msg.substr(fPos, this->_msg.size() - fPos);
-	// channelIt->setTopic(topic);
+	size_t  iPos = this->_msg.find_first_not_of(" \t") + 5;
+	size_t  cPos = this->_msg.find_first_of(" \t", iPos);
+	std::vector<Channel>::iterator channelIt = std::find(this->_server.getChannels().begin(), this->_server.getChannels().end(), this->_msg.substr(iPos, cPos - iPos));
+	if (!channelIt->isOp(user) && channelIt->getTopicMode())
+		return ;
+	std::cout << GRE << "hola" << std::endl;
+	size_t  fPos = this->_msg.find_first_not_of(" \t");
+	if (fPos == std::string::npos)
+	{
+		channelIt->sendTopicMessage(user);
+		return ;
+	}
+	std::string topic = this->_msg.substr(fPos, this->_msg.size() - fPos);
+	channelIt->setTopic(topic);
 }
 
 void Command::commandMode(User user)

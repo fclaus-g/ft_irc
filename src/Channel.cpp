@@ -84,10 +84,6 @@ void Channel::setUsersInChannel(const int usersInChannel)
 {
 	this->_usersInChannel = usersInChannel;
 }
-void Channel::setUsersInChannel(const int usersInChannel)
-{
-	this->_usersInChannel = usersInChannel;
-}
 
 void Channel::setUsersLimit(const int usersLimit)
 {
@@ -145,11 +141,6 @@ int Channel::getUsersInChannel() const
 	return this->_usersInChannel;
 }
 
-int Channel::getUsersInChannel() const
-{
-	return this->_usersInChannel;
-}
-
 int Channel::getUsersLimit() const
 {
 	return this->_usersLimit;
@@ -170,9 +161,17 @@ bool Channel::isUserInChannel(User& user)
 
 bool Channel::isOp(User& user)
 {
+	std::map<User*, bool>::iterator op = this->_usersMap.find(&user);
+
+	if (op == this->_usersMap.end() || op->second == false)
+		std::cout << "End of the map" << std::endl;
+	else
+		std::cout << "Not end of the map" << std::endl;
 	for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
+	{
 		if (it->first == &user && it->second == true)
 			return true;
+	}
 	return false;
 }
 
@@ -206,7 +205,6 @@ void Channel::addUserChannel(User& user)
 		this->_usersInChannel++;
 		this->_usersMap[&user] = false;
 		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@localhost JOIN :" + this->getName();
-		//std::string msg = ":" + user.getNick() + " JOIN " + this->getName();
 		std::cout << msg << std::endl;
 		send(user.getFd(), msg.c_str(), msg.length(), 0);
 	}
@@ -264,7 +262,7 @@ void Channel::sendTopicMessage(User& user)
 	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
 }
 
-bool Channel::operator==(std::string &channelName) const
+bool Channel::operator==(const std::string &channelName) const
 {
 	if (this->_name == channelName)
 		return true;

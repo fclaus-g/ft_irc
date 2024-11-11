@@ -42,7 +42,7 @@ std::string User::getRealName() const
 
 void	User::setRealName(std::string realName)
 {
-	this->_hexChatClient = state;
+	this->_realName = realName;
 }
 
 bool	User::getHexClient() const
@@ -53,4 +53,18 @@ bool	User::getHexClient() const
 void	User::setHexClient(bool state)
 {
 	this->_hexChatClient = state;
+}
+
+bool	User::operator==(const User& user) const
+{
+	if (this->_fd == user._fd)
+		return true;
+	return false;
+}
+
+bool	User::operator==(int userFd) const
+{
+	if (this->_fd == userFd)
+		return true;
+	return false;
 }

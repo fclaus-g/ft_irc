@@ -45,6 +45,7 @@ void Server::addUserToChannel(const std::string& channelName, User& user)
 	{
 		if (this->_channels[i].getName() == channelName)
 		{
+			std::cout << user << std::endl;
 			this->_channels[i].addUserChannel(user);
 			return;
 		}

@@ -32,6 +32,8 @@ class User
 		void 				setRealName(std::string realName);
 		bool				getHexClient() const;
 		void				setHexClient(bool state);
+		bool				operator==(const User& user) const;
+		bool				operator==(int userFd) const;
 };
 
 std::ostream& operator<<(std::ostream& out, const User& user);

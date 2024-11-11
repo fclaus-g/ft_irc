@@ -93,6 +93,7 @@ void	Command::runCmd(int userFd, int key)
 		case INVITE:
 			break;
 		case TOPIC:
+			commandTopic(this->_user);
 			break;
 		case MODE:
 			break;
