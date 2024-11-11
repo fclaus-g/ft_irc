@@ -1,58 +1,140 @@
 #include "ft_irc.hpp"
 
-Channel::Channel()
+/*-----------------------[CHECK METHODS]------------------------*/
+bool Channel::isUserInChannel(User& user)
 {
-	this->_name = "Channel";
-	this->_topic = "";
-	this->_inviteMode = false;
-	this->_topicMode = false;
-	this->_keyMode = false;
-	this->_usersInChannel = 0;
-	this->_usersInChannel = 0;
-	this->_usersLimit = -1;
-	this->_password = "";
+	if (this->_usersMap.find(&user) != this->_usersMap.end())
+		return (true);
+	return (false);
 }
 
-Channel::Channel(const std::string& name)
+/**
+ * @brief Check if a user is administrator in the current channel
+ * - Creates an iterator which finds an aim to the user passed as argument
+ * - Then checks (if the user exists in list) if the user is op or not
+ */
+bool Channel::isOp(User& user)
 {
-	this->_name = name;
-	this->_topic = "";
-	this->_inviteMode = false;
-	this->_topicMode = false;
-	this->_keyMode = false;
-	this->_usersInChannel = 0;
-	this->_usersInChannel = 0;
-	this->_usersLimit = -1;
-	this->_password = "";
+	std::map<User *, bool>::iterator i;
+
+	i = this->_usersMap.find(&user);
+	if (i != this->_usersMap.end() && i->second == true)
+		return (true);
+	return (false);
 }
 
-Channel::~Channel()
+/**
+ * @brief Check if the channel is full before a new user can join
+ * (!) IF userLimit == -1 NO USERS LIMIT
+ */
+bool Channel::channelIsFull()
 {
+	if (this->_usersLimit == -1)
+		return false;
+	if (this->_usersMap.size() >= static_cast<size_t>(this->_usersLimit))
+		return true;
+	return false;
 }
+/*-----------------------[METHODS]------------------------*/
 
-Channel::Channel(const Channel &rhs)
+void Channel::addUserChannel(User& user)
 {
-	*this = rhs;
-}
-
-Channel& Channel::operator=(const Channel &rhs)
-{
-	if (this != &rhs)
+	if (this->isUserInChannel(user))
 	{
-		this->_name = rhs._name;
-		this->_topic = rhs._topic;
-		this->_usersMap = rhs._usersMap;
-		this->_inviteMode = rhs._inviteMode;
-		this->_topicMode = rhs._topicMode;
-		this->_keyMode = rhs._keyMode;
-		this->_usersInChannel = rhs._usersInChannel;
-		this->_topicMode = rhs._topicMode;
-		this->_keyMode = rhs._keyMode;
-		this->_usersInChannel = rhs._usersInChannel;
-		this->_usersLimit = rhs._usersLimit;
-		this->_password = rhs._password;
+		std::cout << "User already in channel" << std::endl;
+		send(user.getFd(), "User already in channel", 21, 0);
+		return;
 	}
-	return *this;
+	if (this->channelIsFull())
+	{
+		std::cout << "Channel is full" << std::endl;
+		send(user.getFd(), "Channel is full", 15, 0);
+		return;
+	}
+	else
+	{
+		this->_usersInChannel++;
+		this->_usersMap[&user] = false;
+		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@127.0.0.1 JOIN :" + this->getName() + "\n";
+		send(user.getFd(), msg.c_str(), msg.length(), 0);
+	}
+}
+
+/**
+ * @brief Remove a user from the channel
+ * @param user the user to be removed
+ * TODO: what if the user is not in the channel? maybe make return bool?
+ */
+void Channel::removeUserChannel(User& user)
+{
+	std::map<User *, bool>::iterator i;
+
+	i = this->_usersMap.find(&user);
+	if (i != this->_usersMap.end())
+		this->_usersMap.erase(i);
+}
+
+/**
+ * @brief add a user to the op vector after checking if the user is already an op
+ * (!) Changed, since no op_vector if user is in channel and not op, set bool TRUE
+ * Now is more like a setOpUser than addOp since it does not add to any vector
+ * @param user 
+ */
+void Channel::addOpChannel(User& user)
+{
+	std::map <User*, bool>::iterator	aux;
+
+	aux = this->_usersMap.find(&user);
+	if (isUserInChannel(user))
+	{
+		if (isOp(user))
+		{
+			std::cout << "addOpChannel: User is already op" << std::endl;
+			send(user.getFd(), "User is already op", 18, 0);
+			return ;
+		}
+	}
+	else
+	{
+		std::cout << "addOpChannel: User is not in channel" << std::endl;
+		return ;	
+	}
+	aux->second = true;
+}
+
+/**
+ * @brief Broadcast a message to all users in the channel except the one who sent the message
+ * @param message the text message to be sent
+ * @param command_msg the message to be sent formatted as irc protocol needs
+ * @param userFd the user file descriptor to avoid sending the message to the sender
+ * TODO: later, check each user for bans, mutes, etc before sending the message
+ */
+void Channel::broadcastMessage(const std::string& message, User &sender)
+{
+	std::map<User *, bool>::iterator	i;
+	std::string							command_msg;
+
+	command_msg = ":" + sender.getNick() + " " + message;
+	for (i = this->_usersMap.begin(); i != this->_usersMap.end(); ++i)
+	{
+		if (i->first->getFd() != sender.getFd())
+			send(i->first->getFd(), command_msg.c_str(), command_msg.size(), 0);
+	}
+}
+
+void Channel::sendTopicMessage(User& user)
+{
+	std::string topicMsg;
+	if (this->_topic.empty())
+	{
+		topicMsg = ":server 331" + user.getNick() + " " + this->_name + " :No topic is set";
+	}
+	else
+	{
+		topicMsg = ":server 332" + user.getNick() + " " + this->_name + " :" + this->_topic;
+	}
+	std::cout << topicMsg << std::endl;
+	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
 }
 
 void Channel::setName(const std::string& name)
@@ -93,192 +175,4 @@ void Channel::setUsersLimit(const int usersLimit)
 void Channel::setPassword(const std::string& password)
 {
 	this->_password = password;
-}
-
-/*-----------------------[GETTER]------------------------*/
-
-const std::string& Channel::getName() const
-{
-	return this->_name;
-}
-
-const std::string& Channel::getTopic() const
-{
-	return this->_topic;
-}
-
-const std::string Channel::getUsersChannelStr() const
-{
-	std::string usersStr;
-	std::map<User*, bool> usersMap = this->_usersMap;
-	for (std::map<User*, bool>::iterator it = usersMap.begin(); it != usersMap.end(); it++)
-		usersStr += it->first->getNick() + " ";
-	return usersStr;
-}
-
-const std::map<User*, bool>& Channel::getUsers() const
-{
-	return this->_usersMap;
-}
-
-bool Channel::getInviteMode() const
-{
-	return this->_inviteMode;
-}
-
-bool Channel::getTopicMode() const
-{
-	return this->_topicMode;
-}
-
-bool Channel::getKeyMode() const
-{
-	return this->_keyMode;
-}
-
-int Channel::getUsersInChannel() const
-{
-	return this->_usersInChannel;
-}
-
-int Channel::getUsersLimit() const
-{
-	return this->_usersLimit;
-}
-
-const std::string& Channel::getPassword() const
-{
-	return this->_password;
-}
-/*-----------------------[CHECK METHODS]------------------------*/
-bool Channel::isUserInChannel(User& user)
-{
-	for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
-		if (it->first == &user)
-			return true;
-	return false;
-}
-
-bool Channel::isOp(User& user)
-{
-	std::map<User*, bool>::iterator op = this->_usersMap.find(&user);
-
-	if (op == this->_usersMap.end() || op->second == false)
-		std::cout << "End of the map" << std::endl;
-	else
-		std::cout << "Not end of the map" << std::endl;
-	for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
-	{
-		if (it->first == &user && it->second == true)
-			return true;
-	}
-	return false;
-}
-
-bool Channel::channelIsFull()
-{
-	if (this->_usersLimit == -1)
-		return false;
-	if (this->_usersMap.size() >= static_cast<size_t>(this->_usersLimit))
-		return true;
-	return false;
-}
-/*-----------------------[METHODS]------------------------*/
-
-void Channel::addUserChannel(User& user)
-{
-	//std::cout << RED << user << std::endl;
-	if (this->isUserInChannel(user))
-	{
-		std::cout << "User already in channel" << std::endl;
-		send(user.getFd(), "User already in channel", 21, 0);
-		return;
-	}
-	if (this->channelIsFull())
-	{
-		std::cout << "Channel is full" << std::endl;
-		send(user.getFd(), "Channel is full", 15, 0);
-		return;
-	}
-	else
-	{
-		this->_usersInChannel++;
-		this->_usersMap[&user] = false;
-		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@localhost JOIN :" + this->getName();
-		std::cout << msg << std::endl;
-		send(user.getFd(), msg.c_str(), msg.length(), 0);
-	}
-	//std::cout << *this << std::endl;
-}
-
-void Channel::removeUserChannel(User& user)
-{
-	for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
-		if (it->first == &user)
-			this->_usersMap.erase(&user);
-
-}
-
-void Channel::addOpChannel(User& user)
-{
-	if (this->isOp(user))
-	{
-		std::cout << "User is already op" << std::endl;
-		return;
-	}
-	if (this->isUserInChannel(user))
-		this->_usersMap[&user] = true;
-	else
-		std::cout << "User is not in channel" << std::endl;
-}
-
-void Channel::removeOpChannel(User& user)
-{
-	if (this->isOp(user))
-	{
-		for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
-			if (it->first == &user && it->second == true)
-				it->second = false;
-	}
-	else
-		std::cout << "User is not op" << std::endl;
-}
-
-void Channel::broadcastMessage(const std::string& message, int userFd)
-{
-	for (std::map<User*, bool>::iterator it = this->_usersMap.begin(); it != this->_usersMap.end(); it++)
-		if (it->second != userFd)
-			send(it->first->getFd(), message.c_str(), message.size(), 0);
-}
-
-void Channel::sendTopicMessage(User& user)
-{
-	std::string topicMsg;
-	if (this->_topic.empty())
-		topicMsg = ":server 331" + user.getNick() + " " + this->_name + " :No topic is set";
-	else
-		topicMsg = ":server 332" + user.getNick() + " " + this->_name + " :" + this->_topic;
-	std::cout << topicMsg << std::endl;
-	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
-}
-
-bool Channel::operator==(const std::string &channelName) const
-{
-	if (this->_name == channelName)
-		return true;
-	return false;
-}
-
-
-std::ostream& operator<<(std::ostream& os, const Channel& channel)
-{
-	std::map<User*, bool> usersMap = channel.getUsers();
-	os << "Channel name: " << channel.getName() << std::endl;
-	os << "Channel topic: " << channel.getTopic() << std::endl;
-	os << "Channel users: ";
-	for (std::map<User*, bool>::iterator it = usersMap.begin(); it != usersMap.end(); it++)
-		os << it->first << " ";
-	os << "users in channel : " << channel.getUsersInChannel() << std::endl;	
-	os << std::endl;
-	return os;
 }
