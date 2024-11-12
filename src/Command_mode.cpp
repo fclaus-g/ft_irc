@@ -28,18 +28,11 @@ bool	isASign(char s)
 std::vector<std::string> ft_split(std::string message)
 {
 	std::vector<std::string> res;
-	int			i;
 	std::string	token;
 	std::istringstream tokens(message);
 
-	std::cout << "DEBUG: Start split" << std::endl;
-	i = 0;
-	while (tokens >> token)
-	{
-		std::cout << "DEBUG: " << token << " ___ ";
-		res[i] = token;
-		i++;
-	}
+	while (std::getline(tokens, token, ' '))
+		res.push_back(token);
 	return (res);
 }
 
@@ -84,16 +77,26 @@ void Command::commandMode(/*User user*/)
 	
 	std::vector<std::string> args;
 	std::string channelName;
+	size_t	argCount;
 
 	//obtenemos el nombre del canal
-	size_t iPos = this->_msg.find_first_of(" \t");
-	iPos = this->_msg.find_first_not_of(" \t", iPos);
-	size_t fPos = this->_msg.find_first_of(" \t", iPos);
-	channelName = this->_msg.substr(iPos, fPos - iPos);
-	//args = ft_split(this->_msg);
-	//channelName = args[1];
+	//size_t iPos = this->_msg.find_first_of(" \t");
+	//iPos = this->_msg.find_first_not_of(" \t", iPos);
+	//size_t fPos = this->_msg.find_first_of(" \t", iPos);
+	//channelName = this->_msg.substr(iPos, fPos - iPos);
+	//std::cout << "DEBUG. Message: " << this->_msg << std::endl;
+	args = ft_split(this->_msg);
+	//std::cout << "DEBUG. Argument count: " << args.size() << std::endl; 
+	argCount = args.size();
+	if (argCount < 2)
+	{
+		/*
+		No hay suficientes argumentos
+		*/
+		return ;
+	}
+	channelName = args[1];
 	Channel *channel = this->_server.getChannelByName(channelName);
-	std::cout << "DEBUG: " << channelName << std::endl;
 	if (!channel)
 	{
 		/*
@@ -101,16 +104,26 @@ void Command::commandMode(/*User user*/)
 		*/
 		return ;
 	}	
-
-	// Si el usuario no es admin no hacer nada
-	//if (!channel->isOp(user))
-	//{
+	if (argCount == 2)
+	{
 		/*
-		Devolver respuesta ERR_CHANOPRIVSNEEDED al cliente
+		Enviar mensaje RPL_CHANNELMODEIS al cliente con los modos actuales del canal
+		Opcionalmente enviar mensaje RPL_CREATIONTIME tras el anterior
 		*/
-	//	return ;
-	//}
-	
-	// Parsear el resto del mensaje para obtener los modos a cambiar
+		return ;
+	}
+	else
+	{
+		// Si el usuario no es admin no hacer nada
+		if (!channel->isOp(this->_user))
+		{
+			/*
+			Devolver respuesta ERR_CHANOPRIVSNEEDED al cliente
+			*/
+			return ;
+		}
+		
+		// Parsear el resto del mensaje para obtener los modos a cambiar
+	}
 	
 }
