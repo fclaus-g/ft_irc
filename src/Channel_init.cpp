@@ -123,3 +123,10 @@ const std::string& Channel::getPassword() const
 {
 	return this->_password;
 }
+
+bool Channel::operator==(const std::string &channelName) const
+{
+	if (this->_name == channelName)
+		return true;
+	return false;
+}

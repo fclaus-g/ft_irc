@@ -263,21 +263,17 @@ void Command::commandTopic(User user)
 {
 	size_t  iPos = this->_msg.find_first_not_of(" \t") + 5;
 	size_t  cPos = this->_msg.find_first_of(" \t", iPos);
-	std::vector<Channel>::iterator channelIt = std::find(this->_server.getChannels().begin(), this->_server.getChannels().end(), this->_msg.substr(iPos, cPos - iPos));
-	if (!channelIt->isOp(user) && channelIt->getTopicMode())
+	std::string tmpMsg = this->_msg.substr(iPos, cPos - iPos);
+	Channel* channel = this->_server.getChannelByName(tmpMsg);
+	if (!channel->isOp(user) && channel->getTopicMode())
 		return ;
-	std::cout << GRE << "hola" << std::endl;
 	size_t  fPos = this->_msg.find_first_not_of(" \t");
 	if (fPos == std::string::npos)
 	{
-		channelIt->sendTopicMessage(user);
+		channel->sendTopicMessage(user);
 		return ;
 	}
 	std::string topic = this->_msg.substr(fPos, this->_msg.size() - fPos);
-	channelIt->setTopic(topic);
+	channel->setTopic(topic);
 }
 
-void Command::commandMode(User user)
-{
-	(void)user;
-}
