@@ -118,7 +118,6 @@ void Command::cmdJoin()
  *	- Check if the message is to a channel or user
  *	- In both cases, find if the user or channel exists
  *	- In case of channel, check if the user is in the channel
- *	TODO: check :<msg> format, do the : comes with hexChat? add formatCheck to user nc?
  */
 void Command::cmdPrivmsg()
 {
@@ -133,7 +132,6 @@ void Command::cmdPrivmsg()
 	msg_text = msg_text.substr(msg_text.find_first_of(" ") + 1);
 	if (target[0] == '#')
 	{
-		//# is stored at the channel name? if not, remove it from target variable here
 		Channel	*target_channel = this->_server.getChannelByName(target);
 		if (!target_channel)
 			return (this->_server.sendWarning(this->_user.getFd(), "Error: No such nick/channel\n"));
@@ -147,7 +145,7 @@ void Command::cmdPrivmsg()
 		User	*target_user = this->_server.getUserByNick(target);
 		if (!target_user)
 			return (this->_server.sendWarning(this->_user.getFd(), "Error: No such nick/channel\n"));
-		send(target_user->getFd(), msg_text.c_str(), msg_text.length(), 0);
+		this->_server.messageToClient(this->_msg, this->_user, *target_user);
 	}
 }
 
@@ -158,41 +156,42 @@ void Command::cmdPrivmsg()
  *	- Get the nickName and channelName from the message
  *	- Check if the channel exists, if so, check if the user is operator
  *	- Check if the user to be kicked exists in the channel; if so, remove it
- * TODO: PARAMS ORDER WRONG! swap nick-channelName
- * TODO: check error messages - to the client or server? ERROR responses?
- * TODO: check if user is in channel, and if it has been found and removed
- * TODO: send message both success and error
+ * TODO: Check/protect not enough parameters (what about more than needed?)
+ * TODO: SERVER NEEDS TO SEND MESSAGE TO KICKED USER (and all users in channel?)
+ * TODO: Add comment - if passed by command, else default comment
  * TODO: check if user was the only one left in channel, remove channel?
+ * TODO: check error messages - to the client or server? ERROR responses?
  */
 void Command::commandKick()
 {
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
+	//KICK #channel nick comment_reason(optional)
+	std::string nick;
+	std::string channel_name;
+	//std::string	comment = "";
 
-	std::string nickName;
-	std::string channelName;
-	size_t iPos = this->_msg.find_first_not_of(" \t");
-	size_t fPos = this->_msg.find_first_of(" \t", iPos);
+	channel_name = this->_msg.substr(5);
+	nick = channel_name.substr(channel_name.find_first_of(" ") + 1);
+	channel_name = channel_name.substr(0, channel_name.find_first_of(" "));
+	// if (nick.find(" "))
+	nick.erase(nick.find_last_not_of(" \n\r\t") + 1);
+	channel_name.erase(channel_name.find_last_not_of(" \n\r\t") + 1);
 
-	if (fPos == std::string::npos)
-		return (this->_server.sendWarning(this->_user.getFd(), "Error: Not enough parameters\n"));
-	
-	nickName = this->_msg.substr(iPos, fPos - iPos);
-	this->_msg = this->_msg.substr(fPos + 1);
-	iPos = this->_msg.find_first_not_of(" \t", fPos);
-	fPos = this->_msg.find_first_of(" \t", iPos);
-	channelName = this->_msg.substr(iPos, fPos - iPos);
-	
 	Channel *channel;
-	channel = this->_server.getChannelByName(channelName);
+	channel = this->_server.getChannelByName(channel_name);
 	if (!channel)
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Channel does not exist\n"));
 	if (!channel->isOp(this->_user))
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: You are not channel admin\n"));
 	
-	User *deleteUser = this->_server.getUserByNick(nickName);
+	User *deleteUser = this->_server.getUserByNick(nick);
 	if (!deleteUser)
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Nick not found in server\n"));
+	this->_msg.erase(this->_msg.find_last_not_of(" \n\r\t") + 1);
+	this->_msg = this->_msg + " for no reason\n";
+	channel->broadcastMessage(this->_msg, this->_user);
+	this->_server.messageToClient(this->_msg, this->_user, this->_user);
 	channel->removeUserChannel(*deleteUser);
 }
 
@@ -208,33 +207,30 @@ void Command::commandKick()
  *	- Check if invite target user is already in channel
  *	- Check if channel is full
  *	- Of all checks passed, add user to channel
- * TODO: check error messages - to the client or server? ERROR responses?
+ * TODO: protect not enough params (what about more than needed?)
+ * TODO: check error messages - to the client or server? ERROR/RESPONSES?
  */
 void Command::commandInvite()
 {
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
 
-	std::string	nickName;
-	std::string	channelName;
-	size_t iPos = this->_msg.find_first_not_of(" \t");
-	size_t fPos = this->_msg.find_first_of(" \t", iPos);
-	if (fPos == std::string::npos)
-		return (this->_server.sendWarning(this->_user.getFd(), "Error: Not enough parameters\n"));
+	std::string	nick;
+	std::string	channel_name;
 
-	nickName = this->_msg.substr(iPos, fPos - iPos);
-	this->_msg = this->_msg.substr(fPos + 1);
-	iPos = this->_msg.find_first_not_of(" \t", fPos);
-	fPos = this->_msg.find_first_of(" \t", iPos);
-	channelName = this->_msg.substr(iPos, fPos - iPos);
+	nick = this->_msg.substr(7);
+	channel_name = nick.substr(nick.find_first_of(" ") + 1);
+	nick = nick.substr(0, nick.find_first_of(" "));
+	nick.erase(nick.find_last_not_of(" \n\r\t") + 1);
+	channel_name.erase(channel_name.find_last_not_of(" \n\r\t") + 1);
 
 	Channel *channel;
-	channel = this->_server.getChannelByName(channelName);
+	channel = this->_server.getChannelByName(channel_name);
 	if (!channel)
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Channel does not exist\n"));
 
 	User *invitedUser = NULL;
-	invitedUser = this->_server.getUserByNick(nickName);
+	invitedUser = this->_server.getUserByNick(nick);
 	if (!invitedUser)
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Nick not found in server\n"));
 	if (channel->getInviteMode())
@@ -251,7 +247,7 @@ void Command::commandInvite()
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: User is already in channel\n"));
 	if (channel->channelIsFull())
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Channel is full\n"));
-	this->_server.addUserToChannel(channelName, *invitedUser);
+	this->_server.addUserToChannel(channel_name, *invitedUser);
 }
 
 void Command::commandQuit(User user)
