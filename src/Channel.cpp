@@ -18,6 +18,9 @@ bool Channel::isOp(User& user)
 	std::map<User *, bool>::iterator i;
 
 	i = this->_usersMap.find(&user);
+	if (i == this->_usersMap.end())
+		std::cout << GRE << "Tu puta madre" << RES << std::endl;
+	std::cout << "isOp: " << i->second << std::endl;
 	if (i != this->_usersMap.end() && i->second == true)
 		return (true);
 	return (false);
