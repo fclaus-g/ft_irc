@@ -1,49 +1,38 @@
-NAME = ircserv
+NAME		= ircserv
+CC			= g++
+CFLAGS		= -std=c++98 -Wall -Wextra -Werror -I./inc
 
-SRC_DIR = src
+SRC_PATH	= src/
+OBJ_PATH	= obj/
 
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+SRC			= main Server Server_init Server_utils Server_channel \
+				User User_init Channel Channel_init \
+				Command_cmds Command_init Command_mode
 
-INC_DIR = inc
+SRCS		= $(addsuffix .cpp, $(addprefix $(SRC_PATH), $(SRC))) \
 
-OBJ_DIR = obj
+OBJS		= $(SRCS:$(SRC_PATH)%.cpp=$(OBJ_PATH)/%.o)
 
-OBJS = $(addprefix $(OBJ_DIR)/, $(notdir $(SRCS:.cpp=.o)))
+RM			= rm -f
 
-CC = c++
+all: $(NAME)
 
-FLAGS = -Wall -Werror -Wextra -std=c++98
-
-RM = rm -f
-
-GREEN = "\033[32m"
-YELLOW = "\033[33m"
-RED = "\033[31m"
-NOCOLOR = "\033[0m"
-
-all: $(OBJ_DIR) $(NAME)
-
-$(OBJ_DIR):
-	@mkdir -p $(OBJ_DIR)
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@$(CC) $(FLAGS) -c $< -o $@
-
-$(NAME): $(OBJS) $(INC_DIR)/ft_irc.hpp
-	@echo $(GREEN)Compiling...$(NOCOLOR)
-	@$(CC) $(FLAGS) $(SRCS) -o $(NAME)
-	@echo $(GREEN)Program ircserv ready$(NOCOLOR)
+$(OBJ_PATH)%.o: $(SRC_PATH)%.cpp
+	@mkdir -p $(OBJ_PATH)
+	@$(CC) $(CFLAGS) -c $< -o $@
+$(NAME):	$(OBJS)
+	@${CC} $(CFLAGS) $(OBJS) -o $(NAME)
+	@echo "\033[0;32m\n	 ##### ✅ Program $(NAME) is ready! ✅ #####\n\033[0m"
 
 clean:
-	@$(RM) $(OBJ_DIR)/$(OBJS)
-	@rm -r $(OBJ_DIR)
-	@echo ircserv objects files $(RED)cleaned$(NOCOLOR)
+	@$(RM) $(OBJS) 
+	@if [ -d $(OBJ_PATH) ]; then find $(OBJ_PATH) -type d -empty -delete; fi
+	@echo "\033[0;32m\n	##### ✅ Object files and folders removed ✅ #####\n\033[0m"
 
 fclean: clean
 	@$(RM) $(NAME)
-	@echo ircserv executable file $(RED)cleaned$(NOCOLOR)
+	@echo "\033[0;32m\n	##### ✅ Full clean done! ✅ #####\n\033[0m"
 
 re: fclean all
-	@echo $(RED)Cleaned$(NOCOLOR) and $(GREEN)rebuilt$(NOCOLOR) ircserv
 
 .PHONY: all clean fclean re

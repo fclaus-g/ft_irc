@@ -32,7 +32,13 @@ std::vector<std::string> ft_split(std::string message)
 	std::istringstream tokens(message);
 
 	while (std::getline(tokens, token, ' '))
-		res.push_back(token);
+	{
+		if (token.length() > 0 && token[0] != '\n')
+		{
+			std::cout << "Token: @" << token << "@" << std::endl;
+			res.push_back(token);
+		}
+	}
 	return (res);
 }
 
@@ -50,6 +56,33 @@ bool	needParam(char m)
 		return (false);
 		break;
 	}
+}
+
+void	readModes(std::vector<std::string> const args, std::vector<std::string> &m, std::vector<std::string> &p)
+{
+	std::string modeArg;
+	size_t		argCount;
+
+	argCount = args.size();
+	for (size_t index = 2; index < argCount; index++)
+	{
+		modeArg = args[index];
+		if (modeArg.length() > 0 && isASign(modeArg[0]))
+		{
+			if (modeArg.length() == 2)
+				m.push_back(modeArg);
+		}
+		else if (modeArg.length() > 0)
+			p.push_back(modeArg);
+	}
+}
+
+//////////////////////////////DEBUG FUNCTIONS////////////////////
+
+void	ftShowVector(std::string msg, std::vector<std::string> &v)
+{
+	for (size_t index = 0; index < v.size(); index++)
+		std::cout << msg << ": " << v[index] << std::endl;
 }
 
 /**
@@ -74,25 +107,31 @@ void Command::commandMode(/*User user*/)
 	/MODE #canal -k				-> elimina la contraseña del canal 
 
  	*/
-	
-	std::vector<std::string> args;
+
+ 	std::vector<std::string> args;
+	std::vector<std::string> modes;
+	std::vector<std::string> params;
 	std::string channelName;
 	size_t	argCount;
 
 	//obtenemos el nombre del canal
-	//size_t iPos = this->_msg.find_first_of(" \t");
-	//iPos = this->_msg.find_first_not_of(" \t", iPos);
-	//size_t fPos = this->_msg.find_first_of(" \t", iPos);
-	//channelName = this->_msg.substr(iPos, fPos - iPos);
-	//std::cout << "DEBUG. Message: " << this->_msg << std::endl;
 	args = ft_split(this->_msg);
-	//std::cout << "DEBUG. Argument count: " << args.size() << std::endl; 
 	argCount = args.size();
+	//std::cout << "DEBUG. Argument count: " << argCount << std::endl; 
+	
+	//DEBUG
+	ftShowVector("Args comando MODE", args);
+	/*for (size_t i = 0; i < args.size(); i++)
+	{
+		std::cout << "Arg com MODE: " << args[i] << std::endl;
+	}*/
+	//FIN DEBUG
 	if (argCount < 2)
 	{
 		/*
 		No hay suficientes argumentos
 		*/
+		std::cout << "DEBUG: Faltan parámetros en MODE\n";
 		return ;
 	}
 	channelName = args[1];
@@ -102,6 +141,7 @@ void Command::commandMode(/*User user*/)
 		/*
 		Devolver respuesta ERR_NOSUCHCHANNEL al cliente
 		*/
+		std::cout << "DEBUG: No existe el canal\n";
 		return ;
 	}	
 	if (argCount == 2)
@@ -110,6 +150,21 @@ void Command::commandMode(/*User user*/)
 		Enviar mensaje RPL_CHANNELMODEIS al cliente con los modos actuales del canal
 		Opcionalmente enviar mensaje RPL_CREATIONTIME tras el anterior
 		*/
+
+		//modes.clear();
+		//params.clear();
+		readModes(args, modes, params);
+		//Vemos lo que hemos parseado
+		std::cout << "DEBUG: MODE sin parámetros:\n";
+		for (size_t index = 0; index < modes.size(); index++)
+		{
+			std::cout << "Mode: " << modes[index] << std::endl;
+		}
+		for (size_t index = 0; index < params.size(); index++)
+		{
+			std::cout << "Param: " << params[index] << std::endl;
+		}
+		std::cout << "FIN DEBUG\n";
 		return ;
 	}
 	else
@@ -120,10 +175,35 @@ void Command::commandMode(/*User user*/)
 			/*
 			Devolver respuesta ERR_CHANOPRIVSNEEDED al cliente
 			*/
+			std::cout << "DEBUG: El usuario no es operador del canal\n";
 			return ;
 		}
-		
 		// Parsear el resto del mensaje para obtener los modos a cambiar
+		readModes(args, modes, params);
+
+		/*std::string modeArg; 
+		for (size_t index = 2; index < argCount; index++)
+		{
+			modeArg = args[index];
+			if (modeArg.length() > 0 && isASign(modeArg[0]))
+			{
+				if (modeArg.length() == 2)
+					modes.push_back(modeArg);
+			}
+			else if (modeArg.length() > 0)
+				params.push_back(modeArg);
+		}*/
+		//Vemos lo que hemos parseado
+		std::cout << "DEBUG: Parámetros de MODE:\n";
+		for (size_t index = 0; index < modes.size(); index++)
+		{
+			std::cout << "Mode: " << modes[index] << std::endl;
+		}
+		for (size_t index = 0; index < params.size(); index++)
+		{
+			std::cout << "Param: " << params[index] << std::endl;
+		}
+		std::cout << "FIN DEBUG\n";
 	}
 	
 }
