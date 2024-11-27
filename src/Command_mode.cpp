@@ -79,10 +79,10 @@ void	readModes(std::vector<std::string> const args, std::vector<std::string> &m,
 
 //////////////////////////////DEBUG FUNCTIONS////////////////////
 
-void	ftShowVector(std::string msg, std::vector<std::string> &v)
+void	ftShowVector(std::string msg, std::vector<std::string> &v, size_t index)
 {
-	for (size_t index = 0; index < v.size(); index++)
-		std::cout << msg << ": " << v[index] << std::endl;
+	for (size_t i = index; i < v.size(); i++)
+		std::cout << msg << ": " << v[i] << std::endl;
 }
 
 /**
@@ -120,7 +120,7 @@ void Command::commandMode(/*User user*/)
 	//std::cout << "DEBUG. Argument count: " << argCount << std::endl; 
 	
 	//DEBUG
-	ftShowVector("Args comando MODE", args);
+	ftShowVector("Args comando MODE", args, 2);
 	/*for (size_t i = 0; i < args.size(); i++)
 	{
 		std::cout << "Arg com MODE: " << args[i] << std::endl;
@@ -153,17 +153,17 @@ void Command::commandMode(/*User user*/)
 
 		//modes.clear();
 		//params.clear();
-		readModes(args, modes, params);
+		//readModes(args, modes, params);
 		//Vemos lo que hemos parseado
 		std::cout << "DEBUG: MODE sin parámetros:\n";
-		for (size_t index = 0; index < modes.size(); index++)
+		/*for (size_t index = 0; index < modes.size(); index++)
 		{
 			std::cout << "Mode: " << modes[index] << std::endl;
 		}
 		for (size_t index = 0; index < params.size(); index++)
 		{
 			std::cout << "Param: " << params[index] << std::endl;
-		}
+		}*/
 		std::cout << "FIN DEBUG\n";
 		return ;
 	}
@@ -194,7 +194,9 @@ void Command::commandMode(/*User user*/)
 				params.push_back(modeArg);
 		}*/
 		//Vemos lo que hemos parseado
-		std::cout << "DEBUG: Parámetros de MODE:\n";
+		ftShowVector("DEBUG: Modos de MODE", modes, 0);
+		ftShowVector("DEBUG: Parámetros de MODE", params, 0);
+		/*std::cout << "DEBUG: Parámetros de MODE:\n";
 		for (size_t index = 0; index < modes.size(); index++)
 		{
 			std::cout << "Mode: " << modes[index] << std::endl;
@@ -202,7 +204,7 @@ void Command::commandMode(/*User user*/)
 		for (size_t index = 0; index < params.size(); index++)
 		{
 			std::cout << "Param: " << params[index] << std::endl;
-		}
+		}*/
 		std::cout << "FIN DEBUG\n";
 	}
 	
