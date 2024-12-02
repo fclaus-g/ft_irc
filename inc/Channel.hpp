@@ -54,7 +54,7 @@ class Channel
 		//Channel methods
 		void							addUserChannel(User& user);
 		void							removeUserChannel(User& user);
-		void							broadcastMessage(const std::string& message, int userFd);
+		void							broadcastMessage(const std::string& message, User &sender);
 		void							sendTopicMessage(User& user);
 		void							addOpChannel(User& user);
 		//Copilot suggestions

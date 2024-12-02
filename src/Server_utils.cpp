@@ -88,6 +88,21 @@ void	Server::sendWarning(int userFd, std::string str)
 	std::string	msg = ":" + this->_name + " :";
 	msg.append(str);
 	send(userFd, msg.c_str(), msg.length(), 0);
+}
+
+/**
+ * @brief To communicate server-client when command is made
+ * @param message message to send in HexChat format
+ * @param source user that has made the command
+ * @param target user to get the message (may be the same)
+ */
+void	Server::messageToClient(const std::string& message, User &source, User &target)
+{
+	std::string	command_msg;
+
+	command_msg.clear();
+	command_msg = ":" + source.getNick() + "!" + source.getUserName() + " " + message;
+	send(target.getFd(), command_msg.c_str(), command_msg.size(), 0);
 
 }
 

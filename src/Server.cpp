@@ -142,7 +142,7 @@ void	Server::msgHandler(int socketFd)
 	this->_message.clear();
 	if (!readFromSocket(socketFd, this->_message))
 		return (deleteUser(socketFd));
-	std::cout << "Client with fd " << socketFd << " sent message: " << this->_message << std::endl;
+	//std::cout << "Hexchat raw message -> " << this->_message << std::endl;
 	//Later on, we will first handle user->_buffer before handling the command
 	//	this->_users[userFd].updateBuffer(msg);
 	//	if (this->_users[userFd].getBuffer().find(\n, \r...) != npos)

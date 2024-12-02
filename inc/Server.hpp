@@ -48,6 +48,7 @@ class Server
 		void							welcomeUser(int userFd);
 		void							sendWarning(int userFd, std::string str);
 		void							msgHandler(int socketFd);
+		void							messageToClient(const std::string& message, User &source, User &target);
 		//Debug methods
 		//void 							printMap(const std::map<int, User>& map) const;
 		void 							printChannelMap(const std::map<std::string, Channel*>& map) const;	

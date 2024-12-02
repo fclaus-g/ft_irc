@@ -18,6 +18,7 @@
 #include <exception>
 #include <fcntl.h>
 #include <arpa/inet.h>
+#include <sstream>
 
 #include "User.hpp"
 #include "Channel.hpp"
@@ -34,6 +35,7 @@
 const int MAX_CLIENTS = 10;
 const int BUFF_SIZE = 1024;
 
-bool	readFromSocket(int socketFd, std::string &store);
+bool						readFromSocket(int socketFd, std::string &store);
+std::vector<std::string>	ft_split(std::string message);
 
 #endif
