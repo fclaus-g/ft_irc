@@ -9,6 +9,7 @@ void	Command::cmdPass()
 	std::string	pass;
 
 	pass = this->_msg.substr(this->_msg.find("PASS") + 5);
+	std::cout << "On cmdPass 12: " << pass << std::endl;
 	pass.erase(pass.find_last_not_of(" \n\r\t") + 1);
 	if (pass != this->_server.getPassword())
 	{
@@ -83,6 +84,18 @@ void Command::cmdUser()
  * (!) Diff from original: Added first check if user is authenticated
  * (!) Diff from original: Addeded getter methods for channels vector and map
  * 
+  JOIN #foobar                    ; join channel #foobar.
+
+  JOIN &foo fubar                 ; join channel &foo using key "fubar".
+
+  JOIN #foo,&bar fubar            ; join channel #foo using key "fubar"
+                                  and &bar using no key.
+
+  JOIN #foo,#bar fubar,foobar     ; join channel #foo using key "fubar".
+                                  and channel #bar using key "foobar".
+
+  JOIN #foo,#bar                  ; join channels #foo and #bar.
+ * 
  * TODO: Channel related methods have been left in Server as original; move them to Command?
  */
 /*
@@ -92,42 +105,42 @@ IRC usa una serie de códigos numéricos para indicar el estado de los comandos.
 332 (RPL_TOPIC): Devuelve el tema del canal si tiene uno.
 353 (RPL_NAMREPLY): Muestra la lista de usuarios en el canal.
 366 (RPL_ENDOFNAMES): Indica el fin de la lista de usuarios.*/
-void Command::cmdJoin()
-{
-	if (!this->_user.getAuthenticated())
-		return (kickNonAuthenticatedUser(this->_user.getFd()));
-	std::string channelName = this->_msg.substr(this->_msg.find("JOIN") + 5);
-	channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
+// void Command::cmdJoin()
+// {
+// 	if (!this->_user.getAuthenticated())
+// 		return (kickNonAuthenticatedUser(this->_user.getFd()));
+// 	std::string channelName = this->_msg.substr(this->_msg.find("JOIN") + 5);
+// 	channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
 
-	if (channelName.empty() || channelName[0] != '#'){
-		return (this->_server.sendWarning(this->_user.getFd(),
-				"JOIN: Error: No such nick/channel\n"));}
-	Channel *channel = this->_server.getChannelByName(channelName);
-	if (!channel)
-	{
-		std::cout << "Channel does not exist, creating new channel" << std::endl;
-		this->_server.createChannel(channelName);
-		channel = this->_server.getChannelByName(channelName);
-		if (!channel)
-		{
-			std::cerr << "Failed to create or retrieve channel" << std::endl;
-			return;
-		}
-		//this->_server.addUserToChannel(channelName, this->_user);
-		channel->addUserChannel(this->_user);
-		channel->addOpChannel(this->_user);
-	}
-	else
-	{
-		std::cout << "Channel exists, adding user to channel" << std::endl;
-		if (channel->isUserInChannel(this->_user))
-			return (this->_server.sendWarning(this->_user.getFd(),
-				"JOIN: Error: You are already in that channel\n"));
-		channel->addUserChannel(this->_user);
-		std::string msg = "JOIN " + channelName + "\n";
-		channel->broadcastMessage(msg, this->_user);
-	}
-}
+// 	if (channelName.empty() || channelName[0] != '#'){
+// 		return (this->_server.sendWarning(this->_user.getFd(),
+// 				"JOIN: Error: No such nick/channel\n"));}
+// 	Channel *channel = this->_server.getChannelByName(channelName);
+// 	if (!channel)
+// 	{
+// 		std::cout << "Channel does not exist, creating new channel" << std::endl;
+// 		this->_server.createChannel(channelName);
+// 		channel = this->_server.getChannelByName(channelName);
+// 		if (!channel)
+// 		{
+// 			std::cerr << "Failed to create or retrieve channel" << std::endl;
+// 			return;
+// 		}
+// 		//this->_server.addUserToChannel(channelName, this->_user);
+// 		channel->addUserChannel(this->_user);
+// 		channel->addOpChannel(this->_user);
+// 	}
+// 	else
+// 	{
+// 		std::cout << "Channel exists, adding user to channel" << std::endl;
+// 		if (channel->isUserInChannel(this->_user))
+// 			return (this->_server.sendWarning(this->_user.getFd(),
+// 				"JOIN: Error: You are already in that channel\n"));
+// 		channel->addUserChannel(this->_user);
+// 		std::string msg = "JOIN " + channelName + "\n";
+// 		channel->broadcastMessage(msg, this->_user);
+// 	}
+// }
 
 
 /**
@@ -268,9 +281,41 @@ void Command::commandInvite()
 	this->_server.addUserToChannel(channel_name, *invitedUser);
 }
 
-void Command::commandQuit(User user)
+/**
+ * @brief The Quit command is used to disconnect from the server and close the socket connection 
+ * 	- The user is removed from the server and the socket is closed
+ * 	- The user is removed from all channels
+ * 	- The user is removed from the pollfd vector
+ * 	- The user is removed from the users map
+ * The client send to server the QUIT command with a message, but the server does not need to process it
+ * 
+ */
+void Command::commandQuit()
 {
-	(void)user;
+	std::cout << "User with fd " << this->_user.getFd() << " has quit the server" << std::endl;
+	
+	/*Borrar al user de los canales del mapa de canales _usermap*/
+	std::map<std::string, Channel*>::iterator it = this->_server.getChannelsMap().begin();
+	while (it != this->_server.getChannelsMap().end())
+	{
+		it->second->removeUserChannel(this->_user);
+		it->second->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user);
+		it++;
+	}
+	/*borrar al user del vector de canales _channel*/
+	std::vector<Channel*>::iterator it2 = this->_server.getChannels().begin();
+	while (it2 != this->_server.getChannels().end())
+	{
+		if ((*it2)->isUserInChannel(this->_user))
+		{
+			(*it2)->removeUserChannel(this->_user);
+			(*it2)->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user);}
+		it2++;
+	}
+	/*borrar al user del vector de pollfd _fds*/
+	std::string msg = "QUIT :Client quit\n";
+	send(this->_user.getFd(), msg.c_str(), msg.length(), 0);
+	this->_server.deleteUser(this->_user.getFd());//esto elimina al usuario de pollfd
 }
 
 void Command::commandTopic(User user)
