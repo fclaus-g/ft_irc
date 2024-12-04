@@ -21,6 +21,7 @@ class Server
 		std::vector<struct pollfd> 		_fds;
 		std::string						_tempNick;
 		std::string						_tempPass;
+		static Server*					_instance;
 	public:
 		Server();
 		Server(int port, std::string password);
@@ -53,6 +54,7 @@ class Server
 		//void 							printMap(const std::map<int, User>& map) const;
 		void 							printChannelMap(const std::map<std::string, Channel*>& map) const;	
 		void					printVector(const std::vector<Channel>& vector);
+		void					debugPrint(const std::string& input);
 		//Channel methods
 		void							createChannel(const std::string& name);
 		void							addUserToChannel(const std::string& channelName, User& user);
