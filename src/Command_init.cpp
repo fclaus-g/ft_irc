@@ -51,6 +51,7 @@ bool Command::checkCmd(int userFd)
 	{
 		if (this->_msg.find(_commands[i]) == 0)
 		{
+			//std::cout << "Command found: " << _commands[i] << "en el indice" << i << "checCmd 54" << std::endl;
 			runCmd(userFd, i);
 			return (true);
 		}

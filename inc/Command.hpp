@@ -31,6 +31,7 @@ class Command
 		User				&_user;
 		Server				&_server;
     public:
+	/*AL CREAR EL CMD SE CREA CON EL FD DEL CLIENTE, EL MENSAJE, REFERENCIA DEL USUARIO Y REF DEL SERVER*/
 		Command(int socketFd, const std::string msg, User &user, Server &server);
 		~Command();
 		//Aux Methods	
@@ -46,7 +47,7 @@ class Command
 		void 			commandKick();
 		void 			commandInvite();
 		//Command methods (empty yet)
-		void 			commandQuit(User user);
+		void 			commandQuit();
 		void 			commandTopic(User user);
 		void 			commandMode();
 };
