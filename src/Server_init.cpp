@@ -1,5 +1,7 @@
 #include "ft_irc.hpp"
 
+Server* Server::_instance = NULL;
+
 Server::Server()
 {
 }

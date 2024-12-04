@@ -18,6 +18,7 @@ void Server::start()
  */
 void Server::prepareSocket()
 {
+	this->_instance = this;
 	struct sockaddr_in server_addr;
 	struct pollfd poll_fd;
 	
@@ -147,6 +148,9 @@ void	Server::msgHandler(int socketFd)
 	//	this->_users[userFd].updateBuffer(msg);
 	//	if (this->_users[userFd].getBuffer().find(\n, \r...) != npos)
 	//This is only an example, we will find a way to do it correctly later, now just using this->_message
+	// std::cout << "After readFromSocket() on msgHandler:152 this->_message: ";
+	// debugPrint(this->_message);
+	// std::cout << std::endl;
 	Command	cmd(socketFd, this->_message, *(this->_users[socketFd]), *(this));
 	cmd.checkCmd(socketFd);
 	//(!)If we add some code after cmd.checkCmd(), need to be checked and protected if command went wrong and/or user deleted!

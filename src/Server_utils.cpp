@@ -60,6 +60,8 @@ void Server::signalHandler(int signal)
 	if (signal == SIGINT || signal == SIGQUIT)
 	{
 		std::cout << "Signal received: " << signal << std::endl;
+		if (_instance)
+			_instance->stop();
 		throw std::runtime_error("Server stopped by signal");
 	}
 }
@@ -187,4 +189,23 @@ User	*Server::getUserByFd(int fd)
 	if (i != this->_users.end())
 		user_ptr = i->second;
 	return (user_ptr);
+}
+
+/**
+ * @brief Print the /n and the /r charcter of one string
+ * maybe neccessary for better debugging
+ * 
+ */
+
+void Server::debugPrint(const std::string& input) {
+	for (std::string::size_type i = 0; i < input.size(); ++i) {
+		if (input[i] == '\n') {
+			std::cout << "\\n";
+		} else if (input[i] == '\r') {
+			std::cout << "\\r";
+		} else {
+			std::cout << input[i];
+		}
+	}
+	std::cout << std::endl;
 }
