@@ -77,7 +77,10 @@ void Channel::removeUserChannel(User& user)
 
 	i = this->_usersMap.find(&user);
 	if (i != this->_usersMap.end())
+	{
 		this->_usersMap.erase(i);
+		this->_usersInChannel--;
+	}
 }
 
 /**
