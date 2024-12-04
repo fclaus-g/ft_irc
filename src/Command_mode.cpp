@@ -29,6 +29,14 @@ std::vector<std::string> ft_split(std::string message)
 {
 	std::vector<std::string> res;
 	std::string	token;
+
+	//  Quitamos los caracteres especiales al mensaje y los sustituimos por
+	// un espacio para que la función ft_split no tenga problemas
+	if (message.find('\n') != std::string::npos)
+		message.at(message.find('\n')) = ' ';
+	if (message.find('\r') != std::string::npos)
+		message.at(message.find('\r')) = ' ';
+	
 	std::istringstream tokens(message);
 
 	while (std::getline(tokens, token, ' '))
@@ -121,10 +129,6 @@ void Command::commandMode(/*User user*/)
 	
 	//DEBUG
 	ftShowVector("Args comando MODE", args, 2);
-	/*for (size_t i = 0; i < args.size(); i++)
-	{
-		std::cout << "Arg com MODE: " << args[i] << std::endl;
-	}*/
 	//FIN DEBUG
 	if (argCount < 2)
 	{
@@ -151,19 +155,7 @@ void Command::commandMode(/*User user*/)
 		Opcionalmente enviar mensaje RPL_CREATIONTIME tras el anterior
 		*/
 
-		//modes.clear();
-		//params.clear();
-		//readModes(args, modes, params);
-		//Vemos lo que hemos parseado
 		std::cout << "DEBUG: MODE sin parámetros:\n";
-		/*for (size_t index = 0; index < modes.size(); index++)
-		{
-			std::cout << "Mode: " << modes[index] << std::endl;
-		}
-		for (size_t index = 0; index < params.size(); index++)
-		{
-			std::cout << "Param: " << params[index] << std::endl;
-		}*/
 		std::cout << "FIN DEBUG\n";
 		return ;
 	}
@@ -181,30 +173,9 @@ void Command::commandMode(/*User user*/)
 		// Parsear el resto del mensaje para obtener los modos a cambiar
 		readModes(args, modes, params);
 
-		/*std::string modeArg; 
-		for (size_t index = 2; index < argCount; index++)
-		{
-			modeArg = args[index];
-			if (modeArg.length() > 0 && isASign(modeArg[0]))
-			{
-				if (modeArg.length() == 2)
-					modes.push_back(modeArg);
-			}
-			else if (modeArg.length() > 0)
-				params.push_back(modeArg);
-		}*/
 		//Vemos lo que hemos parseado
 		ftShowVector("DEBUG: Modos de MODE", modes, 0);
 		ftShowVector("DEBUG: Parámetros de MODE", params, 0);
-		/*std::cout << "DEBUG: Parámetros de MODE:\n";
-		for (size_t index = 0; index < modes.size(); index++)
-		{
-			std::cout << "Mode: " << modes[index] << std::endl;
-		}
-		for (size_t index = 0; index < params.size(); index++)
-		{
-			std::cout << "Param: " << params[index] << std::endl;
-		}*/
 		std::cout << "FIN DEBUG\n";
 	}
 	
