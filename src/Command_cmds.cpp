@@ -257,5 +257,25 @@ void Command::commandQuit(User user)
 
 void Command::commandTopic(User user)
 {
-	(void)user;
+	std::cout << RED << this->_msg << RES << std::endl;
+	size_t  iPos = this->_msg.find_first_not_of(" \t", 5);
+	size_t  cPos = this->_msg.find_first_of(" \t", iPos);
+	std::cout << iPos <<" , " << cPos << std::endl;
+	std::string tmpMsg = this->_msg.substr(iPos, cPos - iPos);
+	Channel* channel = this->_server.getChannelByName(tmpMsg);
+	std::cout << BLU << "Hola" << RES << std::endl;
+	if (!channel->isOp(user) && channel->getTopicMode())
+		return ;
+	size_t  fPos = this->_msg.find_first_not_of(" \t", cPos);
+	std::cout << fPos << ", " << tmpMsg << std::endl;
+	if (fPos == std::string::npos)
+	{
+		std::cout << RED << "Hola" << RES << std::endl;
+		channel->sendTopicMessage(user);
+		return ;
+	}
+	std::string topic = this->_msg.substr(fPos + 1, this->_msg.size() - fPos);
+	std::cout << BLU << topic << RES << std::endl;
+	channel->setTopic(topic);
+	std::cout << YEL << this->_server.getChannelByName(tmpMsg)->getTopic() << RES << std::endl;
 }
