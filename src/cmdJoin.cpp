@@ -60,6 +60,7 @@ void printVector(std::vector<std::string> args)
 void Command::cmdJoin()
 {
 	if (this->_msg.find("JOIN") == std::string::npos)
+		//ERR_NEEDMOREPARAMS (461)
 		return;
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
@@ -81,6 +82,7 @@ void Command::cmdJoin()
 		channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
 
 		if (channelName.empty() || channelName[0] != '#'){
+			//ERR_BADCHANNELKEY (475)
 			return (this->_server.sendWarning(this->_user.getFd(),
 					"JOIN: Error: No such nick/channel\n"));}
 		Channel *channel = this->_server.getChannelByName(channelName);
@@ -96,6 +98,9 @@ void Command::cmdJoin()
 			}
 			channel->addUserChannel(this->_user);
 			channel->addOpChannel(this->_user);
+			/*RPL_TOPIC (332)
+			RPL_NAMREPLY (353)
+			RPL_ENDOFNAMES (366)*/
 		}
 		else
 		{
@@ -106,6 +111,10 @@ void Command::cmdJoin()
 			channel->addUserChannel(this->_user);
 			std::string msg = "JOIN " + channelName + "\n";
 			channel->broadcastMessage(msg, this->_user);
+			/*RPL_NOTOPIC (331) = "<client> <channel> :No topic is set"
+			RPL_TOPIC (332) =   "<client> <channel> :<topic>"
+			RPL_NAMREPLY (353) = "<client> <symbol/canalstate no neccessary?> <channel> :[prefix(space)]<nick>{ [prefix]<nick>}"
+			RPL_ENDOFNAMES (366) = "<client> <channel> :End of /NAMES list"*/
 		}
 	}
 }	

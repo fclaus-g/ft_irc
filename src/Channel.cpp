@@ -53,6 +53,7 @@ void Channel::addUserChannel(User& user)
 	}
 	if (this->channelIsFull())
 	{
+		//ERR_CHANNELISFULL (471)
 		std::cout << "Channel is full" << std::endl;
 		send(user.getFd(), "Channel is full", 15, 0);
 		return;
