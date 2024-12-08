@@ -29,7 +29,6 @@ void	Command::cmdPass()
  *	- if the user is 'nc' client, the nickName is set as userName and realName (provisional)
  * (!) First check if user is already authenticated - if not, kick the user
  * TODO: Check if nickName is already in use
- * TODO: what if spaces after NICK or before \n?
  */
 void	Command::cmdNick()
 {
@@ -37,15 +36,11 @@ void	Command::cmdNick()
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
 
 	std::string	nick;
-	size_t		pos;
 
-	pos = this->_msg.find_first_of("\n");
-	nick = this->_msg.substr(5, pos - 5);
+	nick = this->_msg.substr(5);
 	nick.erase(nick.find_last_not_of(" \r\t\n") + 1);
 	this->_user.setNick(nick);
-	if (this->_user.getHexClient() && this->_msg.find("USER") != std::string::npos)
-		cmdUser();
-	else
+	if (!this->_user.getHexClient())
 	{
 		this->_user.setUserName(nick);
 		this->_user.setRealName(nick);
@@ -60,18 +55,28 @@ void	Command::cmdNick()
  * (!) Need to check if user is already authenticated FIRST - if not, kick the user
  * TODO: Check if userName or realName is already in use
  * TODO: implment the realName parsing (currently setting the same as userName)
+ * TODO: protect USER command when already logged - working weird now (hexChat sending lowercase)
+ * If a client tries to send the USER command after they have already completed registration with server
+ * ERR_ALREADYREGISTERED reply should be sent and the attempt should fail.
  */
 void Command::cmdUser()
 {
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
+	if (!this->_user.getUserName().empty())
+	{
+		std::string	err_alreadyreg = this->_user.getNick() + " :You may not reregister\n";
+		send(this->_user.getFd(), err_alreadyreg.c_str(), err_alreadyreg.length(), 0);
+		return ;
+	}
 
-	std::string user;
+	std::string	user;
 	size_t		pos;
 
-	user = this->_msg.substr(this->_msg.find("USER") + 5);
+	user = this->_msg.substr(5);
 	pos = user.find_first_of(" ");
 	user = user.substr(0, pos);
+	user.erase(user.find_last_not_of(" \r\t\n") + 1);
 	this->_user.setUserName(user);
 	this->_user.setRealName(user);
 }
@@ -293,8 +298,6 @@ void Command::commandInvite()
 void Command::commandQuit()
 {
 	std::cout << "User with fd " << this->_user.getFd() << " has quit the server" << std::endl;
-	
-	/*Borrar al user de los canales del mapa de canales _usermap*/
 	std::map<std::string, Channel*>::iterator it = this->_server.getChannelsMap().begin();
 	while (it != this->_server.getChannelsMap().end())
 	{
@@ -302,7 +305,6 @@ void Command::commandQuit()
 		it->second->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user);
 		it++;
 	}
-	/*borrar al user del vector de canales _channel*/
 	std::vector<Channel*>::iterator it2 = this->_server.getChannels().begin();
 	while (it2 != this->_server.getChannels().end())
 	{
@@ -312,13 +314,32 @@ void Command::commandQuit()
 			(*it2)->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user);}
 		it2++;
 	}
-	/*borrar al user del vector de pollfd _fds*/
 	std::string msg = "QUIT :Client quit\n";
 	send(this->_user.getFd(), msg.c_str(), msg.length(), 0);
-	this->_server.deleteUser(this->_user.getFd());//esto elimina al usuario de pollfd
+	this->_server.deleteUser(this->_user.getFd());
 }
 
 void Command::commandTopic(User user)
 {
-	(void)user;
+	std::cout << RED << this->_msg << RES << std::endl;
+	size_t  iPos = this->_msg.find_first_not_of(" \t", 5);
+	size_t  cPos = this->_msg.find_first_of(" \t", iPos);
+	std::cout << iPos <<" , " << cPos << std::endl;
+	std::string tmpMsg = this->_msg.substr(iPos, cPos - iPos);
+	Channel* channel = this->_server.getChannelByName(tmpMsg);
+	std::cout << BLU << "Hola" << RES << std::endl;
+	if (!channel->isOp(user) && channel->getTopicMode())
+		return ;
+	size_t  fPos = this->_msg.find_first_not_of(" \t", cPos);
+	std::cout << fPos << ", " << tmpMsg << std::endl;
+	if (fPos == std::string::npos)
+	{
+		std::cout << RED << "Hola" << RES << std::endl;
+		channel->sendTopicMessage(user);
+		return ;
+	}
+	std::string topic = this->_msg.substr(fPos + 1, this->_msg.size() - fPos);
+	std::cout << BLU << topic << RES << std::endl;
+	channel->setTopic(topic);
+	std::cout << YEL << this->_server.getChannelByName(tmpMsg)->getTopic() << RES << std::endl;
 }

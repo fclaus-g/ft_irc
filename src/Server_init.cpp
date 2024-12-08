@@ -13,6 +13,7 @@ Server::Server(int port, std::string password)
 	this->_name = "MyServer";
 	this->_isRunning = false;
 	this->_serverFd = -1;
+	this->_message = "";
 }
 
 Server::~Server()

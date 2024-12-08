@@ -19,7 +19,7 @@ Command::Command(int socketFd, const std::string msg, User &user, Server &server
  */
 void	Command::_initCommands()
 {
-	this->_commands[0] = "CAPLS";
+	this->_commands[0] = "CAP LS";
 	this->_commands[1] = "PASS";
 	this->_commands[2] = "USER";
 	this->_commands[3] = "NICK";
@@ -78,6 +78,7 @@ void	Command::runCmd(int userFd, int key)
 			cmdPass();
 			break;
 		case USER:
+			cmdUser();
 			break;
 		case NICK:
 			cmdNick();
@@ -86,6 +87,7 @@ void	Command::runCmd(int userFd, int key)
 			cmdJoin();
 			break;
 		case QUIT:
+			commandQuit();
 			break;
 		case PRIVMSG:
 			cmdPrivmsg();
