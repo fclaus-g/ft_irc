@@ -19,6 +19,7 @@ class Server
 		std::map<std::string, Channel*>	_channelsMap;
 		std::map<int, User *>			_users;
 		std::vector<struct pollfd> 		_fds;
+		static Server*					_instance;
 	
 	public:
 		Server();
