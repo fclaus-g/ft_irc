@@ -111,6 +111,14 @@ void Command::cmdJoin()
 			channel->addUserChannel(this->_user);
 			std::string msg = "JOIN " + channelName + "\n";
 			channel->broadcastMessage(msg, this->_user);
+			std::string topic = channel->getTopic();
+			if (!topic.empty())
+				this->_server.messageToClient("332 " + this->_user.getNick() + " " + channelName + " :" + topic + "\n", this->_user, this->_user);
+			else 
+				this->_server.messageToClient("331 " + this->_user.getNick() + " " + channelName + " :No topic is set\n", this->_user, this->_user);
+			std::string users = channel->getUsersChannelStr();
+			this->_server.messageToClient("353 " + this->_user.getNick() + " = " + channelName + " :" + users + "\n", this->_user, this->_user);
+			this->_server.messageToClient("366 " + this->_user.getNick() + " " + channelName + " :End of /NAMES list\n", this->_user, this->_user);
 			/*RPL_NOTOPIC (331) = "<client> <channel> :No topic is set"
 			RPL_TOPIC (332) =   "<client> <channel> :<topic>"
 			RPL_NAMREPLY (353) = "<client> <symbol/canalstate no neccessary?> <channel> :[prefix(space)]<nick>{ [prefix]<nick>}"
