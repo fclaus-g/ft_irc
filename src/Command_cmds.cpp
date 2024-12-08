@@ -28,7 +28,6 @@ void	Command::cmdPass()
  *	- if the user is 'nc' client, the nickName is set as userName and realName (provisional)
  * (!) First check if user is already authenticated - if not, kick the user
  * TODO: Check if nickName is already in use
- * TODO: what if spaces after NICK or before \n?
  */
 void	Command::cmdNick()
 {
@@ -36,15 +35,11 @@ void	Command::cmdNick()
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
 
 	std::string	nick;
-	size_t		pos;
 
-	pos = this->_msg.find_first_of("\n");
-	nick = this->_msg.substr(5, pos - 5);
+	nick = this->_msg.substr(5);
 	nick.erase(nick.find_last_not_of(" \r\t\n") + 1);
 	this->_user.setNick(nick);
-	if (this->_user.getHexClient() && this->_msg.find("USER") != std::string::npos)
-		cmdUser();
-	else
+	if (!this->_user.getHexClient())
 	{
 		this->_user.setUserName(nick);
 		this->_user.setRealName(nick);
@@ -59,18 +54,28 @@ void	Command::cmdNick()
  * (!) Need to check if user is already authenticated FIRST - if not, kick the user
  * TODO: Check if userName or realName is already in use
  * TODO: implment the realName parsing (currently setting the same as userName)
+ * TODO: protect USER command when already logged - working weird now (hexChat sending lowercase)
+ * If a client tries to send the USER command after they have already completed registration with server
+ * ERR_ALREADYREGISTERED reply should be sent and the attempt should fail.
  */
 void Command::cmdUser()
 {
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
+	if (!this->_user.getUserName().empty())
+	{
+		std::string	err_alreadyreg = this->_user.getNick() + " :You may not reregister\n";
+		send(this->_user.getFd(), err_alreadyreg.c_str(), err_alreadyreg.length(), 0);
+		return ;
+	}
 
-	std::string user;
+	std::string	user;
 	size_t		pos;
 
-	user = this->_msg.substr(this->_msg.find("USER") + 5);
+	user = this->_msg.substr(5);
 	pos = user.find_first_of(" ");
 	user = user.substr(0, pos);
+	user.erase(user.find_last_not_of(" \r\t\n") + 1);
 	this->_user.setUserName(user);
 	this->_user.setRealName(user);
 }
@@ -250,9 +255,37 @@ void Command::commandInvite()
 	this->_server.addUserToChannel(channel_name, *invitedUser);
 }
 
-void Command::commandQuit(User user)
+/**
+ * @brief The Quit command is used to disconnect from the server and close the socket connection 
+ * 	- The user is removed from the server and the socket is closed
+ * 	- The user is removed from all channels
+ * 	- The user is removed from the pollfd vector
+ * 	- The user is removed from the users map
+ * The client send to server the QUIT command with a message, but the server does not need to process it
+ * 
+ */
+void Command::commandQuit()
 {
-	(void)user;
+	std::cout << "User with fd " << this->_user.getFd() << " has quit the server" << std::endl;
+	std::map<std::string, Channel*>::iterator it = this->_server.getChannelsMap().begin();
+	while (it != this->_server.getChannelsMap().end())
+	{
+		it->second->removeUserChannel(this->_user);
+		it->second->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user);
+		it++;
+	}
+	std::vector<Channel*>::iterator it2 = this->_server.getChannels().begin();
+	while (it2 != this->_server.getChannels().end())
+	{
+		if ((*it2)->isUserInChannel(this->_user))
+		{
+			(*it2)->removeUserChannel(this->_user);
+			(*it2)->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user);}
+		it2++;
+	}
+	std::string msg = "QUIT :Client quit\n";
+	send(this->_user.getFd(), msg.c_str(), msg.length(), 0);
+	this->_server.deleteUser(this->_user.getFd());
 }
 
 void Command::commandTopic(User user)

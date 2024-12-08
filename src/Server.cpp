@@ -133,8 +133,8 @@ void	Server::newConnection()
 /**
  * @brief This function handles the message -poll event- sent by the current socket
  *	(!) readFromSocket() is a helper function that reads the message from the socket
- *		and stores it in a string (currently using server._message, later on will be user._buffer)
- * 		- if the message is empty, it means that the client disconnected, so we delete the user
+ *		and stores it in a string (buffer)
+ * 		- if nothing has been read, it means that the client disconnected, so we delete the user
  *	(!) Command class is created to handle the message, check if it is a valid command and run it
  */
 void	Server::msgHandler(int socketFd)
@@ -143,13 +143,24 @@ void	Server::msgHandler(int socketFd)
 	if (!readFromSocket(socketFd, this->_message))
 		return (deleteUser(socketFd));
 	//std::cout << "Hexchat raw message -> " << this->_message << std::endl;
-	//Later on, we will first handle user->_buffer before handling the command
-	//	this->_users[userFd].updateBuffer(msg);
-	//	if (this->_users[userFd].getBuffer().find(\n, \r...) != npos)
-	//This is only an example, we will find a way to do it correctly later, now just using this->_message
-	Command	cmd(socketFd, this->_message, *(this->_users[socketFd]), *(this));
-	cmd.checkCmd(socketFd);
-	//(!)If we add some code after cmd.checkCmd(), need to be checked and protected if command went wrong and/or user deleted!
-	// std::cout << "User with fd " << socketFd << "state of authentication: " << this->_users[socketFd]->getAuthenticated() << std::endl;
-	// std::cout << "User with fd " << socketFd << "current nick: " << this->_users[socketFd]->getNick() << std::endl;
+	while (!this->_message.empty())
+	{
+		std::string	cmd_msg = "";
+		size_t		pos = this->_message.find("\r\n");
+		if (pos != std::string::npos)
+		{
+			cmd_msg = this->_message.substr(0, pos);
+			this->_message.erase(0, pos + 2);
+			//std::cout << "Going to launch cmd_msg -> " << cmd_msg << std::endl;
+			Command	cmd(socketFd, cmd_msg, *(this->_users[socketFd]), *(this));
+			cmd.checkCmd(socketFd);
+		}
+		else
+		{
+			//std::cout << "Going to launch server _message -> " << this->_message << std::endl;
+			Command	cmd(socketFd, this->_message, *(this->_users[socketFd]), *(this));
+			cmd.checkCmd(socketFd);
+			this->_message.clear();
+		}
+	}
 }

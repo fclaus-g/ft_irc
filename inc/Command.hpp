@@ -46,7 +46,7 @@ class Command
 		void 			commandKick();
 		void 			commandInvite();
 		//Command methods (empty yet)
-		void 			commandQuit(User user);
+		void 			commandQuit();
 		void 			commandTopic(User user);
 		void 			commandMode();
 };
