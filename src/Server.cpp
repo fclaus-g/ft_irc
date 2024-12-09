@@ -142,7 +142,7 @@ void	Server::msgHandler(int socketFd)
 	this->_message.clear();
 	if (!readFromSocket(socketFd, this->_message))
 		return (deleteUser(socketFd));
-	//std::cout << "Hexchat raw message -> " << this->_message << std::endl;
+	std::cout << "Hexchat raw message -> " << this->_message << std::endl;
 	while (!this->_message.empty())
 	{
 		std::string	cmd_msg = "";

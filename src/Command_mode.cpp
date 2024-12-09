@@ -29,8 +29,6 @@ std::vector<std::string> ft_split(std::string message)
 	std::vector<std::string> res;
 	std::string	token;
 
-	//  Quitamos los caracteres especiales al mensaje y los sustituimos por
-	// un espacio para que la función ft_split no tenga problemas
 	if (message.find('\n') != std::string::npos)
 		message.at(message.find('\n')) = ' ';
 	if (message.find('\r') != std::string::npos)
@@ -41,10 +39,7 @@ std::vector<std::string> ft_split(std::string message)
 	while (std::getline(tokens, token, ' '))
 	{
 		if (token.length() > 0 && token[0] != '\n')
-		{
-			std::cout << "Token: @" << token << "@" << std::endl;
 			res.push_back(token);
-		}
 	}
 	return (res);
 }

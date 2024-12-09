@@ -59,7 +59,6 @@ int main (int ac, char **av)
 		signal(SIGINT, Server::signalHandler);
 		signal(SIGQUIT, Server::signalHandler);
 		server.start();
-		//server.createChannel("General");
 	}
 	catch(const std::exception& e)
 	{

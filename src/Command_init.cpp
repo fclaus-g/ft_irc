@@ -98,6 +98,7 @@ void	Command::runCmd(int userFd, int key)
 			commandInvite();
 			break;
 		case TOPIC:
+			commandTopic();
 			break;
 		case MODE:
 			break;

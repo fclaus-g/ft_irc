@@ -127,14 +127,9 @@ void Channel::sendTopicMessage(User& user)
 {
 	std::string topicMsg;
 	if (this->_topic.empty())
-	{
-		topicMsg = ":server 331" + user.getNick() + " " + this->_name + " :No topic is set";
-	}
+		topicMsg = ":server 331 " + user.getNick() + " " + this->_name + " :No topic is set\r\n";
 	else
-	{
-		topicMsg = ":server 332" + user.getNick() + " " + this->_name + " :" + this->_topic;
-	}
-	std::cout << topicMsg << std::endl;
+		topicMsg = ":server 332 " + user.getNick() + " " + this->_name + " :" + this->_topic + "\r\n";
 	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
 }
 

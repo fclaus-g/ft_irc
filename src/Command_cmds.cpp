@@ -266,6 +266,9 @@ void Command::commandInvite()
  */
 void Command::commandQuit()
 {
+	if (!this->_user.getAuthenticated())
+		return (kickNonAuthenticatedUser(this->_user.getFd()));
+	
 	std::cout << "User with fd " << this->_user.getFd() << " has quit the server" << std::endl;
 	std::map<std::string, Channel*>::iterator it = this->_server.getChannelsMap().begin();
 	while (it != this->_server.getChannelsMap().end())
@@ -294,25 +297,27 @@ void Command::commandQuit()
  */
 void Command::commandTopic()
 {
+	if (!this->_user.getAuthenticated())
+		return (kickNonAuthenticatedUser(this->_user.getFd()));
+	
 	std::vector<std::string>	cmd_args = ft_split(this->_msg);
 	size_t						ac = cmd_args.size();
+	Channel						*target_channel = NULL;
+
 	switch (ac)
 	{
 		case (1):
 			this->_server.sendWarning(this->_user.getFd(), "Not enough parameters for topic command\n");
 			break ;
 		case (2):
-			Channel *target_channel = this->_server.getChannelByName(cmd_args[1]);
+			target_channel = this->_server.getChannelByName(cmd_args[1]);
 			if (!target_channel)
 				this->_server.sendWarning(this->_user.getFd(), "Channel name does not exists\n");
 			else
-			{
-				std::string	topic_msg = target_channel->getName() + " current topic is: " + target_channel->getTopic() + "\n";
-				this->_server.sendWarning(this->_user.getFd(), topic_msg);
-			}
+				target_channel->sendTopicMessage(this->_user);
 			break ;
 		default:
-			Channel *target_channel = this->_server.getChannelByName(cmd_args[1]);
+			target_channel = this->_server.getChannelByName(cmd_args[1]);
 			if (!target_channel)
 				this->_server.sendWarning(this->_user.getFd(), "Channel name does not exists\n");
 			else
@@ -324,10 +329,12 @@ void Command::commandTopic()
 					new_topic.append(" ");
 				}
 				new_topic.erase(new_topic.find_last_not_of(" \r\t\n") + 1);
+				if (new_topic[0] == ':')
+					new_topic.erase(0, 1);
 				target_channel->setTopic(new_topic);
-				std::string	topic_msg = target_channel->getName() + " topic has been changed to: " + target_channel->getTopic() + "\n";
-				target_channel->broadcastMessage(topic_msg, this->_user);
-				this->_server.sendWarning(this->_user.getFd(), topic_msg);
+				target_channel->broadcastMessage(this->_msg, this->_user);
+				std::string	user_msg = ":" + this->_user.getNick() + " " + this->_msg + "\r\n";
+				send(this->_user.getFd(), user_msg.c_str(), user_msg.size(), 0);
 			}
 			break ;
 	}
