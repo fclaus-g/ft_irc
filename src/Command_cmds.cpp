@@ -288,27 +288,47 @@ void Command::commandQuit()
 	this->_server.deleteUser(this->_user.getFd());
 }
 
-void Command::commandTopic(User user)
+/**
+ * @brief Command to check the current topic or change it
+ * TODO: take into account topicModa + isOp
+ */
+void Command::commandTopic()
 {
-	std::cout << RED << this->_msg << RES << std::endl;
-	size_t  iPos = this->_msg.find_first_not_of(" \t", 5);
-	size_t  cPos = this->_msg.find_first_of(" \t", iPos);
-	std::cout << iPos <<" , " << cPos << std::endl;
-	std::string tmpMsg = this->_msg.substr(iPos, cPos - iPos);
-	Channel* channel = this->_server.getChannelByName(tmpMsg);
-	std::cout << BLU << "Hola" << RES << std::endl;
-	if (!channel->isOp(user) && channel->getTopicMode())
-		return ;
-	size_t  fPos = this->_msg.find_first_not_of(" \t", cPos);
-	std::cout << fPos << ", " << tmpMsg << std::endl;
-	if (fPos == std::string::npos)
+	std::vector<std::string>	cmd_args = ft_split(this->_msg);
+	size_t						ac = cmd_args.size();
+	switch (ac)
 	{
-		std::cout << RED << "Hola" << RES << std::endl;
-		channel->sendTopicMessage(user);
-		return ;
+		case (1):
+			this->_server.sendWarning(this->_user.getFd(), "Not enough parameters for topic command\n");
+			break ;
+		case (2):
+			Channel *target_channel = this->_server.getChannelByName(cmd_args[1]);
+			if (!target_channel)
+				this->_server.sendWarning(this->_user.getFd(), "Channel name does not exists\n");
+			else
+			{
+				std::string	topic_msg = target_channel->getName() + " current topic is: " + target_channel->getTopic() + "\n";
+				this->_server.sendWarning(this->_user.getFd(), topic_msg);
+			}
+			break ;
+		default:
+			Channel *target_channel = this->_server.getChannelByName(cmd_args[1]);
+			if (!target_channel)
+				this->_server.sendWarning(this->_user.getFd(), "Channel name does not exists\n");
+			else
+			{
+				std::string	new_topic = "";
+				for (size_t i = 2; i < ac; i++)
+				{
+					new_topic.append(cmd_args[i]);
+					new_topic.append(" ");
+				}
+				new_topic.erase(new_topic.find_last_not_of(" \r\t\n") + 1);
+				target_channel->setTopic(new_topic);
+				std::string	topic_msg = target_channel->getName() + " topic has been changed to: " + target_channel->getTopic() + "\n";
+				target_channel->broadcastMessage(topic_msg, this->_user);
+				this->_server.sendWarning(this->_user.getFd(), topic_msg);
+			}
+			break ;
 	}
-	std::string topic = this->_msg.substr(fPos + 1, this->_msg.size() - fPos);
-	std::cout << BLU << topic << RES << std::endl;
-	channel->setTopic(topic);
-	std::cout << YEL << this->_server.getChannelByName(tmpMsg)->getTopic() << RES << std::endl;
-}
+;}
