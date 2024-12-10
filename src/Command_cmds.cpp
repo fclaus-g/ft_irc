@@ -112,7 +112,7 @@ void Command::cmdJoin()
 				"JOIN: Error: You are already in that channel\n"));
 		channel->addUserChannel(this->_user);
 		std::string msg = "JOIN " + channelName + "\n";
-		channel->broadcastMessage(msg, this->_user);
+		channel->broadcastMessage(msg, this->_user, 0);
 	}
 }
 
@@ -141,7 +141,7 @@ void Command::cmdPrivmsg()
 		if (!target_channel)
 			return (this->_server.sendWarning(this->_user.getFd(), "Error: No such nick/channel\n"));
 		if (target_channel->isUserInChannel(this->_user))
-			target_channel->broadcastMessage(this->_msg, this->_user);
+			target_channel->broadcastMessage(this->_msg, this->_user, 0);
 		else
 			this->_server.sendWarning(this->_user.getFd(), "Error: You are not channel member\n");
 	}
@@ -195,7 +195,7 @@ void Command::commandKick()
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Nick not found in server\n"));
 	this->_msg.erase(this->_msg.find_last_not_of(" \n\r\t") + 1);
 	this->_msg = this->_msg + " for no reason\n";
-	channel->broadcastMessage(this->_msg, this->_user);
+	channel->broadcastMessage(this->_msg, this->_user, 0);
 	this->_server.messageToClient(this->_msg, this->_user, this->_user);
 	channel->removeUserChannel(*deleteUser);
 }
@@ -274,7 +274,7 @@ void Command::commandQuit()
 	while (it != this->_server.getChannelsMap().end())
 	{
 		it->second->removeUserChannel(this->_user);
-		it->second->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user);
+		it->second->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user, 0);
 		it++;
 	}
 	std::vector<Channel*>::iterator it2 = this->_server.getChannels().begin();
@@ -283,7 +283,7 @@ void Command::commandQuit()
 		if ((*it2)->isUserInChannel(this->_user))
 		{
 			(*it2)->removeUserChannel(this->_user);
-			(*it2)->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user);}
+			(*it2)->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user, 0);}
 		it2++;
 	}
 	std::string msg = "QUIT :Client quit\n";
@@ -293,7 +293,12 @@ void Command::commandQuit()
 
 /**
  * @brief Command to check the current topic or change it
- * TODO: take into account topicModa + isOp
+ * (!) First - if the user is not authenticated, kick the user
+ * (!) Using ft_split to check how many ARGS
+ * - 1 ARGS - ERR_NEEDMOREPARAMS (461)
+ * - 2 ARGS - Show current topic or alert that no topic is set
+ * - 3+ ARGS - Change the current topic using arg[2] to arg[last]
+ * TODO: test ERR_CHANOPRIVSNEEDED response when MODE is ready
  */
 void Command::commandTopic()
 {
@@ -302,40 +307,40 @@ void Command::commandTopic()
 	
 	std::vector<std::string>	cmd_args = ft_split(this->_msg);
 	size_t						ac = cmd_args.size();
-	Channel						*target_channel = NULL;
 
-	switch (ac)
+	if (ac == 1)
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER));
+	
+	this->_currChannel = this->_server.getChannelByName(cmd_args[1]);
+	if (!this->_currChannel)
+		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER));
+	if (!this->_currChannel->isUserInChannel(this->_user))
+		return (this->sendResponse(ERR_NOTONCHANNEL, MOD_USER));
+	
+	if (ac == 2)
 	{
-		case (1):
-			this->_server.sendWarning(this->_user.getFd(), "Not enough parameters for topic command\n");
-			break ;
-		case (2):
-			target_channel = this->_server.getChannelByName(cmd_args[1]);
-			if (!target_channel)
-				this->_server.sendWarning(this->_user.getFd(), "Channel name does not exists\n");
-			else
-				target_channel->sendTopicMessage(this->_user);
-			break ;
-		default:
-			target_channel = this->_server.getChannelByName(cmd_args[1]);
-			if (!target_channel)
-				this->_server.sendWarning(this->_user.getFd(), "Channel name does not exists\n");
-			else
-			{
-				std::string	new_topic = "";
-				for (size_t i = 2; i < ac; i++)
-				{
-					new_topic.append(cmd_args[i]);
-					new_topic.append(" ");
-				}
-				new_topic.erase(new_topic.find_last_not_of(" \r\t\n") + 1);
-				if (new_topic[0] == ':')
-					new_topic.erase(0, 1);
-				target_channel->setTopic(new_topic);
-				target_channel->broadcastMessage(this->_msg, this->_user);
-				std::string	user_msg = ":" + this->_user.getNick() + " " + this->_msg + "\r\n";
-				send(this->_user.getFd(), user_msg.c_str(), user_msg.size(), 0);
-			}
-			break ;
+		if (this->_currChannel->getTopic().empty())
+			this->sendResponse(RPL_NOTOPIC, MOD_USER);
+		else
+		{
+			this->sendResponse(RPL_TOPIC, MOD_USER);
+			this->sendResponse(RPL_TOPICWHOTIME, MOD_USER);
+		}
 	}
-;}
+	else
+	{
+		if (this->_currChannel->getTopicMode() && !this->_currChannel->isOp(this->_user))
+			return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER));
+		std::string	new_topic = "";
+		for (size_t i = 2; i < ac; i++)
+		{
+			new_topic.append(cmd_args[i]);
+			new_topic.append(" ");
+		}
+		new_topic.erase(new_topic.find_last_not_of(" \r\t\n") + 1);
+		if (new_topic[0] == ':')
+			new_topic.erase(0, 1);
+		this->_currChannel->updateTopic(new_topic, this->_user.getNick());
+		this->_currChannel->broadcastMessage(this->_msg, this->_user, 1);
+	}
+}

@@ -15,6 +15,8 @@ class Channel
 		int						_usersInChannel;
 		int						_usersLimit;
 		std::string				_password;
+		std::string 			_topicTimeStamp;
+    	std::string 			_topicCreator;
 	public:
 		Channel();
 		Channel(const std::string& name);
@@ -24,6 +26,8 @@ class Channel
 		Channel& operator=(const Channel &rhs);
 		const std::string&				getName() const;
 		const std::string&				getTopic() const;
+		const std::string&				getTimeStamp() const;
+		const std::string&				getTopicCreator() const;
 		const std::string				getUsersChannelStr() const;
 		const std::map<User*, bool>		&getUsers() const;
 		bool							getInviteMode() const;
@@ -48,12 +52,10 @@ class Channel
 		//Channel methods
 		void							addUserChannel(User& user);
 		void							removeUserChannel(User& user);
-		void							broadcastMessage(const std::string& message, User &sender);
+		void							broadcastMessage(const std::string& message, User &sender, int mode);
 		void							sendTopicMessage(User& user);
 		void							addOpChannel(User& user);
-		//Copilot suggestions
-		// void addUser(User* user, bool isOp = false);
-		// void setOp(User* user, bool isOp);
+		void							updateTopic(const std::string &topic, const std::string &userNick);
 };
 
 std::ostream& operator<<(std::ostream& out, const Channel& channel);

@@ -4,25 +4,29 @@
 Channel::Channel()
 {
 	this->_name = "Channel";
-	this->_topic = "";
 	this->_inviteMode = false;
 	this->_topicMode = false;
 	this->_keyMode = false;
 	this->_usersInChannel = 0;
 	this->_usersLimit = -1;
 	this->_password = "";
+	this->_topic = "";
+	this->_topicTimeStamp = "";
+	this->_topicCreator = "";
 }
 
 Channel::Channel(const std::string& name)
 {
 	this->_name = name;
-	this->_topic = "";
 	this->_inviteMode = false;
 	this->_topicMode = false;
 	this->_keyMode = false;
 	this->_usersInChannel = 0;
 	this->_usersLimit = -1;
 	this->_password = "";
+	this->_topic = "";
+	this->_topicTimeStamp = "";
+	this->_topicCreator = "";
 }
 
 Channel::~Channel()
@@ -122,4 +126,14 @@ int Channel::getUsersLimit() const
 const std::string& Channel::getPassword() const
 {
 	return this->_password;
+}
+
+const std::string&	Channel::getTimeStamp() const
+{
+	return (this->_topicTimeStamp);
+}
+
+const std::string&	Channel::getTopicCreator() const
+{
+	return (this->_topicCreator);
 }

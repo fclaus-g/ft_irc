@@ -24,26 +24,6 @@ bool	isASign(char s)
 	}
 }
 
-std::vector<std::string> ft_split(std::string message)
-{
-	std::vector<std::string> res;
-	std::string	token;
-
-	if (message.find('\n') != std::string::npos)
-		message.at(message.find('\n')) = ' ';
-	if (message.find('\r') != std::string::npos)
-		message.at(message.find('\r')) = ' ';
-	
-	std::istringstream tokens(message);
-
-	while (std::getline(tokens, token, ' '))
-	{
-		if (token.length() > 0 && token[0] != '\n')
-			res.push_back(token);
-	}
-	return (res);
-}
-
 bool	needParam(char m)
 {
 	switch (m)
