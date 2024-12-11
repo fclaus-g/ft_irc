@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <arpa/inet.h>
 #include <ctime>
+#include <algorithm>
 
 #include "User.hpp"
 #include "Channel.hpp"
@@ -48,8 +49,14 @@ enum response
 	RPL_TOPIC = 332,
 	RPL_TOPICWHOTIME = 333,
 	ERR_NOSUCHCHANNEL = 403,
+	ERR_NONICKNAMEGIVEN = 431,
+	ERR_ERRONEUSNICKNAME = 432,
+	ERR_NICKNAMEINUSE = 433,
+	ERR_NICKCOLLISION = 436,
 	ERR_NOTONCHANNEL = 442,
 	ERR_NEEDMOREPARAMS = 461,
+	ERR_ALREADYREGISTERED = 462,
+	ERR_PASSWDMISMATCH = 464,
 	ERR_CHANOPRIVSNEEDED = 482
 };
 

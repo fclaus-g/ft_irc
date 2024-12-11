@@ -17,6 +17,7 @@ User::User(int socket_fd)
 {
 	this->_fd = socket_fd;
 	this->_authenticated = false;
+	this->_logged = false;
 	this->_hexChatClient = false;
 	this->_nickName = "";
 	this->_userName = "";

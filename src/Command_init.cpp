@@ -162,6 +162,7 @@ void	Command::sendResponse(int code, int mode)
 	}	
 	else
 		send(this->_user.getFd(), response.c_str(), response.size(), 0);
+	std::cout << "Message for response: " << response << std::endl;
 }
 
 /**
@@ -176,6 +177,30 @@ std::string	Command::composeResponse(int code)
 	{
 		case ERR_NEEDMOREPARAMS:
 			detail = " " + this->_user.getNick() + " " + this->_splitCmd[0] + " :Not enough parameters\r\n";
+			break;
+		case ERR_ALREADYREGISTERED:
+			detail = " " + this->_user.getNick() + " :You may not reregister\r\n";
+			break;
+		case ERR_PASSWDMISMATCH:
+			detail = " * :Password incorrect\r\n";
+			break;
+		case ERR_NONICKNAMEGIVEN:
+			if (this->_user.getNick().empty())
+				detail = " * :No nickname given\r\n";
+			else
+				detail = " " + this->_user.getNick() + " :No nickname given\r\n";
+			break;
+		case ERR_ERRONEUSNICKNAME:
+			if (this->_user.getNick().empty())
+				detail = " * " + this->_splitCmd[1] + " :Erroneous nickname\r\n";
+			else
+				detail = " " + this->_user.getNick() + " " + this->_splitCmd[1] + " :Erroneous nickname\r\n";
+			break;
+		case ERR_NICKNAMEINUSE:
+			if (this->_user.getNick().empty())
+				detail = " * " + this->_splitCmd[1] + " :Nickname is already in use\r\n";
+			else
+				detail = " " + this->_user.getNick() + " " + this->_splitCmd[1] + " :Nickname is already in use\r\n";
 			break;
 		case ERR_NOSUCHCHANNEL:
 			detail = " " + this->_user.getNick() + " " + this->_splitCmd[1] + " :No such channel\r\n";
@@ -200,6 +225,3 @@ std::string	Command::composeResponse(int code)
 	}
 	return (detail);
 }
-
-//<client> <channel> 	<nick> 										<setat>
-//Topic for #test 		set by pgomez-r!pgomez-r@212.170.131.219 (Tue Dec 10 15:32:22 2024)

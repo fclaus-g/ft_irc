@@ -191,7 +191,6 @@ void Command::commandKick()
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Channel does not exist\n"));
 	if (!channel->isOp(this->_user))
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: You are not channel admin\n"));
-	
 	User *deleteUser = this->_server.getUserByNick(nick);
 	if (!deleteUser)
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Nick not found in server\n"));
