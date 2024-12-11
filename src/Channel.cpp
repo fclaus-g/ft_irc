@@ -35,6 +35,13 @@ bool Channel::channelIsFull()
 		return true;
 	return false;
 }
+
+bool Channel::isValidChannelName(const std::string& name)
+{
+	if (name.empty() || name[0] != '#')
+		return false;
+	return true;
+}
 /*-----------------------[METHODS]------------------------*/
 /**
  * @brief add a user to the channel before checking if the user is already in the channel

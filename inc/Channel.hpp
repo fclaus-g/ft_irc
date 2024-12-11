@@ -51,6 +51,7 @@ class Channel
 		bool							isUserInChannel(User& user);
 		bool							isOp(User& user) const;
 		bool							channelIsFull();
+		bool							isValidChannelName(const std::string& name);
 		//Channel methods
 		void							addUserChannel(User& user);
 		void							removeUserChannel(User& user);
