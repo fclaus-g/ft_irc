@@ -44,12 +44,16 @@ class Command
 		void 			cmdUser();
 		void 			cmdPrivmsg();
 		void 			cmdJoin();
+		void 			cmdMode();
 		void 			commandKick();
 		void 			commandInvite();
 		//Command methods (empty yet)
 		void 			commandQuit();
 		void 			commandTopic(User user);
 		void 			commandMode();
+
+		std::vector<std::string> splitMessage(const std::string &msg, char delim);
+		void printVector(std::vector<std::string> args);
 };
 
 #endif
