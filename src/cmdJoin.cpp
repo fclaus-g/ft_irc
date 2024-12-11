@@ -27,7 +27,7 @@ Para ejecutar el join se debe enviar un mensaje al servidor con el siguiente for
  * @param msg 
  * @return std::vector<std::string> 
  */
-std::vector<std::string> splitMessage(const std::string &msg, char delim)
+std::vector<std::string> Command::splitMessage(const std::string &msg, char delim)
 {
 	std::vector<std::string> args;
 	std::string word;
@@ -37,13 +37,23 @@ std::vector<std::string> splitMessage(const std::string &msg, char delim)
 	return args;
 }
 
-void printVector(std::vector<std::string> args)
+void Command::printVector(const std::vector<std::string> args)
 {
-	std::cout << "Printing vector" << std::endl;
-	for (size_t i = 0; i < args.size(); i++)
-	{
-		std::cout << args[i] << std::endl;
-	}
+    std::cout << "Printing vector" << std::endl;
+    for (size_t i = 0; i < args.size(); i++)
+    {
+        std::string formattedString;
+        for (size_t j = 0; j < args[i].size(); j++)
+        {
+            if (args[i][j] == '\n')
+                formattedString += "\\n";
+            else if (args[i][j] == '\r')
+                formattedString += "\\r";
+            else
+                formattedString += args[i][j];
+        }
+        std::cout << formattedString << std::endl;
+    }
 }
 /**
  * @brief Command to join a channel
@@ -54,7 +64,7 @@ void printVector(std::vector<std::string> args)
  *	- if the channel does not exist, create it and add the user as operator
  *	- if the channel exists, add the user to the channel
  * TODO: Channel related methods have been left in Server as original; move them to Command?
- * TODO: VERIFICAR SI EL CANAL ESTA EN MODO PRIVADO - mirar como esta MODE y como se gestiona
+ * xTODO: VERIFICAR SI EL CANAL ESTA EN MODO PRIVADO - mirar como esta MODE y como se gestiona
  * TODO: VERIFICAR SI EL USUARIO HA SIDO INVITADO - mirar como esta INVITE y como se gestiona
  */
 void Command::cmdJoin()
@@ -64,17 +74,9 @@ void Command::cmdJoin()
 		return;
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
-	/*vamos a separar del mensaje los argumentos, para eso vamos a hacer un split
-	y vamos a guardarlo de la siguiente manera si:
-	JOIN #channel1,#channel2 clave1,clave2 partimos en el espacio y dejamos las claves en vector[1]
-	pero si JOIN #channel1, #channel2 en este caso solo tenemos que tratar el primer canal
-	*/
 	std::vector<std::string> args = splitMessage(this->_msg, ' ');
-	printVector(args);
 	std::vector<std::string> channels = splitMessage(args[1], ',');
-	printVector(channels);
 	std::vector<std::string> keys = (args.size() > 2) ? splitMessage(args[2], ',') : std::vector<std::string>();
-	printVector(keys);
 
 	for (size_t i = 0; i < channels.size(); i++)
 	{
@@ -98,12 +100,23 @@ void Command::cmdJoin()
 			}
 			channel->addUserChannel(this->_user);
 			channel->addOpChannel(this->_user);
+			std::string topic = channel->getTopic();
+			if (!topic.empty())
+				this->_server.messageToClient("332 " + this->_user.getNick() + " " + channelName + " :" + topic + "\n", this->_user, this->_user);
+			else 
+				this->_server.messageToClient("331 " + this->_user.getNick() + " " + channelName + " :No topic is set\n", this->_user, this->_user);
+			std::string users = channel->getUsersChannelStr();
+			this->_server.messageToClient("353 " + this->_user.getNick() + " = " + channelName + " :" + users + "\n", this->_user, this->_user);
+			this->_server.messageToClient("366 " + this->_user.getNick() + " " + channelName + " :End of /NAMES list\n", this->_user, this->_user);
 			/*RPL_TOPIC (332)
 			RPL_NAMREPLY (353)
 			RPL_ENDOFNAMES (366)*/
 		}
 		else
 		{
+			if (channel->getKeyMode() && keys.size() > i && keys[i] != channel->getPassword())
+				return (this->_server.sendWarning(this->_user.getFd(),
+					"JOIN: Error: Invalid channel key\n"));
 			std::cout << "Channel exists, adding user to channel" << std::endl;
 			if (channel->isUserInChannel(this->_user))
 				return (this->_server.sendWarning(this->_user.getFd(),

@@ -7,7 +7,7 @@ OBJ_PATH	= obj/
 
 SRC			= main Server Server_init Server_utils Server_channel \
 				User User_init Channel Channel_init \
-				Command_cmds Command_init Command_mode cmdJoin
+				Command_cmds Command_init Command_mode cmdJoin cmdMode
 
 SRCS		= $(addsuffix .cpp, $(addprefix $(SRC_PATH), $(SRC))) \
 
