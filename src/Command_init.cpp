@@ -101,6 +101,7 @@ void	Command::runCmd(int userFd, int key)
 		case TOPIC:
 			break;
 		case MODE:
+			cmdMode();
 			break;
 		default:
 			break;
