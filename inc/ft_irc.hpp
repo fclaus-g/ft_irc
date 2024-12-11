@@ -1,7 +1,6 @@
 #ifndef FT_IRC_HPP
 #define FT_IRC_HPP
 
-
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -52,7 +51,7 @@ enum response
 	ERR_NONICKNAMEGIVEN = 431,
 	ERR_ERRONEUSNICKNAME = 432,
 	ERR_NICKNAMEINUSE = 433,
-	ERR_NICKCOLLISION = 436,
+	ERR_USERNOTINCHANNEL = 441,
 	ERR_NOTONCHANNEL = 442,
 	ERR_NEEDMOREPARAMS = 461,
 	ERR_ALREADYREGISTERED = 462,
@@ -64,5 +63,6 @@ enum response
 bool						readFromSocket(int socketFd, std::string &store);
 std::vector<std::string>	ft_split(std::string message);
 std::string 				toString(int num);
+std::vector<std::string> 	customSplit(const std::string &str, char delimiter);
 
 #endif

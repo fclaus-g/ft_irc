@@ -23,6 +23,7 @@ User::User(int socket_fd)
 	this->_userName = "";
 	this->_realName = "";
 	this->_buffer = "";
+	this->_host = this->getHostName();
 }
 
 /**
@@ -45,6 +46,7 @@ User& User::operator=(const User& rhs)
 		this->_nickName = rhs._nickName;
 		this->_userName = rhs._userName;
 		this->_realName = rhs._realName;
+		this->_host = rhs._host;
 	}
 	return *this;
 }
@@ -65,5 +67,6 @@ std::ostream& operator<<(std::ostream& out, const User& user)
 	out << "Nick: " << user.getNick() << std::endl;
 	out << "UserName: " << user.getUserName() << std::endl;
 	out << "RealName: " << user.getRealName() << std::endl;
+	out << "Host: " << user.getHost() << std::endl;
 	return out;
 }

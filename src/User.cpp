@@ -86,7 +86,22 @@ void	User::delChannelFromList(Channel *channel)
 	std::vector<Channel*>::iterator	pos; 
 	pos = std::find(this->_channelList.begin(), this->_channelList.end(), channel);
 	if (pos != this->_channelList.end())
-	{
 		this->_channelList.erase(pos);
+}
+
+std::string	User::getHost() const
+{
+	return (this->_host);
+}
+
+std::string	User::getHostName() const
+{
+	char hostname[1024];
+	if (gethostname(hostname, sizeof(hostname)) == 0)
+		return (std::string(hostname));
+	else
+	{
+		perror("gethostname");
+		return "";
 	}
 }

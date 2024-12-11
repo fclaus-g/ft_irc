@@ -163,42 +163,61 @@ void Command::cmdPrivmsg()
  *	- Get the nickName and channelName from the message
  *	- Check if the channel exists, if so, check if the user is operator
  *	- Check if the user to be kicked exists in the channel; if so, remove it
- * TODO: Check/protect not enough parameters (what about more than needed?)
- * TODO: SERVER NEEDS TO SEND MESSAGE TO KICKED USER (and all users in channel?)
- * TODO: Add comment - if passed by command, else default comment
- * TODO: check if user was the only one left in channel, remove channel?
- * TODO: check error messages - to the client or server? ERROR responses?
+ * TODO: if user was the only one left in channel, remove channel?
+ * 	- if(this->_currChannel.size() < 1){this->_server.removeChannel(channelName)}
+ * 		+update removeChannel to also update each user channelList
  */
 void Command::commandKick()
 {
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
-	//KICK #channel nick comment_reason(optional)
-	std::string nick;
-	std::string channel_name;
-	//std::string	comment = "";
-
-	channel_name = this->_msg.substr(5);
-	nick = channel_name.substr(channel_name.find_first_of(" ") + 1);
-	channel_name = channel_name.substr(0, channel_name.find_first_of(" "));
-	// if (nick.find(" "))
-	nick.erase(nick.find_last_not_of(" \n\r\t") + 1);
+	if (this->_splitCmd.size() < 3)
+	{
+		if (this->_splitCmd.size() == 2)
+		{
+			this->_splitCmd[1].erase(this->_splitCmd[1].find_last_not_of(" \n\r\t") + 1);
+			this->_currChannel = this->_server.getChannelByName(this->_splitCmd[1]);
+		}
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER));
+	}
+	std::string channel_name = this->_splitCmd[1];
 	channel_name.erase(channel_name.find_last_not_of(" \n\r\t") + 1);
-
-	Channel *channel;
-	channel = this->_server.getChannelByName(channel_name);
-	if (!channel)
-		return (this->_server.sendWarning(this->_user.getFd(), "Error: Channel does not exist\n"));
-	if (!channel->isOp(this->_user))
-		return (this->_server.sendWarning(this->_user.getFd(), "Error: You are not channel admin\n"));
-	User *deleteUser = this->_server.getUserByNick(nick);
-	if (!deleteUser)
-		return (this->_server.sendWarning(this->_user.getFd(), "Error: Nick not found in server\n"));
-	this->_msg.erase(this->_msg.find_last_not_of(" \n\r\t") + 1);
-	this->_msg = this->_msg + " for no reason\n";
-	channel->broadcastMessage(this->_msg, this->_user, 0);
-	this->_server.messageToClient(this->_msg, this->_user, this->_user);
-	channel->removeUserChannel(*deleteUser);
+	this->_currChannel = this->_server.getChannelByName(channel_name);
+	if (!this->_currChannel)
+		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER));
+	if (!this->_currChannel->isUserInChannel(this->_user))
+		return (this->sendResponse(ERR_NOTONCHANNEL, MOD_USER));
+	if (!this->_currChannel->isOp(this->_user))
+		return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER));
+	
+	std::string	comment = "";
+	if (this->_splitCmd.size() > 3)
+	{
+		for (size_t i = 3; i < this->_splitCmd.size(); i++)
+		{
+			comment.append(this->_splitCmd[i]);
+			comment.append(" ");
+		}
+		comment.erase(comment.find_first_not_of(" \n\r\t") + 1);
+	}
+	
+	std::vector<std::string> nicks = customSplit(this->_splitCmd[2], ',');
+	for (size_t i = 0; i < nicks.size(); i++)
+	{
+		nicks[i].erase(nicks[i].find_last_not_of(" \n\r\t") + 1);
+		this->_splitCmd[2] = nicks[i];
+		User *deleteUser = this->_server.getUserByNick(nicks[i]);
+		if (!this->_currChannel->isUserInChannel(*deleteUser))
+		{
+			this->sendResponse(ERR_USERNOTINCHANNEL, MOD_USER);
+			continue ;
+		}
+		if (comment.empty())
+			this->_msg = this->_msg + " :for no specific reason\r\n";
+		this->_currChannel->broadcastMessage(this->_msg, this->_user, 1);
+		this->_currChannel->removeUserChannel(*deleteUser);
+		deleteUser->delChannelFromList(this->_currChannel);
+	}
 }
 
 /**
@@ -213,8 +232,12 @@ void Command::commandKick()
  *	- Check if invite target user is already in channel
  *	- Check if channel is full
  *	- Of all checks passed, add user to channel
- * TODO: protect not enough params (what about more than needed?)
- * TODO: check error messages - to the client or server? ERROR/RESPONSES?
+ * 	TODO:  RPL_INVITING (341)
+ *	TODO:  ERR_NEEDMOREPARAMS (461)
+ *	TODO:  ERR_NOSUCHCHANNEL (403)
+ *	TODO:  ERR_NOTONCHANNEL (442)
+ *	TODO:  ERR_CHANOPRIVSNEEDED (482)
+ *	TODO:  ERR_USERONCHANNEL (443)
  */
 void Command::commandInvite()
 {
