@@ -82,41 +82,41 @@ void Command::cmdUser()
 	this->_user.setRealName(user);
 }
 
-/**
- * @brief Command to join a channel, modification of channel_fclaus-g branch Server method
- *	- if the channel does not exist, create it and add the user as operator
- *	- if the channel exists, add the user to the channel
- * (!) Diff from original: Command._msg is the message received to parse
- * (!) Diff from original: Added first check if user is authenticated
- * (!) Diff from original: Addeded getter methods for channels vector and map
- * TODO: Channel related methods have been left in Server as original; move them to Command?
- */
-void Command::cmdJoin()
-{
-	if (!this->_user.getAuthenticated())
-		return (kickNonAuthenticatedUser(this->_user.getFd()));
-	std::string channelName = this->_msg.substr(this->_msg.find("JOIN") + 5);
-	channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
-	if (channelName[0] != '#')
-		return (this->_server.sendWarning(this->_user.getFd(),
-			"JOIN: Error: No such nick/channel\n"));
-	Channel	*channel = this->_server.getChannelByName(channelName);
-	if (!channel)
-	{
-		this->_server.createChannel(channelName);
-		this->_server.addUserToChannel(channelName, this->_user);
-		this->_server.getChannelsMap()[channelName]->addOpChannel(this->_user);
-	}
-	else
-	{
-		if (channel->isUserInChannel(this->_user))
-			return (this->_server.sendWarning(this->_user.getFd(),
-				"JOIN: Error: You are already in that channel\n"));
-		channel->addUserChannel(this->_user);
-		std::string msg = "JOIN " + channelName + "\n";
-		channel->broadcastMessage(msg, this->_user, 0);
-	}
-}
+// /**
+//  * @brief Command to join a channel, modification of channel_fclaus-g branch Server method
+//  *	- if the channel does not exist, create it and add the user as operator
+//  *	- if the channel exists, add the user to the channel
+//  * (!) Diff from original: Command._msg is the message received to parse
+//  * (!) Diff from original: Added first check if user is authenticated
+//  * (!) Diff from original: Addeded getter methods for channels vector and map
+//  * TODO: Channel related methods have been left in Server as original; move them to Command?
+//  */
+// void Command::cmdJoin()
+// {
+// 	if (!this->_user.getAuthenticated())
+// 		return (kickNonAuthenticatedUser(this->_user.getFd()));
+// 	std::string channelName = this->_msg.substr(this->_msg.find("JOIN") + 5);
+// 	channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
+// 	if (channelName[0] != '#')
+// 		return (this->_server.sendWarning(this->_user.getFd(),
+// 			"JOIN: Error: No such nick/channel\n"));
+// 	Channel	*channel = this->_server.getChannelByName(channelName);
+// 	if (!channel)
+// 	{
+// 		this->_server.createChannel(channelName);
+// 		this->_server.addUserToChannel(channelName, this->_user);
+// 		this->_server.getChannelsMap()[channelName]->addOpChannel(this->_user);
+// 	}
+// 	else
+// 	{
+// 		if (channel->isUserInChannel(this->_user))
+// 			return (this->_server.sendWarning(this->_user.getFd(),
+// 				"JOIN: Error: You are already in that channel\n"));
+// 		channel->addUserChannel(this->_user);
+// 		std::string msg = "JOIN " + channelName + "\n";
+// 		channel->broadcastMessage(msg, this->_user, 0);
+// 	}
+// }
 
 
 /**
@@ -264,7 +264,7 @@ void Command::commandInvite()
  * 	- The user is removed from the pollfd vector
  * 	- The user is removed from the users map
  * The client send to server the QUIT command with a message, but the server does not need to process it
- * 
+ * TODO: for correctly work must have the localhost on the client for correct message
  */
 void Command::commandQuit()
 {
@@ -272,11 +272,13 @@ void Command::commandQuit()
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
 	
 	std::cout << "User with fd " << this->_user.getFd() << " has quit the server" << std::endl;
+	std::string quitMessage = ":" + this->_user.getNick() + "! QUIT :Client quit\n";
+	send(this->_user.getFd(), quitMessage.c_str(), quitMessage.length(), 0);
 	std::map<std::string, Channel*>::iterator it = this->_server.getChannelsMap().begin();
 	while (it != this->_server.getChannelsMap().end())
 	{
 		it->second->removeUserChannel(this->_user);
-		it->second->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user, 0);
+		it->second->broadcastMessage(quitMessage, this->_user, 0);
 		it++;
 	}
 	std::vector<Channel*>::iterator it2 = this->_server.getChannels().begin();
@@ -285,11 +287,10 @@ void Command::commandQuit()
 		if ((*it2)->isUserInChannel(this->_user))
 		{
 			(*it2)->removeUserChannel(this->_user);
-			(*it2)->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user, 0);}
+			//(*it2)->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user, 0);
+		}
 		it2++;
 	}
-	std::string msg = "QUIT :Client quit\n";
-	send(this->_user.getFd(), msg.c_str(), msg.length(), 0);
 	this->_server.deleteUser(this->_user.getFd());
 }
 
