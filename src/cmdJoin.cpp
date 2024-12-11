@@ -123,7 +123,7 @@ void Command::cmdJoin()
 					"JOIN: Error: You are already in that channel\n"));
 			channel->addUserChannel(this->_user);
 			std::string msg = "JOIN " + channelName + "\n";
-			channel->broadcastMessage(msg, this->_user);
+			channel->broadcastMessage(msg, this->_user, 0);
 			std::string topic = channel->getTopic();
 			if (!topic.empty())
 				this->_server.messageToClient("332 " + this->_user.getNick() + " " + channelName + " :" + topic + "\n", this->_user, this->_user);
