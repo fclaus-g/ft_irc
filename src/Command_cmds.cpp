@@ -83,6 +83,43 @@ void Command::cmdUser()
 }
 
 /**
+ * @brief Command to join a channel, modification of channel_fclaus-g branch Server method
+ *	- if the channel does not exist, create it and add the user as operator
+ *	- if the channel exists, add the user to the channel
+ * (!) Diff from original: Command._msg is the message received to parse
+ * (!) Diff from original: Added first check if user is authenticated
+ * (!) Diff from original: Addeded getter methods for channels vector and map
+ * TODO: Channel related methods have been left in Server as original; move them to Command?
+ */
+void Command::cmdJoin()
+{
+	if (!this->_user.getAuthenticated())
+		return (kickNonAuthenticatedUser(this->_user.getFd()));
+	std::string channelName = this->_msg.substr(this->_msg.find("JOIN") + 5);
+	channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
+	if (channelName[0] != '#')
+		return (this->_server.sendWarning(this->_user.getFd(),
+			"JOIN: Error: No such nick/channel\n"));
+	Channel	*channel = this->_server.getChannelByName(channelName);
+	if (!channel)
+	{
+		this->_server.createChannel(channelName);
+		this->_server.addUserToChannel(channelName, this->_user);
+		this->_server.getChannelsMap()[channelName]->addOpChannel(this->_user);
+	}
+	else
+	{
+		if (channel->isUserInChannel(this->_user))
+			return (this->_server.sendWarning(this->_user.getFd(),
+				"JOIN: Error: You are already in that channel\n"));
+		channel->addUserChannel(this->_user);
+		std::string msg = "JOIN " + channelName + "\n";
+		channel->broadcastMessage(msg, this->_user, 0);
+	}
+}
+
+
+/**
  * @brief Command to send a message to a user or channel
  *	(!) First - if the user is not authenticated, kick the user
  *	- Check if the message is to a channel or user
@@ -106,7 +143,7 @@ void Command::cmdPrivmsg()
 		if (!target_channel)
 			return (this->_server.sendWarning(this->_user.getFd(), "Error: No such nick/channel\n"));
 		if (target_channel->isUserInChannel(this->_user))
-			target_channel->broadcastMessage(this->_msg, this->_user);
+			target_channel->broadcastMessage(this->_msg, this->_user, 0);
 		else
 			this->_server.sendWarning(this->_user.getFd(), "Error: You are not channel member\n");
 	}
@@ -160,7 +197,7 @@ void Command::commandKick()
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Nick not found in server\n"));
 	this->_msg.erase(this->_msg.find_last_not_of(" \n\r\t") + 1);
 	this->_msg = this->_msg + " for no reason\n";
-	channel->broadcastMessage(this->_msg, this->_user);
+	channel->broadcastMessage(this->_msg, this->_user, 0);
 	this->_server.messageToClient(this->_msg, this->_user, this->_user);
 	channel->removeUserChannel(*deleteUser);
 }
@@ -231,12 +268,15 @@ void Command::commandInvite()
  */
 void Command::commandQuit()
 {
+	if (!this->_user.getAuthenticated())
+		return (kickNonAuthenticatedUser(this->_user.getFd()));
+	
 	std::cout << "User with fd " << this->_user.getFd() << " has quit the server" << std::endl;
 	std::map<std::string, Channel*>::iterator it = this->_server.getChannelsMap().begin();
 	while (it != this->_server.getChannelsMap().end())
 	{
 		it->second->removeUserChannel(this->_user);
-		it->second->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user);
+		it->second->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user, 0);
 		it++;
 	}
 	std::vector<Channel*>::iterator it2 = this->_server.getChannels().begin();
@@ -245,7 +285,7 @@ void Command::commandQuit()
 		if ((*it2)->isUserInChannel(this->_user))
 		{
 			(*it2)->removeUserChannel(this->_user);
-			(*it2)->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user);}
+			(*it2)->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user, 0);}
 		it2++;
 	}
 	std::string msg = "QUIT :Client quit\n";
@@ -253,27 +293,56 @@ void Command::commandQuit()
 	this->_server.deleteUser(this->_user.getFd());
 }
 
-void Command::commandTopic(User user)
+/**
+ * @brief Command to check the current topic or change it
+ * (!) First - if the user is not authenticated, kick the user
+ * (!) Using ft_split to check how many ARGS
+ * - 1 ARGS - ERR_NEEDMOREPARAMS (461)
+ * - 2 ARGS - Show current topic or alert that no topic is set
+ * - 3+ ARGS - Change the current topic using arg[2] to arg[last]
+ * TODO: test ERR_CHANOPRIVSNEEDED response when MODE is ready
+ */
+void Command::commandTopic()
 {
-	std::cout << RED << this->_msg << RES << std::endl;
-	size_t  iPos = this->_msg.find_first_not_of(" \t", 5);
-	size_t  cPos = this->_msg.find_first_of(" \t", iPos);
-	std::cout << iPos <<" , " << cPos << std::endl;
-	std::string tmpMsg = this->_msg.substr(iPos, cPos - iPos);
-	Channel* channel = this->_server.getChannelByName(tmpMsg);
-	std::cout << BLU << "Hola" << RES << std::endl;
-	if (!channel->isOp(user) && channel->getTopicMode())
-		return ;
-	size_t  fPos = this->_msg.find_first_not_of(" \t", cPos);
-	std::cout << fPos << ", " << tmpMsg << std::endl;
-	if (fPos == std::string::npos)
+	if (!this->_user.getAuthenticated())
+		return (kickNonAuthenticatedUser(this->_user.getFd()));
+	
+	std::vector<std::string>	cmd_args = ft_split(this->_msg);
+	size_t						ac = cmd_args.size();
+
+	if (ac == 1)
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER));
+	
+	this->_currChannel = this->_server.getChannelByName(cmd_args[1]);
+	if (!this->_currChannel)
+		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER));
+	if (!this->_currChannel->isUserInChannel(this->_user))
+		return (this->sendResponse(ERR_NOTONCHANNEL, MOD_USER));
+	
+	if (ac == 2)
 	{
-		std::cout << RED << "Hola" << RES << std::endl;
-		channel->sendTopicMessage(user);
-		return ;
+		if (this->_currChannel->getTopic().empty())
+			this->sendResponse(RPL_NOTOPIC, MOD_USER);
+		else
+		{
+			this->sendResponse(RPL_TOPIC, MOD_USER);
+			this->sendResponse(RPL_TOPICWHOTIME, MOD_USER);
+		}
 	}
-	std::string topic = this->_msg.substr(fPos + 1, this->_msg.size() - fPos);
-	std::cout << BLU << topic << RES << std::endl;
-	channel->setTopic(topic);
-	std::cout << YEL << this->_server.getChannelByName(tmpMsg)->getTopic() << RES << std::endl;
+	else
+	{
+		if (this->_currChannel->getTopicMode() && !this->_currChannel->isOp(this->_user))
+			return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER));
+		std::string	new_topic = "";
+		for (size_t i = 2; i < ac; i++)
+		{
+			new_topic.append(cmd_args[i]);
+			new_topic.append(" ");
+		}
+		new_topic.erase(new_topic.find_last_not_of(" \r\t\n") + 1);
+		if (new_topic[0] == ':')
+			new_topic.erase(0, 1);
+		this->_currChannel->updateTopic(new_topic, this->_user.getNick());
+		this->_currChannel->broadcastMessage(this->_msg, this->_user, 1);
+	}
 }

@@ -121,22 +121,24 @@ void Channel::addOpChannel(User& user)
 
 /**
  * @brief Broadcast a message to all users in the channel except the one who sent the message
+ * @param mode 0 to send all user but sender, 1 to send to all (including the sender)
  * @param message the text message to be sent
  * @param command_msg the message to be sent formatted as irc protocol needs
  * @param userFd the user file descriptor to avoid sending the message to the sender
  * TODO: later, check each user for bans, mutes, etc before sending the message
  */
-void Channel::broadcastMessage(const std::string& message, User &sender)
+void Channel::broadcastMessage(const std::string& message, User &sender, int mode)
 {
 	std::map<User *, bool>::iterator	i;
 	std::string							command_msg;
 
 	command_msg.clear();
-	command_msg = ":" + sender.getNick() + "!" + sender.getUserName() + " " + message;
+	command_msg = ":" + sender.getNick() + "!" + sender.getUserName() + " " + message + "\r\n";
 	for (i = this->_usersMap.begin(); i != this->_usersMap.end(); ++i)
 	{
-		if (i->first->getFd() != sender.getFd())
-			send(i->first->getFd(), command_msg.c_str(), command_msg.size(), 0);
+		if (i->first->getFd() == sender.getFd() && mode == 0)
+			continue ;
+		send(i->first->getFd(), command_msg.c_str(), command_msg.size(), 0);
 	}
 }
 
@@ -151,15 +153,25 @@ void Channel::sendTopicMessage(User& user)
 {
 	std::string topicMsg;
 	if (this->_topic.empty())
-	{
-		topicMsg = ":server 331 " + user.getNick() + " " + this->_name + " :No topic is set";
-	}
+		topicMsg = ":server 331 " + user.getNick() + " " + this->_name + " :No topic is set\r\n";
 	else
-	{
-		topicMsg = ":server 332 " + user.getNick() + " " + this->_name + " :" + this->_topic;
-	}
-	std::cout << topicMsg << std::endl;
+		topicMsg = ":server 332 " + user.getNick() + " " + this->_name + " :" + this->_topic + "\r\n";
 	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
+}
+
+/**
+ * @brief Aux function to update channel topic when command is executed
+ * 	Sets the new topic and saves it timestamp and creator
+ */
+void	Channel::updateTopic(const std::string &topic, const std::string &userNick)
+{
+	std::stringstream	time_string;
+	std::time_t			now_time = std::time(NULL);
+	
+	this->setTopic(topic);
+	this->_topicCreator = userNick;
+	time_string << now_time;
+	this->_topicTimeStamp = time_string.str();
 }
 
 void Channel::setName(const std::string& name)

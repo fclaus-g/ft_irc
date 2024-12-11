@@ -10,7 +10,9 @@
 Command::Command(int socketFd, const std::string msg, User &user, Server &server)
 	: _socketFd(socketFd), _msg(msg), _user(user), _server(server)
 {
-	_initCommands();
+	this->_currChannel = NULL;
+	this->_splitCmd = ft_split(msg);
+	this->_initCommands();
 }
 
 /**
@@ -99,6 +101,7 @@ void	Command::runCmd(int userFd, int key)
 			commandInvite();
 			break;
 		case TOPIC:
+			commandTopic();
 			break;
 		case MODE:
 			cmdMode();
@@ -121,3 +124,82 @@ void	Command::kickNonAuthenticatedUser(int userFd)
 	this->_server.deleteUser(userFd);
 	std::cout << RED << "User kicked and socket closed" << RES << std::endl;
 }
+
+/**
+ * @brief Function to send a response from the server to one or several clients with the
+ * 	proper IRC protocol format and code
+ * (!) First it generates the prefix of all responses, then completes it according to the
+ * 	code of the response
+ * @var response is the "prefix" message of the response
+ * @var detail is the specific message for each response code
+ * @param code the response code to be checked later in the response enum
+ * @param mode value to send the response in different ways
+ * 		MOD_CAST(1) - send response to all but the user that executed the command
+ * 		MOD_ALL(2) - send response to all users including the one executing the command
+ * 		MOD_USER(0) or ANY - send response ONLY to the user executing the command
+ */
+void	Command::sendResponse(int code, int mode)
+{
+	std::string	response = ":" + this->_server.getName() + " " + toString(code);
+	std::string	detail = this->composeResponse(code);
+	response.append(detail);
+	if (mode == MOD_CAST)
+	{
+		std::map<User*, bool>				users = this->_currChannel->getUsers();
+		std::map<User *, bool>::iterator	i;
+		for (i = users.begin(); i != users.end(); ++i)
+		{
+			if (i->first->getFd() != this->_user.getFd())
+				send(i->first->getFd(), response.c_str(), response.size(), 0);
+		}
+	}	
+	else if (mode == MOD_ALL)
+	{
+		std::map<User*, bool>				users = this->_currChannel->getUsers();
+		std::map<User *, bool>::iterator	i;
+		for (i = users.begin(); i != users.end(); ++i)
+			send(i->first->getFd(), response.c_str(), response.size(), 0);
+	}	
+	else
+		send(this->_user.getFd(), response.c_str(), response.size(), 0);
+}
+
+/**
+ * @brief Aux function to complete the response message depending of the given code
+ * @param code passed as enum definition or int value, will be the key in the switch
+ * @return std::string detail, the message to be appended to the response
+ */
+std::string	Command::composeResponse(int code)
+{
+	std::string	detail = "";
+	switch (code)
+	{
+		case ERR_NEEDMOREPARAMS:
+			detail = " " + this->_user.getNick() + " " + this->_splitCmd[0] + " :Not enough parameters\r\n";
+			break;
+		case ERR_NOSUCHCHANNEL:
+			detail = " " + this->_user.getNick() + " " + this->_splitCmd[1] + " :No such channel\r\n";
+			break;
+		case ERR_NOTONCHANNEL:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :You're not on that channel\r\n";
+			break;
+		case ERR_CHANOPRIVSNEEDED:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :You're not channel operator\r\n";
+			break;
+		case RPL_NOTOPIC:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :No topic is set\r\n";
+			break;
+		case RPL_TOPIC:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :" + this->_currChannel->getTopic() + "\r\n";
+			break;
+		case RPL_TOPICWHOTIME:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_currChannel->getTopicCreator() + " " + this->_currChannel->getTimeStamp() + "\r\n";
+			break;
+		default:
+			break;
+	}
+	return (detail);
+}
+
+//<client> <channel> 	<nick> 										<setat>
+//Topic for #test 		set by pgomez-r!pgomez-r@212.170.131.219 (Tue Dec 10 15:32:22 2024)

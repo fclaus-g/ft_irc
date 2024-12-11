@@ -2,9 +2,12 @@
 #define FT_IRC_HPP
 
 
-#include <iostream>
 #include <string>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 #include <fstream>
+#include <cstring>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -12,13 +15,12 @@
 #include <poll.h>
 #include <map>
 #include <vector>
-#include <cstring>
 #include <cstdlib>
 #include <signal.h>
 #include <exception>
 #include <fcntl.h>
 #include <arpa/inet.h>
-#include <sstream>
+#include <ctime>
 
 #include "User.hpp"
 #include "Channel.hpp"
@@ -35,7 +37,25 @@
 const int MAX_CLIENTS = 10;
 const int BUFF_SIZE = 1024;
 
+/*Errors and respones enum*/
+
+enum response
+{
+	MOD_USER = 0,
+	MOD_CAST = 1,
+	MOD_ALL = 2,
+	RPL_NOTOPIC = 331,
+	RPL_TOPIC = 332,
+	RPL_TOPICWHOTIME = 333,
+	ERR_NOSUCHCHANNEL = 403,
+	ERR_NOTONCHANNEL = 442,
+	ERR_NEEDMOREPARAMS = 461,
+	ERR_CHANOPRIVSNEEDED = 482
+};
+
+/*Utils.cpp functions*/
 bool						readFromSocket(int socketFd, std::string &store);
 std::vector<std::string>	ft_split(std::string message);
+std::string 				toString(int num);
 
 #endif

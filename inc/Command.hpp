@@ -24,12 +24,14 @@ enum command
 class Command
 {
     private:
-		int					_socketFd;
-		std::string			_msg;
-		std::string			_commands[TOTAL];
-		void				_initCommands();
-		User				&_user;
-		Server				&_server;
+		int							_socketFd;
+		std::string					_msg;
+		std::string					_commands[TOTAL];
+		void						_initCommands();
+		User						&_user;
+		Server						&_server;
+		Channel						*_currChannel;
+		std::vector<std::string>	_splitCmd;
     public:
 	/*AL CREAR EL CMD SE CREA CON EL FD DEL CLIENTE, EL MENSAJE, REFERENCIA DEL USUARIO Y REF DEL SERVER*/
 		Command(int socketFd, const std::string msg, User &user, Server &server);
@@ -38,6 +40,8 @@ class Command
 		bool 			checkCmd(int userFd);
 		void			runCmd(int userFd, int key);
 		void			kickNonAuthenticatedUser(int userFd);
+		void			sendResponse(int code, int mode);
+		std::string		composeResponse(int code);
 		//Commands methods
 		void 			cmdNick();
 		void 			cmdPass();
@@ -47,9 +51,8 @@ class Command
 		void 			cmdMode();
 		void 			commandKick();
 		void 			commandInvite();
-		//Command methods (empty yet)
 		void 			commandQuit();
-		void 			commandTopic(User user);
+		void 			commandTopic();
 		void 			commandMode();
 
 		std::vector<std::string> splitMessage(const std::string &msg, char delim);
