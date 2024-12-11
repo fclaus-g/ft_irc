@@ -15,6 +15,7 @@ class User
 		std::string				_nickName;
 		std::string				_userName;
 		std::string 			_realName;
+		std::string				_host;
 		std::vector<Channel*>	_channelList;
 	public:
 		User();
@@ -37,8 +38,11 @@ class User
 		bool					getLoginStat() const;
 		void					setLoginStat(bool stat);
 		std::vector<Channel*>	getChannelList();
+		std::string				getHost() const;
+		//User methods
 		void					addChannelToList(Channel *channel);
 		void					delChannelFromList(Channel *channel);
+		std::string				getHostName() const;
 };
 
 std::ostream& operator<<(std::ostream& out, const User& user);

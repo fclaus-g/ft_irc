@@ -174,7 +174,10 @@ std::string	Command::composeResponse(int code)
 	switch (code)
 	{
 		case ERR_NEEDMOREPARAMS:
-			detail = " " + this->_user.getNick() + " " + this->_splitCmd[0] + " :Not enough parameters\r\n";
+			if (this->_currChannel)
+				detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[0] + " :Not enough parameters\r\n";
+			else	
+				detail = " " + this->_user.getNick() + " " + this->_splitCmd[0] + " :Not enough parameters\r\n";
 			break;
 		case ERR_ALREADYREGISTERED:
 			detail = " " + this->_user.getNick() + " :You may not reregister\r\n";
@@ -205,6 +208,9 @@ std::string	Command::composeResponse(int code)
 			break;
 		case ERR_NOTONCHANNEL:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :You're not on that channel\r\n";
+			break;
+		case ERR_USERNOTINCHANNEL:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[2]+ " :They aren't on that channel\r\n";
 			break;
 		case ERR_CHANOPRIVSNEEDED:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :You're not channel operator\r\n";

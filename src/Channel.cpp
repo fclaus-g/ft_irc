@@ -121,7 +121,7 @@ void Channel::broadcastMessage(const std::string& message, User &sender, int mod
 	std::string							command_msg;
 
 	command_msg.clear();
-	command_msg = ":" + sender.getNick() + "!" + sender.getUserName() + "@localhost" + " " + message + "\r\n";
+	command_msg = ":" + sender.getNick() + "!" + sender.getUserName() + "@" + sender.getHost() + " " + message + "\r\n";
 	for (i = this->_usersMap.begin(); i != this->_usersMap.end(); ++i)
 	{
 		if (i->first->getFd() == sender.getFd() && mode == 0)
