@@ -16,6 +16,7 @@ class Server
 		bool							_isRunning;
 		int								_serverFd;
 		std::string						_message;
+		bool							_readMsg;
 		std::vector<Channel *>			_channels;
 		std::map<std::string, Channel*>	_channelsMap;
 		std::map<int, User *>			_users;
@@ -36,6 +37,7 @@ class Server
 		std::vector<Channel*>			&getChannels();
     	std::map<std::string, Channel*>	&getChannelsMap();
 		Channel							*getChannelByName(std::string name);
+		void							setReadMsg(bool state);
 		//Server engine methods
 		static void						signalHandler(int signal);
 		void 							prepareSocket();

@@ -36,7 +36,11 @@ bool Channel::channelIsFull()
 	return false;
 }
 /*-----------------------[METHODS]------------------------*/
-
+/**
+ * @brief Add a user to a channel
+ * TODO: change @127.0.0.1 for actual host getter if needed, remove it if not needed
+ * TODO: isUserInChannel check done twice, once before calling function and another in it
+ */
 void Channel::addUserChannel(User& user)
 {
 	if (this->isUserInChannel(user))
@@ -109,6 +113,7 @@ void Channel::addOpChannel(User& user)
  * @param command_msg the message to be sent formatted as irc protocol needs
  * @param userFd the user file descriptor to avoid sending the message to the sender
  * TODO: later, check each user for bans, mutes, etc before sending the message
+ * TODO: if @localhost is needed and working correclty in all cases, change it for a getter
  */
 void Channel::broadcastMessage(const std::string& message, User &sender, int mode)
 {
@@ -116,7 +121,7 @@ void Channel::broadcastMessage(const std::string& message, User &sender, int mod
 	std::string							command_msg;
 
 	command_msg.clear();
-	command_msg = ":" + sender.getNick() + "!" + sender.getUserName() + " " + message + "\r\n";
+	command_msg = ":" + sender.getNick() + "!" + sender.getUserName() + "@localhost" + " " + message + "\r\n";
 	for (i = this->_usersMap.begin(); i != this->_usersMap.end(); ++i)
 	{
 		if (i->first->getFd() == sender.getFd() && mode == 0)

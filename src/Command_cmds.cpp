@@ -1,86 +1,6 @@
 #include "ft_irc.hpp"
 
 /**
- * @brief Command to check the password sent by the user
- * TODO: What if the user sends PASS command not in the first message?
- */
-void	Command::cmdPass()
-{
-	std::string	pass;
-
-	pass = this->_msg.substr(this->_msg.find("PASS") + 5);
-	pass.erase(pass.find_last_not_of(" \n\r\t") + 1);
-	if (pass != this->_server.getPassword())
-	{
-		std::cout << "New connection with socket fd " << this->_user.getFd() << " tried to login with wrong password" << std::endl;
-		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
-		this->_server.sendWarning(this->_user.getFd(), "Password incorrect\n");
-		this->_server.deleteUser(this->_user.getFd());
-		return ;
-	}
-	this->_user.setAuthenticated(true);
-}
-
-/**
- * @brief Command to set or change the user nickName
- *	- if the user is HexChat client and this is first connection message
- *		("NICK <nick>\nUSER <user> 0 * :<realname>\n") cmdUser is called
- *	- if the user is 'nc' client, the nickName is set as userName and realName (provisional)
- * (!) First check if user is already authenticated - if not, kick the user
- * TODO: Check if nickName is already in use
- */
-void	Command::cmdNick()
-{
-	if (!this->_user.getAuthenticated())
-		return (kickNonAuthenticatedUser(this->_user.getFd()));
-
-	std::string	nick;
-
-	nick = this->_msg.substr(5);
-	nick.erase(nick.find_last_not_of(" \r\t\n") + 1);
-	this->_user.setNick(nick);
-	if (!this->_user.getHexClient())
-	{
-		this->_user.setUserName(nick);
-		this->_user.setRealName(nick);
-	}
-}
-
-/**
- * @brief Command to set the user userName and realName, it will always be sent
- *	at connection process, otherwise it will be treated as non-command message
- *	- if the user is HexChat client this is the nick-user message
- *		("NICK <nick>\nUSER <user> 0 * :<realname>\n")
- * (!) Need to check if user is already authenticated FIRST - if not, kick the user
- * TODO: Check if userName or realName is already in use
- * TODO: implment the realName parsing (currently setting the same as userName)
- * TODO: protect USER command when already logged - working weird now (hexChat sending lowercase)
- * If a client tries to send the USER command after they have already completed registration with server
- * ERR_ALREADYREGISTERED reply should be sent and the attempt should fail.
- */
-void Command::cmdUser()
-{
-	if (!this->_user.getAuthenticated())
-		return (kickNonAuthenticatedUser(this->_user.getFd()));
-	if (!this->_user.getUserName().empty())
-	{
-		std::string	err_alreadyreg = this->_user.getNick() + " :You may not reregister\n";
-		send(this->_user.getFd(), err_alreadyreg.c_str(), err_alreadyreg.length(), 0);
-		return ;
-	}
-
-	std::string	user;
-	size_t		pos;
-
-	user = this->_msg.substr(5);
-	pos = user.find_first_of(" ");
-	user = user.substr(0, pos);
-	user.erase(user.find_last_not_of(" \r\t\n") + 1);
-	this->_user.setUserName(user);
-	this->_user.setRealName(user);
-}
-
-/**
  * @brief Command to join a channel, modification of channel_fclaus-g branch Server method
  *	- if the channel does not exist, create it and add the user as operator
  *	- if the channel exists, add the user to the channel
@@ -104,6 +24,8 @@ void Command::cmdJoin()
 		this->_server.createChannel(channelName);
 		this->_server.addUserToChannel(channelName, this->_user);
 		this->_server.getChannelsMap()[channelName]->addOpChannel(this->_user);
+		channel = this->_server.getChannelByName(channelName);
+		this->_user.addChannelToList(channel);
 	}
 	else
 	{
@@ -111,11 +33,12 @@ void Command::cmdJoin()
 			return (this->_server.sendWarning(this->_user.getFd(),
 				"JOIN: Error: You are already in that channel\n"));
 		channel->addUserChannel(this->_user);
+		//TODO: Duda, y si falla addUserToChannel (full, already in channel, etc)?
+		this->_user.addChannelToList(channel);
 		std::string msg = "JOIN " + channelName + "\n";
 		channel->broadcastMessage(msg, this->_user, 0);
 	}
 }
-
 
 /**
  * @brief Command to send a message to a user or channel
@@ -189,7 +112,6 @@ void Command::commandKick()
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Channel does not exist\n"));
 	if (!channel->isOp(this->_user))
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: You are not channel admin\n"));
-	
 	User *deleteUser = this->_server.getUserByNick(nick);
 	if (!deleteUser)
 		return (this->_server.sendWarning(this->_user.getFd(), "Error: Nick not found in server\n"));

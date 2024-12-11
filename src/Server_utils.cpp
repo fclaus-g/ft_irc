@@ -47,10 +47,10 @@ void Server::signalHandler(int signal)
 void Server::welcomeUser(int userFd)
 {
 	std::string msg;
-	msg = "Wecolme to The Pollitas Server!\n";
-	msg.append("IF YOU ARE USING HEXCHAT CLIENT - IGNORE THESE INSTRUCTIONS -\n");
-	msg.append("Otherwise, follow this registration process usage:\n");
-	msg.append("Message #1 - \"PASS <server_password>\" Message #2\"NICK <user_nick>\"\n");
+	msg = "Wecolme to The Pollitas Server!\r\n";
+	msg.append("IF YOU ARE USING HEXCHAT CLIENT - IGNORE THESE INSTRUCTIONS -\r\n");
+	msg.append("Otherwise, follow this registration process usage:\r\n");
+	msg.append("Message #1 - \"PASS <server_password>\" Message #2\"NICK <user_nick>\"\r\n");
 	send(userFd, msg.c_str(), msg.length(), 0);
 }
 

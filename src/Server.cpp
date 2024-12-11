@@ -140,10 +140,11 @@ void	Server::newConnection()
 void	Server::msgHandler(int socketFd)
 {
 	this->_message.clear();
+	this->_readMsg = true;
 	if (!readFromSocket(socketFd, this->_message))
 		return (deleteUser(socketFd));
 	std::cout << "Hexchat raw message -> " << this->_message << std::endl;
-	while (!this->_message.empty())
+	while (!this->_message.empty() && this->_readMsg)
 	{
 		std::string	cmd_msg = "";
 		size_t		pos = this->_message.find("\r\n");

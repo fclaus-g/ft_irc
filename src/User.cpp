@@ -53,3 +53,35 @@ void	User::setHexClient(bool state)
 {
 	this->_hexChatClient = state;
 }
+
+bool	User::getLoginStat() const
+{
+	return (this->_logged);
+}
+
+void	User::setLoginStat(bool stat)
+{
+	this->_logged = stat;
+}
+
+std::vector<Channel*>	User::getChannelList()
+{
+	return (this->_channelList);
+}
+
+void	User::addChannelToList(Channel *channel)
+{
+	this->_channelList.push_back(channel);
+}
+
+void	User::delChannelFromList(Channel *channel)
+{
+	if (this->_channelList.empty())
+		return;
+	std::vector<Channel*>::iterator	pos; 
+	pos = std::find(this->_channelList.begin(), this->_channelList.end(), channel);
+	if (pos != this->_channelList.end())
+	{
+		this->_channelList.erase(pos);
+	}
+}
