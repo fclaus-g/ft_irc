@@ -72,12 +72,12 @@ std::ostream& operator<<(std::ostream& os, const Channel& channel)
 }
 
 /*-----------------------[GETTERS]------------------------*/
-const std::string Channel::getName() const
+const std::string& Channel::getName() const
 {
 	return this->_name;
 }
 
-const std::string Channel::getTopic() const
+const std::string& Channel::getTopic() const
 {
 	return this->_topic;
 }
