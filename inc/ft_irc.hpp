@@ -44,15 +44,21 @@ enum response
 	MOD_USER = 0,
 	MOD_CAST = 1,
 	MOD_ALL = 2,
+	ERR_CUSTOM_CHANNEL = 142,
 	RPL_NOTOPIC = 331,
 	RPL_TOPIC = 332,
 	RPL_TOPICWHOTIME = 333,
+	RPL_INVITING = 341,
+	ERR_NOSUCHNICK = 401,
 	ERR_NOSUCHCHANNEL = 403,
+	ERR_NORECIPIENT = 411,
+	ERR_NOTEXTTOSEND = 412,
 	ERR_NONICKNAMEGIVEN = 431,
 	ERR_ERRONEUSNICKNAME = 432,
 	ERR_NICKNAMEINUSE = 433,
 	ERR_USERNOTINCHANNEL = 441,
 	ERR_NOTONCHANNEL = 442,
+	ERR_USERONCHANNEL = 443,
 	ERR_NEEDMOREPARAMS = 461,
 	ERR_ALREADYREGISTERED = 462,
 	ERR_PASSWDMISMATCH = 464,
@@ -63,6 +69,5 @@ enum response
 bool						readFromSocket(int socketFd, std::string &store);
 std::vector<std::string>	ft_split(std::string message);
 std::string 				toString(int num);
-std::vector<std::string> 	customSplit(const std::string &str, char delimiter);
 
 #endif

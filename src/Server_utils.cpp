@@ -79,7 +79,7 @@ void	Server::messageToClient(const std::string& message, User &source, User &tar
 	std::string	command_msg;
 
 	command_msg.clear();
-	command_msg = ":" + source.getNick() + "!" + source.getUserName() + " " + message;
+	command_msg = ":" + source.getNick() + "!" + source.getUserName() + " " + message + "\r\n";
 	send(target.getFd(), command_msg.c_str(), command_msg.size(), 0);
 
 }

@@ -78,17 +78,3 @@ std::string toString(int num)
 	str << num;
 	return str.str();
 }
-
-std::vector<std::string> customSplit(const std::string &str, char delimiter)
-{
-	std::vector<std::string> res;
-	std::string	token;
-	std::istringstream tokens(str);
-
-	while (std::getline(tokens, token, delimiter))
-	{
-		if (!token.empty())
-			res.push_back(token);
-	}
-	return (res);
-}
