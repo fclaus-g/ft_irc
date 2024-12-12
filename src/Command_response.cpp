@@ -65,6 +65,12 @@ std::string	Command::composeResponse(int code)
 		case RPL_INVITING:
 			detail = " " + this->_user.getNick() + " " + this->_splitCmd[1] + " " + this->_currChannel->getName() + "\r\n";
 			break;
+		case RPL_NAMREPLY:
+			detail = " " + this->_user.getNick() + " = " + this->_currChannel->getName() + " :" + this->_currChannel->getUsersChannelStr() + "\r\n";
+			break;
+		case RPL_ENDOFNAMES:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :End of /NAMES list\r\n";
+			break;
 		case ERR_NOSUCHNICK:
 			detail = " " + this->_user.getNick() + " " + this->_errorMsg + " :No such nick/channel\r\n";
 			break;
@@ -102,7 +108,7 @@ std::string	Command::composeResponse(int code)
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :You're not on that channel\r\n";
 			break;
 		case ERR_USERONCHANNEL:
-			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[1]+ " :is already on channel\r\n";
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[1] + " :is already on channel\r\n";
 			break;
 		case ERR_NEEDMOREPARAMS:
 			if (this->_currChannel)
@@ -115,6 +121,12 @@ std::string	Command::composeResponse(int code)
 			break;
 		case ERR_PASSWDMISMATCH:
 			detail = " * :Password incorrect\r\n";
+			break;
+		case ERR_BADCHANNELKEY:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Cannot join channel (+k)\r\n";
+			break;
+		case ERR_BADCHANMASK:
+			detail = " " + this->_currChannel->getName() + " :Bad Channel Mask\r\n";
 			break;
 		case ERR_CHANOPRIVSNEEDED:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :You're not channel operator\r\n";

@@ -82,6 +82,11 @@ const std::string& Channel::getTopic() const
 	return this->_topic;
 }
 
+/**
+ * @brief Getter method to return a string with all user nickNames of a channel
+ * TODO: usersStr + nick + " " will leave the string with an extra space at end?
+ * 	(!)Can "clean" the returned string before using it outside, or fix it here
+ */
 const std::string Channel::getUsersChannelStr() const
 {
 	std::string usersStr;

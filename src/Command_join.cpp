@@ -48,17 +48,26 @@ void Command::printVector(const std::vector<std::string> args)
  * 	- check if the channel exists
  *	- if the channel does not exist, create it and add the user as operator
  *	- if the channel exists, add the user to the channel
- * TODO: Channel related methods have been left in Server as original; move them to Command?
- * xTODO: VERIFICAR SI EL CANAL ESTA EN MODO PRIVADO - mirar como esta MODE y como se gestiona
- * TODO: VERIFICAR SI EL USUARIO HA SIDO INVITADO - mirar como esta INVITE y como se gestiona
+ * TODO: ERR_NEEDMOREPARAMS (461)
+ * TODO: ERR_NOSUCHCHANNEL (403)
+ * TODO: ERR_TOOMANYCHANNELS (405)
+ * TODO: ERR_BADCHANNELKEY (475)
+ * TODO: ERR_BANNEDFROMCHAN (474)
+ * TODO: ERR_CHANNELISFULL (471)
+ * TODO: ERR_INVITEONLYCHAN (473)
+ * TODO: ERR_BADCHANMASK (476)
+ * TODO: RPL_TOPIC (332)
+ * TODO: RPL_TOPICWHOTIME (333)
+ * TODO: RPL_NAMREPLY (353)
+ * TODO: RPL_ENDOFNAMES (366)
  */
 void Command::cmdJoin()
 {
-	if (this->_msg.find("JOIN") == std::string::npos)
-		//ERR_NEEDMOREPARAMS (461)
-		return;
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
+	if (this->_splitCmd.size() < 2)
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER));
+
 	std::vector<std::string> args = splitMessage(this->_msg, ' ');
 	std::vector<std::string> channels = splitMessage(args[1], ',');
 	std::vector<std::string> keys = (args.size() > 2) ? splitMessage(args[2], ',') : std::vector<std::string>();
@@ -67,60 +76,45 @@ void Command::cmdJoin()
 	{
 		std::string channelName = channels[i];
 		channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
-
-		if (channelName.empty() || channelName[0] != '#'){
-			//ERR_BADCHANNELKEY (475)
-			return (this->_server.sendWarning(this->_user.getFd(),
-					"JOIN: Error: No such nick/channel"));}
-		Channel *channel = this->_server.getChannelByName(channelName);
-		if (!channel)
+	
+		this->_currChannel = this->_server.getChannelByName(channelName);
+		if (channelName.empty() || channelName[0] != '#')
+			return (this->sendResponse(ERR_BADCHANMASK, MOD_USER));
+		if (!this->_currChannel)
 		{
-			std::cout << "Channel does not exist, creating new channel" << std::endl;
 			this->_server.createChannel(channelName);
-			channel = this->_server.getChannelByName(channelName);
-			if (!channel)
-			{
-				std::cerr << "Failed to create or retrieve channel" << std::endl;
-				return;
-			}
-			channel->addUserChannel(this->_user);
-			channel->addOpChannel(this->_user);
-			std::string topic = channel->getTopic();
+			this->_currChannel = this->_server.getChannelByName(channelName);
+			this->_currChannel->addUserChannel(this->_user);
+			this->_currChannel->addOpChannel(this->_user);
+			this->_user.addChannelToList(this->_currChannel);
+			std::string topic = this->_currChannel->getTopic();
+			//IF CREATING NEW CHANNEL, TOPIC ALWAYS EMPTY; CAN WE REMOVE THIS?
 			if (!topic.empty())
-				this->_server.messageToClient("332 " + this->_user.getNick() + " " + channelName + " :" + topic, this->_user, this->_user);
+				return (this->sendResponse(RPL_TOPIC, MOD_USER));
 			else 
-				this->_server.messageToClient("331 " + this->_user.getNick() + " " + channelName + " :No topic is set", this->_user, this->_user);
-			std::string users = channel->getUsersChannelStr();
-			this->_server.messageToClient("353 " + this->_user.getNick() + " = " + channelName + " :" + users, this->_user, this->_user);
-			this->_server.messageToClient("366 " + this->_user.getNick() + " " + channelName + " :End of /NAMES list", this->_user, this->_user);
-			/*RPL_TOPIC (332)
-			RPL_NAMREPLY (353)
-			RPL_ENDOFNAMES (366)*/
+				return(this->sendResponse(RPL_NOTOPIC, MOD_USER));
+			this->sendResponse(RPL_NAMREPLY, MOD_USER);
+			this->sendResponse(RPL_ENDOFNAMES, MOD_USER);
 		}
 		else
 		{
-			if (channel->getKeyMode() && keys.size() > i && keys[i] != channel->getPassword())
-				return (this->_server.sendWarning(this->_user.getFd(),
-					"JOIN: Error: Invalid channel key"));
-			std::cout << "Channel exists, adding user to channel" << std::endl;
-			if (channel->isUserInChannel(this->_user))
-				return (this->_server.sendWarning(this->_user.getFd(),
-					"JOIN: Error: You are already in that channel"));
-			channel->addUserChannel(this->_user);
+			if (this->_currChannel->getKeyMode() && keys.size() > i && keys[i] != this->_currChannel->getPassword())
+				return (this->sendResponse(ERR_BADCHANNELKEY, MOD_USER));
+			if (this->_currChannel->isUserInChannel(this->_user))
+			{	
+				this->_splitCmd[1] = this->_user.getNick();
+				return (this->sendResponse(ERR_USERONCHANNEL, MOD_USER));
+			}
+			this->_currChannel->addUserChannel(this->_user);
 			std::string msg = "JOIN " + channelName;
-			channel->broadcastMessage(msg, this->_user, 0);
-			std::string topic = channel->getTopic();
+			this->_currChannel->broadcastMessage(msg, this->_user, 0);
+			std::string topic = this->_currChannel->getTopic();
 			if (!topic.empty())
-				this->_server.messageToClient("332 " + this->_user.getNick() + " " + channelName + " :" + topic, this->_user, this->_user);
+				return (this->sendResponse(RPL_TOPIC, MOD_USER));
 			else 
-				this->_server.messageToClient("331 " + this->_user.getNick() + " " + channelName + " :No topic is set", this->_user, this->_user);
-			std::string users = channel->getUsersChannelStr();
-			this->_server.messageToClient("353 " + this->_user.getNick() + " = " + channelName + " :" + users, this->_user, this->_user);
-			this->_server.messageToClient("366 " + this->_user.getNick() + " " + channelName + " :End of /NAMES list", this->_user, this->_user);
-			/*RPL_NOTOPIC (331) = "<client> <channel> :No topic is set"
-			RPL_TOPIC (332) =   "<client> <channel> :<topic>"
-			RPL_NAMREPLY (353) = "<client> <symbol/canalstate no neccessary?> <channel> :[prefix(space)]<nick>{ [prefix]<nick>}"
-			RPL_ENDOFNAMES (366) = "<client> <channel> :End of /NAMES list"*/
+				return(this->sendResponse(RPL_NOTOPIC, MOD_USER));
+			this->sendResponse(RPL_NAMREPLY, MOD_USER);
+			this->sendResponse(RPL_ENDOFNAMES, MOD_USER);
 		}
 	}
 }
