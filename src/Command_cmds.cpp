@@ -179,7 +179,7 @@ void Command::commandQuit()
 	while (it != this->_server.getChannelsMap().end())
 	{
 		it->second->removeUserChannel(this->_user);
-		it->second->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user, 0);
+		it->second->broadcastMessage("QUIT :Quit: Bye for now!\n", this->_user, 0);
 		it++;
 	}
 	std::vector<Channel*>::iterator it2 = this->_server.getChannels().begin();
@@ -188,11 +188,9 @@ void Command::commandQuit()
 		if ((*it2)->isUserInChannel(this->_user))
 		{
 			(*it2)->removeUserChannel(this->_user);
-			(*it2)->broadcastMessage("QUIT: " + this->_user.getNick() + " has quit the server\n", this->_user, 0);}
+		}
 		it2++;
 	}
-	std::string msg = "QUIT :Client quit\n";
-	send(this->_user.getFd(), msg.c_str(), msg.length(), 0);
 	this->_server.deleteUser(this->_user.getFd());
 }
 
