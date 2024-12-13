@@ -52,8 +52,6 @@ class Server
 		void							msgHandler(int socketFd);
 		void							messageToClient(const std::string& message, User &source, User &target);
 		//Debug methods
-		//void 							printMap(const std::map<int, User>& map) const;
-		void 							printChannelMap(const std::map<std::string, Channel*>& map) const;	
 		void					printVector(const std::vector<Channel>& vector);
 		void					debugPrint(const std::string& input);
 		//Channel methods

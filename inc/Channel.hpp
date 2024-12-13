@@ -2,11 +2,7 @@
 #define CHANNEL_HPP
 
 #include "ft_irc.hpp"
-/**
- * @brief TO_DO Eliminar los vectores de user y op y usar el map de users
- * para ello hay que cambiar varias cosas en el codigo dentro de channel.cpp
- * 
- */
+
 class Channel
 {
 	private:
@@ -39,7 +35,6 @@ class Channel
 		bool 							getKeyMode() const;
 		int 							getUsersInChannel() const;
 		int 							getUsersLimit() const;
-		
 		//Setters
 		void							setName(const std::string& name);
 		void							setTopic(const std::string& topic);

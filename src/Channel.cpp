@@ -36,16 +36,10 @@ bool Channel::channelIsFull()
 	return false;
 }
 
-bool Channel::isValidChannelName(const std::string& name)
-{
-	if (name.empty() || name[0] != '#')
-		return false;
-	return true;
-}
 /*-----------------------[METHODS]------------------------*/
 /**
  * @brief Add a user to a channel
- * TODO: change @127.0.0.1 for actual host getter if needed, remove it if not needed
+ * xTODO: change @127.0.0.1 for actual host getter if needed, remove it if not needed
  * TODO: isUserInChannel check done twice, once before calling function and another in it
  */
 void Channel::addUserChannel(User& user)
@@ -67,7 +61,7 @@ void Channel::addUserChannel(User& user)
 	{
 		this->_usersInChannel++;
 		this->_usersMap[&user] = false;
-		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + " " + user.getLocalHost() + " " + this->getName() + "\n";
+		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@" + user.getHost() + " JOIN :" + this->getName() + "\n";
 		send(user.getFd(), msg.c_str(), msg.length(), 0);
 	}
 }

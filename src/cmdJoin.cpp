@@ -21,21 +21,6 @@ IRC usa una serie de códigos numéricos para indicar el estado de los comandos.
 Para ejecutar el join se debe enviar un mensaje al servidor con el siguiente formato:
 
 */
-/**
- * @brief take the message and split it into a vector of strings
- * 
- * @param msg 
- * @return std::vector<std::string> 
- */
-std::vector<std::string> Command::splitMessage(const std::string &msg, char delim)
-{
-	std::vector<std::string> args;
-	std::string word;
-	std::stringstream ss(msg);
-	while (getline(ss, word, delim))
-		args.push_back(word);
-	return args;
-}
 
 void Command::printVector(const std::vector<std::string> args)
 {

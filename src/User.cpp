@@ -34,11 +34,6 @@ void	User::setUserName(std::string userName)
 	this->_userName = userName;
 }
 
-// void	User::setHexChatPass(bool state)
-// {
-// 	this->_hexChatPass = state;
-// }
-
 std::string User::getRealName() const
 {
 	return (this->_realName);

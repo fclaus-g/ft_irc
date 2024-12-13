@@ -34,7 +34,6 @@ class Command
 		Channel						*_currChannel;
 		std::vector<std::string>	_splitCmd;
     public:
-	/*AL CREAR EL CMD SE CREA CON EL FD DEL CLIENTE, EL MENSAJE, REFERENCIA DEL USUARIO Y REF DEL SERVER*/
 		Command(int socketFd, const std::string msg, User &user, Server &server);
 		~Command();
 		//Aux Methods	
@@ -57,9 +56,7 @@ class Command
 		void 			commandQuit();
 		void 			commandTopic();
 		void 			commandMode();
-
-		std::vector<std::string> splitMessage(const std::string &msg, char delim);
-		void printVector(std::vector<std::string> args);
 };
 
 #endif
+	/*AL CREAR EL CMD SE CREA CON EL FD DEL CLIENTE, EL MENSAJE, REFERENCIA DEL USUARIO Y REF DEL SERVER*/

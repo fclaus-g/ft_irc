@@ -75,6 +75,5 @@ enum response
 bool						readFromSocket(int socketFd, std::string &store);
 std::vector<std::string>	ft_split(std::string message);
 std::string 				toString(int num);
-std::vector<std::string> 	customSplit(const std::string &str, char delimiter);
 
 #endif

@@ -14,32 +14,6 @@ std::ostream& operator<<(std::ostream& out, const Server& server)
 	}
 	return out;
 }
-/**
- * @brief prints the map of channels in the server
- * 
- * @param map 
- */
-
-void Server::printChannelMap(const std::map<std::string, Channel*>& map) const
-{
-	if (map.empty())
-	{
-		std::cout << "The map is empty." << std::endl;
-		return;
-	}
-	for (std::map<std::string, Channel*>::const_iterator it = map.begin(); it != map.end(); ++it)
-	{
-		std::cout << "Key: " << it->first << std::endl;
-		if (it->second)
-		{
-			std::cout << *it->second << std::endl; // *it->second is the value of the map
-		}
-		else
-		{
-			std::cout << "Null Channel pointer." << std::endl;
-		}
-	}
-}
 
 void Server::printVector(const std::vector<Channel>& vector)
 {

@@ -7,6 +7,11 @@ void Server::createChannel(const std::string& name)
 		std::cout << "Channel name can't be empty" << std::endl;
 		return;
 	}
+	if (name[0] != '#')
+	{
+		std::cout << "Channel name must start with #" << std::endl;
+		return;
+	}
 	if (name.size() < 2)
 	{
 		std::cout << "Channel name must have at least 2 characters" << std::endl;
@@ -28,7 +33,7 @@ void Server::createChannel(const std::string& name)
 	Channel *newChannel = new Channel(name);
 	this->_channels.push_back(newChannel);
 	this->_channelsMap[name] = newChannel;
-	//printMap(this->_channelsMap);
+	std::cout << "Channel created" << std::endl;
 }
 
 void Server::addUserToChannel(const std::string& channelName, User& user)
