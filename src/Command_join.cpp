@@ -48,18 +48,11 @@ void Command::printVector(const std::vector<std::string> args)
  * 	- check if the channel exists
  *	- if the channel does not exist, create it and add the user as operator
  *	- if the channel exists, add the user to the channel
- * TODO: ERR_NEEDMOREPARAMS (461)
- * TODO: ERR_NOSUCHCHANNEL (403)
- * TODO: ERR_TOOMANYCHANNELS (405)
- * TODO: ERR_BADCHANNELKEY (475)
- * TODO: ERR_BANNEDFROMCHAN (474)
- * TODO: ERR_CHANNELISFULL (471)
- * TODO: ERR_INVITEONLYCHAN (473)
- * TODO: ERR_BADCHANMASK (476)
- * TODO: RPL_TOPIC (332)
- * TODO: RPL_TOPICWHOTIME (333)
- * TODO: RPL_NAMREPLY (353)
- * TODO: RPL_ENDOFNAMES (366)
+ * (?) DOUBTS - MARKED AS TODO - Are these mandatory?
+ * TODO: [?] standard init values of channel according to documentation (userLimit, modes)
+ * TODO: [?] inviteMode + keyMode? - search in documentation of IRC and HexChat 
+ * TODO: [?] ERR_BANNEDFROMCHAN (474)
+ * TODO: [?] ERR_TOOMANYCHANNELS (405) - add server.maxChannelPerUser and compare with user.ChannelList.size()
  */
 void Command::cmdJoin()
 {
@@ -75,11 +68,16 @@ void Command::cmdJoin()
 	for (size_t i = 0; i < channels.size(); i++)
 	{
 		std::string channelName = channels[i];
-		channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
+		if (!channelName.empty())
+			channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
 	
 		this->_currChannel = this->_server.getChannelByName(channelName);
 		if (channelName.empty() || channelName[0] != '#')
-			return (this->sendResponse(ERR_BADCHANMASK, MOD_USER));
+		{
+			this->_errorMsg = channelName;
+			this->sendResponse(ERR_BADCHANMASK, MOD_USER);
+			continue ;
+		}
 		if (!this->_currChannel)
 		{
 			this->_server.createChannel(channelName);
@@ -88,31 +86,41 @@ void Command::cmdJoin()
 			this->_currChannel->addOpChannel(this->_user);
 			this->_user.addChannelToList(this->_currChannel);
 			std::string topic = this->_currChannel->getTopic();
-			//IF CREATING NEW CHANNEL, TOPIC ALWAYS EMPTY; CAN WE REMOVE THIS?
-			if (!topic.empty())
-				return (this->sendResponse(RPL_TOPIC, MOD_USER));
-			else 
-				return(this->sendResponse(RPL_NOTOPIC, MOD_USER));
 			this->sendResponse(RPL_NAMREPLY, MOD_USER);
 			this->sendResponse(RPL_ENDOFNAMES, MOD_USER);
 		}
 		else
 		{
-			if (this->_currChannel->getKeyMode() && keys.size() > i && keys[i] != this->_currChannel->getPassword())
-				return (this->sendResponse(ERR_BADCHANNELKEY, MOD_USER));
+			std::cout << "Channel pass: " << this->_currChannel->getPassword() << std::endl;
+			std::cout << "Channel keymode: " << this->_currChannel->getKeyMode() << std::endl;
+		
 			if (this->_currChannel->isUserInChannel(this->_user))
-			{	
-				this->_splitCmd[1] = this->_user.getNick();
-				return (this->sendResponse(ERR_USERONCHANNEL, MOD_USER));
+				continue;
+			if (this->_currChannel->getInviteMode())
+			{
+				this->sendResponse(ERR_INVITEONLYCHAN, MOD_USER);
+				continue;
+			}
+			if (this->_currChannel->getKeyMode() && (keys.size() <= i || keys[i] != this->_currChannel->getPassword()))
+			{
+				this->sendResponse(ERR_BADCHANNELKEY, MOD_USER);
+				continue;
+			}
+			if (this->_currChannel->channelIsFull())
+			{
+				this->sendResponse(ERR_CHANNELISFULL, MOD_USER);
+				continue;
 			}
 			this->_currChannel->addUserChannel(this->_user);
+			this->_user.addChannelToList(this->_currChannel);
 			std::string msg = "JOIN " + channelName;
 			this->_currChannel->broadcastMessage(msg, this->_user, 0);
 			std::string topic = this->_currChannel->getTopic();
 			if (!topic.empty())
-				return (this->sendResponse(RPL_TOPIC, MOD_USER));
-			else 
-				return(this->sendResponse(RPL_NOTOPIC, MOD_USER));
+			{
+				this->sendResponse(RPL_TOPIC, MOD_USER);
+				this->sendResponse(RPL_TOPICWHOTIME, MOD_USER);
+			}
 			this->sendResponse(RPL_NAMREPLY, MOD_USER);
 			this->sendResponse(RPL_ENDOFNAMES, MOD_USER);
 		}

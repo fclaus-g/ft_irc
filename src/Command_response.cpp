@@ -122,11 +122,17 @@ std::string	Command::composeResponse(int code)
 		case ERR_PASSWDMISMATCH:
 			detail = " * :Password incorrect\r\n";
 			break;
+		case ERR_CHANNELISFULL:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Cannot join channel (+l)\r\n";
+			break;
+		case ERR_INVITEONLYCHAN:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Cannot join channel (+i)\r\n";
+			break;
 		case ERR_BADCHANNELKEY:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Cannot join channel (+k)\r\n";
 			break;
 		case ERR_BADCHANMASK:
-			detail = " " + this->_currChannel->getName() + " :Bad Channel Mask\r\n";
+			detail = " " + this->_errorMsg + " :Bad Channel Mask\r\n";
 			break;
 		case ERR_CHANOPRIVSNEEDED:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :You're not channel operator\r\n";
