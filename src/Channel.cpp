@@ -45,7 +45,7 @@ bool Channel::isValidChannelName(const std::string& name)
 /*-----------------------[METHODS]------------------------*/
 /**
  * @brief Add a user to a channel
- * xTODO: change @127.0.0.1 for actual host getter if needed, remove it if not needed
+ * TODO: change @127.0.0.1 for actual host getter if needed, remove it if not needed
  * TODO: isUserInChannel check done twice, once before calling function and another in it
  */
 void Channel::addUserChannel(User& user)
@@ -83,7 +83,7 @@ void Channel::removeUserChannel(User& user)
 
 	i = this->_usersMap.find(&user);
 	if (i != this->_usersMap.end())
-	{
+	{	
 		this->_usersMap.erase(i);
 		this->_usersInChannel--;
 	}

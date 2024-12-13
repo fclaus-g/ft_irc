@@ -6,34 +6,69 @@
  *	- Check if the message is to a channel or user
  *	- In both cases, find if the user or channel exists
  *	- In case of channel, check if the user is in the channel
+ * (?) DOUBTS - MARKED AS TODO -
+ * TODO: Multiple targets user/channel: sending but not showing in HexChat
+ * 	(when executing from terminal, it does work and received in HexChat too)
+ * TODO: ERR_NOTONCHANNEL implemented but not needed according to the doc
+ * TODO: ERR_NEEDMOREPARAMS implemented but not needed according to the doc
+ * TODO: RPL_AWAY (301) - mandatory? USER AWAY STATUS
+ * TODO: ERR_CANNOTSENDTOCHAN (404) -  mandatory? BANS and MODERATED MODE
  */
 void Command::cmdPrivmsg()
 {
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
-
-	std::string target;
-	std::string msg_text;
-
-	msg_text = this->_msg.substr(this->_msg.find("PRIVMSG") + 8);
-	target = msg_text.substr(0, msg_text.find_first_of(" "));
-	msg_text = msg_text.substr(msg_text.find_first_of(" ") + 1);
-	if (target[0] == '#')
+	if (this->_splitCmd.size() < 2)
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER));
+	if ((this->_splitCmd.size() == 2 && this->_splitCmd[1][0] != ':' )
+			|| (this->_splitCmd.size() > 2 && this->_splitCmd[2].empty()))
+		return (this->sendResponse(ERR_NOTEXTTOSEND, MOD_USER));
+	std::string msg_text = this->_splitCmd[2];
+	if (this->_splitCmd.size() > 3)
 	{
-		Channel	*target_channel = this->_server.getChannelByName(target);
-		if (!target_channel)
-			return (this->_server.sendWarning(this->_user.getFd(), "Error: No such nick/channel\n"));
-		if (target_channel->isUserInChannel(this->_user))
-			target_channel->broadcastMessage(this->_msg, this->_user, 0);
-		else
-			this->_server.sendWarning(this->_user.getFd(), "Error: You are not channel member\n");
+		for (size_t i = 3; i < this->_splitCmd.size(); i++)
+		{
+			msg_text.append(" ");
+			msg_text.append(this->_splitCmd[i]);
+		}
+		msg_text.erase(msg_text.find_last_not_of(" \n\r\t") + 1);
 	}
-	else
+
+	std::vector<std::string> targets = this->splitMessage(this->_splitCmd[1], ',');
+	for (size_t i = 0; i < targets.size(); i++)
 	{
-		User	*target_user = this->_server.getUserByNick(target);
-		if (!target_user)
-			return (this->_server.sendWarning(this->_user.getFd(), "Error: No such nick/channel\n"));
-		this->_server.messageToClient(this->_msg, this->_user, *target_user);
+		targets[i].erase(targets[i].find_last_not_of(" \n\r\t") + 1);
+		if (targets[i][0] == ':')
+			return (this->sendResponse(ERR_NORECIPIENT, MOD_USER));
+		if (targets[i][0] == '#')
+		{
+			this->_currChannel = this->_server.getChannelByName(targets[i]);
+			if (!this->_currChannel)
+			{
+				this->_errorMsg = targets[i];
+				this->sendResponse(ERR_NOSUCHNICK, MOD_USER);
+				continue;
+			}
+			if (!this->_currChannel->isUserInChannel(this->_user))
+			{
+				this->sendResponse(ERR_NOTONCHANNEL, MOD_USER);
+				continue;
+			}
+			std::string	channel_msg = this->_splitCmd[0] + " " + targets[i] + " " + msg_text;
+			this->_currChannel->broadcastMessage(channel_msg, this->_user, 0);
+		}
+		else
+		{
+			User	*target_user = this->_server.getUserByNick(targets[i]);
+			if (!target_user)
+			{
+				this->_errorMsg = targets[i];
+				this->sendResponse(ERR_NOSUCHNICK, MOD_USER);
+				continue;
+			}
+			std::string	priv_msg = this->_splitCmd[0] + " " + targets[i] + " " + msg_text;
+			this->_server.messageToClient(priv_msg, this->_user, *target_user);
+		}
 	}
 }
 
@@ -44,9 +79,7 @@ void Command::cmdPrivmsg()
  *	- Get the nickName and channelName from the message
  *	- Check if the channel exists, if so, check if the user is operator
  *	- Check if the user to be kicked exists in the channel; if so, remove it
- * TODO: if user was the only one left in channel, remove channel?
- * 	- if(this->_currChannel.size() < 1){this->_server.removeChannel(channelName)}
- * 		+update removeChannel to also update each user channelList
+ * TODO: ERR_NEEDMOREPARAMS shown in main server window, not channel
  */
 void Command::commandKick()
 {
@@ -82,7 +115,7 @@ void Command::commandKick()
 		comment.erase(comment.find_first_not_of(" \n\r\t") + 1);
 	}
 	
-	std::vector<std::string> nicks = customSplit(this->_splitCmd[2], ',');
+	std::vector<std::string> nicks = this->splitMessage(this->_splitCmd[2], ',');
 	for (size_t i = 0; i < nicks.size(); i++)
 	{
 		nicks[i].erase(nicks[i].find_last_not_of(" \n\r\t") + 1);
@@ -94,7 +127,7 @@ void Command::commandKick()
 			continue ;
 		}
 		if (comment.empty())
-			this->_msg = this->_msg + " :for no specific reason\r\n";
+			this->_msg = this->_msg + " :for no specific reason";
 		this->_currChannel->broadcastMessage(this->_msg, this->_user, 1);
 		this->_currChannel->removeUserChannel(*deleteUser);
 		deleteUser->delChannelFromList(this->_currChannel);
@@ -113,51 +146,42 @@ void Command::commandKick()
  *	- Check if invite target user is already in channel
  *	- Check if channel is full
  *	- Of all checks passed, add user to channel
- * 	TODO:  RPL_INVITING (341)
- *	TODO:  ERR_NEEDMOREPARAMS (461)
- *	TODO:  ERR_NOSUCHCHANNEL (403)
- *	TODO:  ERR_NOTONCHANNEL (442)
- *	TODO:  ERR_CHANOPRIVSNEEDED (482)
- *	TODO:  ERR_USERONCHANNEL (443)
  */
 void Command::commandInvite()
 {
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
-
-	std::string	nick;
-	std::string	channel_name;
-
-	nick = this->_msg.substr(7);
-	channel_name = nick.substr(nick.find_first_of(" ") + 1);
-	nick = nick.substr(0, nick.find_first_of(" "));
+	if (this->_splitCmd.size() < 3)
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER));
+	
+	std::string	nick = this->_splitCmd[1];
+	std::string	channel_name = this->_splitCmd[2];
 	nick.erase(nick.find_last_not_of(" \n\r\t") + 1);
 	channel_name.erase(channel_name.find_last_not_of(" \n\r\t") + 1);
+	this->_currChannel = this->_server.getChannelByName(channel_name);
+	
+	if (!this->_currChannel || this->_currChannel->getUsersInChannel() < 1)
+		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER));
+	if (!this->_currChannel->isUserInChannel(this->_user))
+		return (this->sendResponse(ERR_NOTONCHANNEL, MOD_USER));
+	if (this->_currChannel->getInviteMode() && !this->_currChannel->isOp(this->_user))
+		return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER));
 
-	Channel *channel;
-	channel = this->_server.getChannelByName(channel_name);
-	if (!channel)
-		return (this->_server.sendWarning(this->_user.getFd(), "Error: Channel does not exist\n"));
-
-	User *invitedUser = NULL;
-	invitedUser = this->_server.getUserByNick(nick);
+	User *invitedUser = this->_server.getUserByNick(nick);
 	if (!invitedUser)
-		return (this->_server.sendWarning(this->_user.getFd(), "Error: Nick not found in server\n"));
-	if (channel->getInviteMode())
 	{
-		if (!channel->isOp(this->_user))
-			return (this->_server.sendWarning(this->_user.getFd(), "Error: You are not channel admin\n"));
+		this->_errorMsg = ":User does not exists";
+		return (this->sendResponse(ERR_CUSTOM_CHANNEL, MOD_USER));
 	}
-	else
+	if (this->_currChannel->isUserInChannel(*invitedUser))
+		return (this->sendResponse(ERR_USERONCHANNEL, MOD_USER));
+	if (this->_currChannel->channelIsFull())
 	{
-		if (!channel->isUserInChannel(this->_user))
-			return (this->_server.sendWarning(this->_user.getFd(), "Error: You are not channel member\n"));
+		this->_errorMsg = ":Channel is full";
+		return (this->sendResponse(ERR_CUSTOM_CHANNEL, MOD_USER));
 	}
-	if (channel->isUserInChannel(*invitedUser))
-		return (this->_server.sendWarning(this->_user.getFd(), "Error: User is already in channel\n"));
-	if (channel->channelIsFull())
-		return (this->_server.sendWarning(this->_user.getFd(), "Error: Channel is full\n"));
 	this->_server.addUserToChannel(channel_name, *invitedUser);
+	return (this->sendResponse(RPL_INVITING, MOD_USER));
 }
 
 /**
