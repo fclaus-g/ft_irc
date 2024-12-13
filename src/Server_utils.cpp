@@ -172,7 +172,9 @@ User	*Server::getUserByFd(int fd)
  * 
  */
 
-void Server::debugPrint(const std::string& input) {
+void Server::debugPrint(const std::string& input)
+{
+	std::cout << "debug print: ";	
 	for (std::string::size_type i = 0; i < input.size(); ++i) {
 		if (input[i] == '\n') {
 			std::cout << "\\n";

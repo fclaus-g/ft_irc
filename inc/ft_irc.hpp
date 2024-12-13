@@ -32,7 +32,7 @@
 #define YEL		"\033[33m"
 #define BLU		"\033[34m"
 #define RES 	"\033[0m"
-#define	TIMEOUT	5000
+#define TIMEOUT 30000
 
 const int MAX_CLIENTS = 10;
 const int BUFF_SIZE = 1024;
