@@ -19,10 +19,10 @@ void Command::cmdPrivmsg()
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
 	if (this->_splitCmd.size() < 2)
-		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER));
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
 	if ((this->_splitCmd.size() == 2 && this->_splitCmd[1][0] != ':' )
 			|| (this->_splitCmd.size() > 2 && this->_splitCmd[2].empty()))
-		return (this->sendResponse(ERR_NOTEXTTOSEND, MOD_USER));
+		return (this->sendResponse(ERR_NOTEXTTOSEND, MOD_USER, 0));
 	std::string msg_text = this->_splitCmd[2];
 	if (this->_splitCmd.size() > 3)
 	{
@@ -39,19 +39,19 @@ void Command::cmdPrivmsg()
 	{
 		targets[i].erase(targets[i].find_last_not_of(" \n\r\t") + 1);
 		if (targets[i][0] == ':')
-			return (this->sendResponse(ERR_NORECIPIENT, MOD_USER));
+			return (this->sendResponse(ERR_NORECIPIENT, MOD_USER, 0));
 		if (targets[i][0] == '#')
 		{
 			this->_currChannel = this->_server.getChannelByName(targets[i]);
 			if (!this->_currChannel)
 			{
 				this->_errorMsg = targets[i];
-				this->sendResponse(ERR_NOSUCHNICK, MOD_USER);
+				this->sendResponse(ERR_NOSUCHNICK, MOD_USER, 0);
 				continue;
 			}
 			if (!this->_currChannel->isUserInChannel(this->_user))
 			{
-				this->sendResponse(ERR_NOTONCHANNEL, MOD_USER);
+				this->sendResponse(ERR_NOTONCHANNEL, MOD_USER, 0);
 				continue;
 			}
 			std::string	channel_msg = this->_splitCmd[0] + " " + targets[i] + " " + msg_text;
@@ -63,7 +63,7 @@ void Command::cmdPrivmsg()
 			if (!target_user)
 			{
 				this->_errorMsg = targets[i];
-				this->sendResponse(ERR_NOSUCHNICK, MOD_USER);
+				this->sendResponse(ERR_NOSUCHNICK, MOD_USER, 0);
 				continue;
 			}
 			std::string	priv_msg = this->_splitCmd[0] + " " + targets[i] + " " + msg_text;
@@ -92,17 +92,17 @@ void Command::commandKick()
 			this->_splitCmd[1].erase(this->_splitCmd[1].find_last_not_of(" \n\r\t") + 1);
 			this->_currChannel = this->_server.getChannelByName(this->_splitCmd[1]);
 		}
-		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER));
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
 	}
 	std::string channel_name = this->_splitCmd[1];
 	channel_name.erase(channel_name.find_last_not_of(" \n\r\t") + 1);
 	this->_currChannel = this->_server.getChannelByName(channel_name);
 	if (!this->_currChannel)
-		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER));
+		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER, 0));
 	if (!this->_currChannel->isUserInChannel(this->_user))
-		return (this->sendResponse(ERR_NOTONCHANNEL, MOD_USER));
+		return (this->sendResponse(ERR_NOTONCHANNEL, MOD_USER, 0));
 	if (!this->_currChannel->isOp(this->_user))
-		return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER));
+		return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER, 0));
 	
 	std::string	comment = "";
 	if (this->_splitCmd.size() > 3)
@@ -123,7 +123,7 @@ void Command::commandKick()
 		User *deleteUser = this->_server.getUserByNick(nicks[i]);
 		if (!this->_currChannel->isUserInChannel(*deleteUser))
 		{
-			this->sendResponse(ERR_USERNOTINCHANNEL, MOD_USER);
+			this->sendResponse(ERR_USERNOTINCHANNEL, MOD_USER, 0);
 			continue ;
 		}
 		if (comment.empty())
@@ -145,14 +145,18 @@ void Command::commandKick()
  *	- Check if command user is currently in channel or admin if invite only
  *	- Check if invite target user is already in channel
  *	- Check if channel is full
- *	- Of all checks passed, add user to channel
+ *	- Of all checks passed, add user to channel with this PROCESS:
+ *		Send INVITE + RPL_INVITING response
+ * 		targetUser - this->_server.addUserToChannel
+ *		JOIN msg broadcasted to channel, indicating that target user has joined
+ *		Topic (if it exists) and user list are sent to the invited user
  */
 void Command::commandInvite()
 {
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
 	if (this->_splitCmd.size() < 3)
-		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER));
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
 	
 	std::string	nick = this->_splitCmd[1];
 	std::string	channel_name = this->_splitCmd[2];
@@ -161,27 +165,40 @@ void Command::commandInvite()
 	this->_currChannel = this->_server.getChannelByName(channel_name);
 	
 	if (!this->_currChannel || this->_currChannel->getUsersInChannel() < 1)
-		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER));
+		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER, 0));
 	if (!this->_currChannel->isUserInChannel(this->_user))
-		return (this->sendResponse(ERR_NOTONCHANNEL, MOD_USER));
+		return (this->sendResponse(ERR_NOTONCHANNEL, MOD_USER, 0));
 	if (this->_currChannel->getInviteMode() && !this->_currChannel->isOp(this->_user))
-		return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER));
+		return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER, 0));
 
 	User *invitedUser = this->_server.getUserByNick(nick);
 	if (!invitedUser)
 	{
 		this->_errorMsg = ":User does not exists";
-		return (this->sendResponse(ERR_CUSTOM_CHANNEL, MOD_USER));
+		return (this->sendResponse(ERR_CUSTOM_CHANNEL, MOD_USER, 0));
 	}
 	if (this->_currChannel->isUserInChannel(*invitedUser))
-		return (this->sendResponse(ERR_USERONCHANNEL, MOD_USER));
+		return (this->sendResponse(ERR_USERONCHANNEL, MOD_USER, 0));
 	if (this->_currChannel->channelIsFull())
 	{
 		this->_errorMsg = ":Channel is full";
-		return (this->sendResponse(ERR_CUSTOM_CHANNEL, MOD_USER));
+		return (this->sendResponse(ERR_CUSTOM_CHANNEL, MOD_USER, 0));
 	}
+	std::string	invite_msg = ":" + this->_user.getNick() + " INVITE " + invitedUser->getNick() + " :" + channel_name;
+	this->_server.messageToClient(this->_msg, this->_user, *invitedUser);
+	this->sendResponse(RPL_INVITING, MOD_USER, 0);
+	
 	this->_server.addUserToChannel(channel_name, *invitedUser);
-	return (this->sendResponse(RPL_INVITING, MOD_USER));
+	std::string	join_msg = "JOIN :" + channel_name;
+	this->_currChannel->broadcastMessage(join_msg, *invitedUser, 1);
+
+	if(!this->_currChannel->getTopic().empty())
+	{
+		this->sendResponse(RPL_TOPIC, MOD_USER, invitedUser->getFd());
+		this->sendResponse(RPL_TOPICWHOTIME, MOD_USER, invitedUser->getFd());
+	}
+	this->sendResponse(RPL_NAMREPLY, MOD_USER, invitedUser->getFd());
+	this->sendResponse(RPL_ENDOFNAMES, MOD_USER, invitedUser->getFd());
 }
 
 /**
@@ -238,28 +255,28 @@ void Command::commandTopic()
 	size_t						ac = cmd_args.size();
 
 	if (ac == 1)
-		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER));
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
 	
 	this->_currChannel = this->_server.getChannelByName(cmd_args[1]);
 	if (!this->_currChannel)
-		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER));
+		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER, 0));
 	if (!this->_currChannel->isUserInChannel(this->_user))
-		return (this->sendResponse(ERR_NOTONCHANNEL, MOD_USER));
+		return (this->sendResponse(ERR_NOTONCHANNEL, MOD_USER, 0));
 	
 	if (ac == 2)
 	{
 		if (this->_currChannel->getTopic().empty())
-			this->sendResponse(RPL_NOTOPIC, MOD_USER);
+			this->sendResponse(RPL_NOTOPIC, MOD_USER, 0);
 		else
 		{
-			this->sendResponse(RPL_TOPIC, MOD_USER);
-			this->sendResponse(RPL_TOPICWHOTIME, MOD_USER);
+			this->sendResponse(RPL_TOPIC, MOD_USER, 0);
+			this->sendResponse(RPL_TOPICWHOTIME, MOD_USER, 0);
 		}
 	}
 	else
 	{
 		if (this->_currChannel->getTopicMode() && !this->_currChannel->isOp(this->_user))
-			return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER));
+			return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER, 0));
 		std::string	new_topic = "";
 		for (size_t i = 2; i < ac; i++)
 		{

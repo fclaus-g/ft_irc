@@ -18,6 +18,7 @@ enum command
 	INVITE,
 	TOPIC,
 	MODE,
+	WHO,
 	TOTAL
 };
 
@@ -40,7 +41,7 @@ class Command
 		bool 						checkCmd(int userFd);
 		void						runCmd(int userFd, int key);
 		void						kickNonAuthenticatedUser(int userFd);
-		void						sendResponse(int code, int mode);
+		void						sendResponse(int code, int mode, int fd);
 		std::string					composeResponse(int code);
 		std::vector<std::string>	splitMessage(const std::string &msg, char delim);
 		void 						printVector(const std::vector<std::string> args);
@@ -55,6 +56,7 @@ class Command
 		void 						commandQuit();
 		void 						commandTopic();
 		void 						commandMode();
+		void						cmdWho();
 };
 
 #endif

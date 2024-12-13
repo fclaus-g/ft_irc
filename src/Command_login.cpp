@@ -9,10 +9,10 @@
 void	Command::cmdPass()
 {
 	if (this->_user.getAuthenticated())
-		return (this->sendResponse(ERR_ALREADYREGISTERED, MOD_USER));
+		return (this->sendResponse(ERR_ALREADYREGISTERED, MOD_USER, 0));
 	if (this->_splitCmd.size() < 2)
 	{
-		this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER);
+		this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0);
 		this->_server.setReadMsg(false);
 		return (this->_server.deleteUser(this->_user.getFd()));
 	}
@@ -23,7 +23,7 @@ void	Command::cmdPass()
 	{
 		std::cout << "New connection with socket fd " << this->_user.getFd() << " tried to login with wrong password" << std::endl;
 		std::cout << RED << "Connection rejected and socket closed" << RES << std::endl;
-		this->sendResponse(ERR_PASSWDMISMATCH, MOD_USER);
+		this->sendResponse(ERR_PASSWDMISMATCH, MOD_USER, 0);
 		this->_server.setReadMsg(false);
 		return (this->_server.deleteUser(this->_user.getFd()));
 	}
@@ -45,7 +45,7 @@ void	Command::cmdNick()
 
 	if (this->_splitCmd.size() < 2)
 	{
-		this->sendResponse(ERR_NONICKNAMEGIVEN, MOD_USER);
+		this->sendResponse(ERR_NONICKNAMEGIVEN, MOD_USER, 0);
 		if (!this->_user.getLoginStat())
 		{
 			this->_server.setReadMsg(false);
@@ -59,7 +59,7 @@ void	Command::cmdNick()
 	nick.erase(nick.find_last_not_of(" \r\t\n") + 1);
 	if (nick.find_first_of(" #:!@*") == 0 || std::isdigit(nick[0]))
 	{
-		this->sendResponse(ERR_ERRONEUSNICKNAME, MOD_USER);
+		this->sendResponse(ERR_ERRONEUSNICKNAME, MOD_USER, 0);
 		if (!this->_user.getLoginStat())
 		{
 			this->_server.setReadMsg(false);
@@ -70,7 +70,7 @@ void	Command::cmdNick()
 	User *aux = this->_server.getUserByNick(nick);
 	if (aux != NULL && this->_user.getNick() != nick)
 	{
-		this->sendResponse(ERR_NICKNAMEINUSE, MOD_USER);
+		this->sendResponse(ERR_NICKNAMEINUSE, MOD_USER, 0);
 		if (!this->_user.getLoginStat())
 		{
 			this->_server.setReadMsg(false);
@@ -106,9 +106,9 @@ void Command::cmdUser()
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
 	if (this->_user.getLoginStat())
-		return (this->sendResponse(ERR_ALREADYREGISTERED, MOD_USER));
+		return (this->sendResponse(ERR_ALREADYREGISTERED, MOD_USER, 0));
 	if (this->_splitCmd.size() < 2 || this->_splitCmd[1].size() == 0)
-		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER));
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
 
 	std::string	user = this->_splitCmd[1];
 	user.erase(user.find_last_not_of(" \r\t\n") + 1);

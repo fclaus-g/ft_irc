@@ -33,6 +33,7 @@ void	Command::_initCommands()
 	this->_commands[8] = "INVITE";
 	this->_commands[9] = "TOPIC";
 	this->_commands[10] = "MODE";
+	this->_commands[11] = "WHO";
 }
 
 /**
@@ -104,6 +105,9 @@ void	Command::runCmd(int userFd, int key)
 			commandTopic();
 			break;
 		case MODE:
+			break;
+		case WHO:
+			cmdWho();
 			break;
 		default:
 			break;

@@ -9,16 +9,20 @@
  * @var detail is the specific message for each response code
  * @param code the response code to be checked later in the response enum
  * @param mode value to send the response in different ways
+ * @param fd if != 0, set the specific socketFd to send the response
  * 		MOD_CAST(1) - send response to all but the user that executed the command
  * 		MOD_ALL(2) - send response to all users including the one executing the command
  * 		MOD_USER(0) or ANY - send response ONLY to the user executing the command
  */
-void	Command::sendResponse(int code, int mode)
+void	Command::sendResponse(int code, int mode, int fd)
 {
 	std::string	response = ":" + this->_server.getName() + " " + toString(code);
 	std::string	detail = this->composeResponse(code);
 	response.append(detail);
-	if (mode == MOD_CAST)
+	std::cout << "Message for response: " << response << std::endl;
+	if (fd != 0)
+		send(fd, response.c_str(), response.size(), 0);
+	else if (mode == MOD_CAST)
 	{
 		std::map<User*, bool>				users = this->_currChannel->getUsers();
 		std::map<User *, bool>::iterator	i;
@@ -37,7 +41,6 @@ void	Command::sendResponse(int code, int mode)
 	}	
 	else
 		send(this->_user.getFd(), response.c_str(), response.size(), 0);
-	std::cout << "Message for response: " << response << std::endl;
 }
 
 /**
@@ -53,6 +56,9 @@ std::string	Command::composeResponse(int code)
 		case ERR_CUSTOM_CHANNEL:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_errorMsg + "\r\n";
 			break;
+		case RPL_ENDOFWHO:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :End of /WHO list.\r\n";;
+			break;
 		case RPL_NOTOPIC:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :No topic is set\r\n";
 			break;
@@ -64,6 +70,9 @@ std::string	Command::composeResponse(int code)
 			break;
 		case RPL_INVITING:
 			detail = " " + this->_user.getNick() + " " + this->_splitCmd[1] + " " + this->_currChannel->getName() + "\r\n";
+			break;
+		case RPL_WHOREPLY:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_errorMsg;
 			break;
 		case RPL_NAMREPLY:
 			detail = " " + this->_user.getNick() + " = " + this->_currChannel->getName() + " :" + this->_currChannel->getUsersChannelStr() + "\r\n";
