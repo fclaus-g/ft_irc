@@ -14,6 +14,7 @@ Server::Server(int port, std::string password)
 	this->_isRunning = false;
 	this->_serverFd = -1;
 	this->_message = "";
+	this->_readMsg = true;
 }
 
 Server::~Server()
@@ -59,4 +60,10 @@ std::vector<Channel *>	&Server::getChannels()
 std::map<std::string, Channel *>	&Server::getChannelsMap()
 {
     return (_channelsMap);
+}
+
+
+void	Server::setReadMsg(bool state)
+{
+	this->_readMsg = state;
 }

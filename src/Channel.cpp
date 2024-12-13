@@ -44,11 +44,9 @@ bool Channel::isValidChannelName(const std::string& name)
 }
 /*-----------------------[METHODS]------------------------*/
 /**
- * @brief add a user to the channel before checking if the user is already in the channel
- * - If the user is already in the channel, send a message to the user
- * - If the channel is full, send a message to the user
- * TODO: if channel is full must send a message ERR_CHANNELISFULL to the client
- * @param user 
+ * @brief Add a user to a channel
+ * xTODO: change @127.0.0.1 for actual host getter if needed, remove it if not needed
+ * TODO: isUserInChannel check done twice, once before calling function and another in it
  */
 void Channel::addUserChannel(User& user)
 {
@@ -69,7 +67,7 @@ void Channel::addUserChannel(User& user)
 	{
 		this->_usersInChannel++;
 		this->_usersMap[&user] = false;
-		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@127.0.0.1 JOIN :" + this->getName() + "\n";
+		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + " " + user.getLocalHost() + " " + this->getName() + "\n";
 		send(user.getFd(), msg.c_str(), msg.length(), 0);
 	}
 }
@@ -126,6 +124,7 @@ void Channel::addOpChannel(User& user)
  * @param command_msg the message to be sent formatted as irc protocol needs
  * @param userFd the user file descriptor to avoid sending the message to the sender
  * TODO: later, check each user for bans, mutes, etc before sending the message
+ * TODO: if @localhost is needed and working correclty in all cases, change it for a getter
  */
 void Channel::broadcastMessage(const std::string& message, User &sender, int mode)
 {
@@ -133,7 +132,7 @@ void Channel::broadcastMessage(const std::string& message, User &sender, int mod
 	std::string							command_msg;
 
 	command_msg.clear();
-	command_msg = ":" + sender.getNick() + "!" + sender.getUserName() + " " + message + "\r\n";
+	command_msg = ":" + sender.getNick() + "!" + sender.getUserName() + "@" + sender.getHost() + " " + message + "\r\n";
 	for (i = this->_usersMap.begin(); i != this->_usersMap.end(); ++i)
 	{
 		if (i->first->getFd() == sender.getFd() && mode == 0)
