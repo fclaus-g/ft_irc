@@ -1,5 +1,6 @@
 
 #include "ft_irc.hpp"
+
 /*
 IRC usa una serie de códigos numéricos para indicar el estado de los comandos. Para JOIN, estos son algunos de los mensajes que deberás enviar desde el servidor al cliente:
 

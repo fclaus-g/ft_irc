@@ -143,22 +143,22 @@ void	Server::msgHandler(int socketFd)
 	this->_readMsg = true;
 	if (!readFromSocket(socketFd, this->_message))
 		return (deleteUser(socketFd));
-	std::cout << "Hexchat raw message -> " << this->_message << std::endl;
+	//std::cout << "Client raw message -> " << this->_message << std::endl;
+	this->_message = this->getUserByFd(socketFd)->bufferFilter(this->_message);
 	while (!this->_message.empty() && this->_readMsg)
 	{
+		//std::cout << "Client 'ready to exe' message -> " << this->_message << std::endl;
 		std::string	cmd_msg = "";
 		size_t		pos = this->_message.find("\r\n");
 		if (pos != std::string::npos)
 		{
 			cmd_msg = this->_message.substr(0, pos);
 			this->_message.erase(0, pos + 2);
-			//std::cout << "Going to launch cmd_msg -> " << cmd_msg << std::endl;
 			Command	cmd(socketFd, cmd_msg, *(this->_users[socketFd]), *(this));
 			cmd.checkCmd(socketFd);
 		}
 		else
 		{
-			//std::cout << "Going to launch server _message -> " << this->_message << std::endl;
 			Command	cmd(socketFd, this->_message, *(this->_users[socketFd]), *(this));
 			cmd.checkCmd(socketFd);
 			this->_message.clear();

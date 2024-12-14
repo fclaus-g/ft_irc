@@ -100,3 +100,24 @@ std::string	User::getHostName() const
 		return "";
 	}
 }
+
+/**
+ * @brief Aux fuction to handle the incomplete read messages issue
+ * 	Will always append the read message from socket to the user buffer, if there is
+ * 	at least one '\n' char on the buffer after append, clear the buffer and return 
+ * 	it's content; otherwise return empty string to avoid executing command in msgHandler
+ * 	and keep buffer to complete it later
+ * @param readMsg the content previously read in readFromSocket
+ * @return std::string the content of previous buffer + read message
+ */
+std::string	User::bufferFilter(std::string readMsg)
+{
+	std::string	ret_str = "";
+	this->_buffer.append(readMsg);
+	if (this->_buffer.find('\n') != std::string::npos)
+	{
+		ret_str.append(this->_buffer);
+		this->_buffer.clear();
+	}
+	return (ret_str);
+}

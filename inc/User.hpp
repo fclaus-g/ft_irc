@@ -43,6 +43,7 @@ class User
 		void					addChannelToList(Channel *channel);
 		void					delChannelFromList(Channel *channel);
 		std::string				getHostName() const;
+		std::string				bufferFilter(std::string readMsg);
 };
 
 std::ostream& operator<<(std::ostream& out, const User& user);
