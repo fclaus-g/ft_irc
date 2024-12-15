@@ -1,156 +1,169 @@
 #include "ft_irc.hpp"
 
-bool	isModeValid(char m)
+void execModes(const char mode, const char sign, Channel *channel, User* user)
 {
-	std::string validModes = "itokl";
+	(void)user;
 
-	if (validModes.find(m) == std::string::npos)
-		return (false);
-	return (true);
-}
-
-bool	isASign(char s)
-{
-	switch (s)
+	switch (mode)
 	{
-	case '+':
-	case '-':
-		return (true);
-		break;
-	
-	default:
-		return (false);
-		break;
+		case 'i':// channel is invite only
+			if (sign == '+')
+			{
+				std::cout << "Setting channel as private" << std::endl;
+				if (!channel->getInviteMode())
+				{
+					std::cout << "Setting channel as private" << std::endl;
+					channel->setInviteMode(true);
+					//RPL_CHANNELMODEIS (324)
+				}
+			}
+			else if (sign == '-')
+			{
+				if (channel->getInviteMode())
+				{
+					channel->setInviteMode(false);
+					//RPL_CHANNELMODEIS (324)
+				}
+			}
+			break;
+		case 'k':// channel has a key
+			if (sign == '+')
+			{
+				if (!channel->getKeyMode())
+				{
+					channel->setKeyMode(true);
+					//RPL_CHANNELMODEIS (324)
+				}
+			}
+			else if (sign == '-')
+			{
+				if (channel->getKeyMode())
+				{
+					channel->setKeyMode(false);
+					//RPL_CHANNELMODEIS (324)
+				}
+			}
+			break;
+		case 'l':// channel has a user limit
+			if (sign == '+')
+			{
+				if (!channel->getUsersLimit())
+				{
+					//channel->setUsersLimit(10); NECESITA PARAMETRO
+					//RPL_CHANNELMODEIS (324)
+				}
+			}
+			else if (sign == '-')
+			{
+				if (channel->getUsersLimit())
+				{
+					channel->setUsersLimit(-1);
+					//RPL_CHANNELMODEIS (324)
+				}
+			}
+			break;
+		/* code */
+			break;
+		case 'o':
+		/* code */
+			break;
+		case 't':
+		/* code */
+			break;
+		default:
+			break;
 	}
 }
-
-bool	needParam(char m)
+void Command::cmdMode()
 {
-	switch (m)
+	if (!this->_user.getAuthenticated())
+		return (kickNonAuthenticatedUser(this->_user.getFd()));
+	std::vector<std::string> args = splitMessage(this->_msg, ' ');
+	printVector(args);
+	if (args.size() < 2)
 	{
-	case 'l':
-	case 'k':
-	case 'o':
-		return (true);
-		break;
-	
-	default:
-		return (false);
-		break;
+		//ERR_NEEDMOREPARAMS (461)
+		return;
 	}
-}
-
-void	readModes(std::vector<std::string> const args, std::vector<std::string> &m, std::vector<std::string> &p)
-{
-	std::string modeArg;
-	size_t		argCount;
-
-	argCount = args.size();
-	for (size_t index = 2; index < argCount; index++)
+	if (args.size() == 2)
 	{
-		modeArg = args[index];
-		if (modeArg.length() > 0 && isASign(modeArg[0]))
-		{
-			if (modeArg.length() == 2)
-				m.push_back(modeArg);
-		}
-		else if (modeArg.length() > 0)
-			p.push_back(modeArg);
+		//RPL_CHANNELMODEIS (324)
+		//RPL_CREATIONTIME (329)
+		return;
 	}
-}
-
-//////////////////////////////DEBUG FUNCTIONS////////////////////
-
-void	ftShowVector(std::string msg, std::vector<std::string> &v, size_t index)
-{
-	for (size_t i = index; i < v.size(); i++)
-		std::cout << msg << ": " << v[i] << std::endl;
-}
-
-/**
-* @brief Command to change channel/user modes - not implemented yet
-* (!) Moved to its own .cpp file to keep the code organized, will add here all related aux functions
-*/
-void Command::commandMode(/*User user*/)
-{
-	/*
-	/MODE canal [modestring [modearguments]]
-	
-	modestring 	= 1*( modeset )
-	modeset 	= plusminus *( modechar )
-	plusminus	= %x2B / %x2D
-				; + or -
-	modechar = ALPHA
-	modearguments : argumentos de la opción (no todas tienen)
-	
-	Example:
-	/MODE #canal +i				-> establece el canal como privado
-	/MODE #canal +k password	-> establece la contraseña especificada al canal
-	/MODE #canal -k				-> elimina la contraseña del canal 
-
- 	*/
-
- 	std::vector<std::string> args;
-	std::vector<std::string> modes;
-	std::vector<std::string> params;
-	std::string channelName;
-	size_t	argCount;
-
-	//obtenemos el nombre del canal
-	args = ft_split(this->_msg);
-	argCount = args.size();
-	//std::cout << "DEBUG. Argument count: " << argCount << std::endl; 
-	
-	//DEBUG
-	ftShowVector("Args comando MODE", args, 2);
-	//FIN DEBUG
-	if (argCount < 2)
-	{
-		/*
-		No hay suficientes argumentos
-		*/
-		std::cout << "DEBUG: Faltan parámetros en MODE\n";
-		return ;
-	}
-	channelName = args[1];
+	std::string channelName = args[1];
 	Channel *channel = this->_server.getChannelByName(channelName);
 	if (!channel)
 	{
-		/*
-		Devolver respuesta ERR_NOSUCHCHANNEL al cliente
-		*/
-		std::cout << "DEBUG: No existe el canal\n";
-		return ;
-	}	
-	if (argCount == 2)
-	{
-		/*
-		Enviar mensaje RPL_CHANNELMODEIS al cliente con los modos actuales del canal
-		Opcionalmente enviar mensaje RPL_CREATIONTIME tras el anterior
-		*/
-
-		std::cout << "DEBUG: MODE sin parámetros:\n";
-		std::cout << "FIN DEBUG\n";
-		return ;
+		//ERR_NOSUCHCHANNEL (403)
+		return;
 	}
-	else
+	//chequear si el name es correcto y si el canal existe
+	//chequear si el usuario es admin
+	if (!channel->isOp(this->_user))
 	{
-		// Si el usuario no es admin no hacer nada
-		if (!channel->isOp(this->_user))
+		//ERR_CHANOPRIVSNEEDED (482)
+		return;
+	}
+	std::vector<std::string> modes;
+	std::vector<std::string> params;
+	for (size_t i = 2; i < args.size(); i++)
+	{
+		if (args[i][0] == '+' || args[i][0] == '-')
+			modes.push_back(args[i]);
+		else
+			params.push_back(args[i]);
+	}
+	std::cout << "Modes:" << std::endl;
+	printVector(modes);
+	std::cout << "Params:" << std::endl;
+	printVector(params);
+		size_t paramIndex = 0;
+	for (size_t i = 0; i < modes.size(); ++i)
+	{
+		char sign = modes[i][0];
+		for (size_t j = 1; j < modes[i].size(); ++j)
 		{
-			/*
-			Devolver respuesta ERR_CHANOPRIVSNEEDED al cliente
-			*/
-			std::cout << "DEBUG: El usuario no es operador del canal\n";
-			return ;
+			char mode = modes[i][j];
+			std::cout << "Setting mode " << mode << " to channel " << channelName << std::endl;
+			if (sign == '+')
+			{
+				if (mode == 'i')
+				{
+					std::cout << "Setting channel as invite-only" << std::endl;
+					channel->setInviteMode(true);
+				}
+				else if (mode == 'o' && paramIndex < params.size())
+				{
+					std::string userNick = params[paramIndex++];
+					User *user = this->_server.getUserByNick(userNick);
+					if (user)
+					{
+						std::cout << "Setting user " << userNick << " as operator" << std::endl;
+						//channel->addOpChannel(user);
+					}
+				}
+				// Agrega más modos según sea necesario
+			}
+			else if (sign == '-')
+			{
+				if (mode == 'i')
+				{
+					std::cout << "Removing invite-only mode from channel" << std::endl;
+					channel->setInviteMode(false);
+				}
+				else if (mode == 'o' && paramIndex < params.size())
+				{
+					std::string userNick = params[paramIndex++];
+					User *user = this->_server.getUserByNick(userNick);
+					if (user)
+					{
+						std::cout << "Removing operator status from user " << userNick << std::endl;
+						//channel->removeOperator(user);
+					}
+				}
+				// Agrega más modos según sea necesario
+			}
 		}
-		// Parsear el resto del mensaje para obtener los modos a cambiar
-		readModes(args, modes, params);
-
-		//Vemos lo que hemos parseado
-		ftShowVector("DEBUG: Modos de MODE", modes, 0);
-		ftShowVector("DEBUG: Parámetros de MODE", params, 0);
-		std::cout << "FIN DEBUG\n";
 	}
-	
 }

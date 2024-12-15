@@ -55,7 +55,7 @@ class Command
 		void 						commandInvite();
 		void 						commandQuit();
 		void 						commandTopic();
-		void 						commandMode();
+		void 						cmdMode();
 		void						cmdWho();
 };
 

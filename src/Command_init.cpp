@@ -105,6 +105,7 @@ void	Command::runCmd(int userFd, int key)
 			commandTopic();
 			break;
 		case MODE:
+			cmdMode();
 			break;
 		case WHO:
 			cmdWho();
