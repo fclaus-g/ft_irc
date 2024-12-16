@@ -13,6 +13,7 @@ Channel::Channel()
 	this->_topic = "";
 	this->_topicTimeStamp = "";
 	this->_topicCreator = "";
+	this->_modeStr = "";
 }
 
 Channel::Channel(const std::string& name)
@@ -27,6 +28,7 @@ Channel::Channel(const std::string& name)
 	this->_topic = "";
 	this->_topicTimeStamp = "";
 	this->_topicCreator = "";
+	this->_modeStr = "";
 }
 
 Channel::~Channel()
@@ -141,4 +143,9 @@ const std::string&	Channel::getTimeStamp() const
 const std::string&	Channel::getTopicCreator() const
 {
 	return (this->_topicCreator);
+}
+
+const std::string Channel::getModeStr() const
+{
+	return this->_modeStr;
 }

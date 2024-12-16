@@ -17,6 +17,7 @@ class Channel
 		std::string				_password;
 		std::string 			_topicTimeStamp;
     	std::string 			_topicCreator;
+		std::string				_modeStr;
 	public:
 		Channel();
 		Channel(const std::string& name);
@@ -27,6 +28,7 @@ class Channel
 		const std::string&				getTopic() const;
 		const std::string&				getTimeStamp() const;
 		const std::string&				getTopicCreator() const;
+		const std::string				getModeStr() const;
 		const std::string				getUsersChannelStr() const;
 		const std::string				getPassword() const;
 		const std::map<User*, bool>&	getUsers() const;
@@ -56,6 +58,7 @@ class Channel
 		void							sendTopicMessage(User& user);
 		void							addOpChannel(User& user);
 		void							updateTopic(const std::string &topic, const std::string &userNick);
+		void							updateMode(char mode, int op);
 };
 
 std::ostream& operator<<(std::ostream& out, const Channel& channel);

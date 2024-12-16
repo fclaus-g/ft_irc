@@ -167,6 +167,30 @@ void	Channel::updateTopic(const std::string &topic, const std::string &userNick)
 	this->_topicTimeStamp = time_string.str();
 }
 
+/**
+ * @brief Aux function to update channel mode when command is executed
+ * 	Checks if the mode is being added or removed and updates the mode string
+ */
+void Channel::updateMode(char mode, int op)
+{
+	if (op == 0)
+	{
+		if (this->_modeStr.empty())
+			this->_modeStr = "+";
+		if (this->_modeStr.find(mode))
+			return;
+		this->_modeStr += mode;
+	}
+	else
+	{
+		if (!this->_modeStr.find(mode))
+			return;
+		this->_modeStr.erase(this->_modeStr.find(mode), 1);
+		if (this->_modeStr.size() == 1 && this->_modeStr[0] == '+')
+			this->_modeStr = "";
+	}
+}
+
 void Channel::setName(const std::string& name)
 {
 	this->_name = name;
