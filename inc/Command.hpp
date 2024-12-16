@@ -33,6 +33,10 @@ class Command
 		Server						&_server;
 		Channel						*_currChannel;
 		std::vector<std::string>	_splitCmd;
+		std::vector<std::string>	_modes;
+		std::vector<std::string>	_params;
+		size_t 						_paramCount;
+
     public:
 		Command(int socketFd, const std::string msg, User &user, Server &server);
 		~Command();
@@ -44,6 +48,7 @@ class Command
 		std::string					composeResponse(int code);
 		std::vector<std::string>	splitMessage(const std::string &msg, char delim);
 		void 						printVector(const std::vector<std::string> args);
+		void 						execMode(const char sign, const char mode);
 		//Commands methods
 		void 			cmdNick();
 		void 			cmdPass();

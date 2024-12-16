@@ -13,6 +13,9 @@ Command::Command(int socketFd, const std::string msg, User &user, Server &server
 	this->_currChannel = NULL;
 	this->_errorMsg = "";
 	this->_splitCmd = ft_split(msg);
+	this->_modes = NULL;
+	this->_params = NULL;
+	this->_paramCount = 0;
 	this->_initCommands();
 }
 
