@@ -31,7 +31,7 @@ std::vector<std::string> ft_split(std::string message)
 	std::string	token;
 
 	//  Quitamos los caracteres especiales al mensaje y los sustituimos por
-	// un espacio para que la función ft_split no tenga problemas
+	// un espacio para que la función ft_split no tenga problemas ¿mejor while?
 	if (message.find('\n') != std::string::npos)
 		message.at(message.find('\n')) = ' ';
 	if (message.find('\r') != std::string::npos)
@@ -177,6 +177,125 @@ void Command::commandMode(/*User user*/)
 		ftShowVector("DEBUG: Modos de MODE", modes, 0);
 		ftShowVector("DEBUG: Parámetros de MODE", params, 0);
 		std::cout << "FIN DEBUG\n";
+
+		char sign;
+		char mode;
+		for (size_t i = 0; i < modes.size(); i++)
+		{
+			sign = modes[i].at(0);
+			mode = modes[i].at(1);
+			if (!isASign(sign) || !isModeValid(mode))
+			{
+				// invalid mode
+				continue ;
+			}
+			switch (mode)
+			{
+				case 'i':
+					switch (sign)
+					{
+						case '+':
+							channel->setInviteMode(true);
+							break;
+						case '-':
+							channel->setInviteMode(false);
+							break;
+						default:
+							break;
+					}
+					break;
+				
+				case 't':
+					switch (sign)
+					{
+						case '+':
+							channel->setTopicMode(true);
+							break;
+						case '-':
+							channel->setTopicMode(false);
+							break;
+						default:
+							break;
+					}
+					break;
+				
+				case 'o':
+					switch (sign)
+					{
+						case '+':
+						{
+							if (this->_user.getNick() == params[i])
+								break ;
+							User *newUser = this->_server.getUserByNick(params[i]);
+							if (channel->isUserInChannel(*newUser))
+								channel->addOpChannel(*newUser);
+							else
+								//Mensaje no existe el usuario
+								break ;
+							break;
+						}
+						
+						case '-':
+						{
+							if (this->_user.getNick() == params[i])
+								break ;
+							User *newUser = this->_server.getUserByNick(params[i]);
+							if (channel->isUserInChannel(*newUser))
+								channel->removeUserChannel(*newUser); // debe ser removeOpChannel, pero no existe
+							else
+								//Mensaje no existe el usuario
+								break ;
+							break;
+						}
+						default:
+							break;
+					}
+					break;
+
+				case 'k':
+					switch (sign)
+					{
+						case '+':
+							if (!params[i].empty())
+							{
+								channel->setKeyMode(true);
+								channel->setPassword(params[i]);
+							}
+							else
+								continue ;
+							break;
+						case '-':
+							channel->setKeyMode(false);
+							channel->setPassword("");
+							break;
+						default:
+							break;
+					}
+					break;
+
+				case 'l':
+					switch (sign)
+					{
+						case '+':
+							int nbr;
+							nbr = std::atoi(params[i].c_str());
+							if (nbr < 0 && nbr > channel->getUsersLimit())
+								continue ;
+							else
+								channel->setUsersLimit(nbr);
+							break;
+						case '-':
+							channel->setUsersLimit(channel->getUsersLimit());
+							break;
+						default:
+							break;
+					}
+					break;
+
+				default:
+				break;
+			}
+		}
 	}
 	
 }
