@@ -50,14 +50,28 @@ void	Command::sendResponse(int code, int mode, int fd)
  */
 std::string	Command::composeResponse(int code)
 {
-	std::string	detail = "";
+	std::string			detail = "";
+	std::stringstream	limit_str;
+
+	if (this->_currChannel->getUsersLimit() > 0)
+		limit_str << this->_currChannel->getUsersLimit();
+	
 	switch (code)
 	{
 		case ERR_CUSTOM_CHANNEL:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_errorMsg + "\r\n";
 			break;
 		case RPL_ENDOFWHO:
-			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :End of /WHO list.\r\n";;
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :End of /WHO list.\r\n";
+			break;
+		case RPL_CHANNELMODEIS:
+			if (this->_currChannel->isOp(this->_user))
+				detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_currChannel->getModeStr() + " " + this->_currChannel->getPassword() + " " + limit_str.str() + "\r\n";
+			else
+				detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_currChannel->getModeStr() + " " + limit_str.str() + "\r\n";
+			break;
+		case RPL_CREATIONTIME:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_currChannel->getCreationTime() + "\r\n";
 			break;
 		case RPL_NOTOPIC:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :No topic is set\r\n";
@@ -111,7 +125,10 @@ std::string	Command::composeResponse(int code)
 				detail = " " + this->_user.getNick() + " " + this->_splitCmd[1] + " :Nickname is already in use\r\n";
 			break;
 		case ERR_USERNOTINCHANNEL:
-			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[2]+ " :They aren't on that channel\r\n";
+			if (!this->_errorMsg.empty())
+				detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_errorMsg + " :User is not in channel\r\n";
+			else
+				detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[2] + " :They aren't on that channel\r\n";
 			break;
 		case ERR_NOTONCHANNEL:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :You're not on that channel\r\n";
@@ -120,7 +137,9 @@ std::string	Command::composeResponse(int code)
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[1] + " :is already on channel\r\n";
 			break;
 		case ERR_NEEDMOREPARAMS:
-			if (this->_currChannel)
+			if (!this->_errorMsg.empty())
+				detail = " " + this->_user.getNick() + " " + this->_splitCmd[0] + this->_errorMsg + " :Not enough parameters\r\n";
+			else if (this->_currChannel)
 				detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[0] + " :Not enough parameters\r\n";
 			else	
 				detail = " " + this->_user.getNick() + " " + this->_splitCmd[0] + " :Not enough parameters\r\n";
@@ -138,13 +157,16 @@ std::string	Command::composeResponse(int code)
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Cannot join channel (+i)\r\n";
 			break;
 		case ERR_BADCHANNELKEY:
-			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Cannot join channel (+k)\r\n";
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Incorrect channel key (+k)\r\n";
 			break;
 		case ERR_BADCHANMASK:
 			detail = " " + this->_errorMsg + " :Bad Channel Mask\r\n";
 			break;
 		case ERR_CHANOPRIVSNEEDED:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :You're not channel operator\r\n";
+			break;
+		case ERR_UMODEUNKNOWNFLAG:
+			detail = " " + this->_user.getNick() + " :Unknown MODE flag: " + this->_errorMsg + "\r\n";
 			break;
 		default:
 			break;

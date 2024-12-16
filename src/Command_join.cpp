@@ -1,46 +1,6 @@
 
 #include "ft_irc.hpp"
 
-/*
-IRC usa una serie de códigos numéricos para indicar el estado de los comandos. Para JOIN, estos son algunos de los mensajes que deberás enviar desde el servidor al cliente:
-
-001 (RPL_WELCOME): Al usuario al conectarse al servidor.
-332 (RPL_TOPIC): Devuelve el tema del canal si tiene uno.
-353 (RPL_NAMREPLY): Muestra la lista de usuarios en el canal.
-366 (RPL_ENDOFNAMES): Indica el fin de la lista de usuarios.*/
-/*  JOIN #foobar                    ; join channel #foobar.
-
-  JOIN &foo fubar                 ; join channel &foo using key "fubar".
-
-  JOIN #foo,&bar fubar            ; join channel #foo using key "fubar"
-								  and &bar using no key.
-
-  JOIN #foo,#bar fubar,foobar     ; join channel #foo using key "fubar".
-								  and channel #bar using key "foobar".
-
-  JOIN #foo,#bar                  ; join channels #foo and #bar.
-Para ejecutar el join se debe enviar un mensaje al servidor con el siguiente formato:
-*/
-
-void Command::printVector(const std::vector<std::string> args)
-{
-	std::cout << "Printing vector" << std::endl;
-	for (size_t i = 0; i < args.size(); i++)
-	{
-		std::string formattedString;
-		for (size_t j = 0; j < args[i].size(); j++)
-		{
-			if (args[i][j] == '\n')
-				formattedString += "\\n";
-			else if (args[i][j] == '\r')
-				formattedString += "\\r";
-			else
-				formattedString += args[i][j];
-		}
-		std::cout << formattedString << std::endl;
-	}
-}
-
 /**
  * @brief Command to join a channel
  * 	- if the user is not authenticated, kick the user

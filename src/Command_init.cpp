@@ -12,7 +12,9 @@ Command::Command(int socketFd, const std::string msg, User &user, Server &server
 {
 	this->_currChannel = NULL;
 	this->_errorMsg = "";
+	this->_unknowFlags = "";
 	this->_splitCmd = ft_split(msg);
+	this->_paramCount = 0;
 	this->_initCommands();
 }
 
@@ -146,4 +148,23 @@ std::vector<std::string> Command::splitMessage(const std::string &msg, char deli
 			args.push_back(word);
 	}
 	return args;
+}
+
+void Command::printVector(const std::vector<std::string> args)
+{
+	std::cout << "Printing vector" << std::endl;
+	for (size_t i = 0; i < args.size(); i++)
+	{
+		std::string formattedString;
+		for (size_t j = 0; j < args[i].size(); j++)
+		{
+			if (args[i][j] == '\n')
+				formattedString += "\\n";
+			else if (args[i][j] == '\r')
+				formattedString += "\\r";
+			else
+				formattedString += args[i][j];
+		}
+		std::cout << formattedString << std::endl;
+	}
 }

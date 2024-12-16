@@ -18,6 +18,8 @@ class Channel
 		std::string 			_topicTimeStamp;
     	std::string 			_topicCreator;
 		std::string				_modeStr;
+		std::string				_creationTime;
+	
 	public:
 		Channel();
 		Channel(const std::string& name);
@@ -38,6 +40,8 @@ class Channel
 		int								getUsersInChannel() const;
 		int								getUsersLimit() const;
 		const std::string&				getPassword() const;
+		const std::string				getCurrentTime() const;
+		const std::string				getCreationTime() const;
 		//Setters
 		void							setName(const std::string& name);
 		void							setTopic(const std::string& topic);

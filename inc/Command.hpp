@@ -28,6 +28,7 @@ class Command
 		int							_socketFd;
 		std::string					_msg;
 		std::string					_errorMsg;
+		std::string					_unknowFlags;
 		std::string					_commands[TOTAL];
 		void						_initCommands();
 		User						&_user;
@@ -64,3 +65,5 @@ class Command
 };
 
 #endif
+
+//TODO: printVector duplicado, lo tenemos también en server, se puede utilizar solo uno para todo?

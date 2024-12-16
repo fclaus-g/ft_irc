@@ -14,6 +14,8 @@ Channel::Channel()
 	this->_topicTimeStamp = "";
 	this->_topicCreator = "";
 	this->_modeStr = "";
+	this->_creationTime = this->getCurrentTime();
+	
 }
 
 Channel::Channel(const std::string& name)
@@ -29,6 +31,7 @@ Channel::Channel(const std::string& name)
 	this->_topicTimeStamp = "";
 	this->_topicCreator = "";
 	this->_modeStr = "";
+	this->_creationTime = this->getCurrentTime();
 }
 
 Channel::~Channel()
@@ -148,4 +151,21 @@ const std::string&	Channel::getTopicCreator() const
 const std::string Channel::getModeStr() const
 {
 	return this->_modeStr;
+}
+
+/**
+ * @brief Gets current time and store in string format
+ */
+const std::string	Channel::getCurrentTime() const
+{
+	std::stringstream	time_string;
+	std::time_t			now_time = std::time(NULL);
+
+	time_string << now_time;
+	return (time_string.str());
+}
+
+const std::string	Channel::getCreationTime() const
+{
+	return (this->_creationTime);
 }

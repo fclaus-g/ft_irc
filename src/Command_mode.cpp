@@ -11,47 +11,31 @@
  *	6 - Parse and store params ("param1 param2 param3") in string vector splitted by ' '
  *	7 - Iterate the modes vector -> check each char in each string to update sign, execute
  *			mode command or skip if none
- *	TODO: implement RESPONSES
+ *	TODO: Test cases, errors and RESPONSES
+ *	TODO: Check if _errorMsg is used in any response during execModes, if so, use new attribute instead
  */
 void Command::cmdMode()
 {
 	if (!this->_user.getAuthenticated())
 		return (kickNonAuthenticatedUser(this->_user.getFd()));
+	
 	std::vector<std::string> args = splitMessage(this->_msg, ' ');
-	printVector(args);
 	if (args.size() < 2)
-	{
-		//ERR_NEEDMOREPARAMS (461)
-		return;
-	}
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
+	
 	std::string channelName = args[1];
 	this->_currChannel = this->_server.getChannelByName(channelName);
 	if (!this->_currChannel)
-	{
-		//ERR_NOSUCHCHANNEL (403)
-		return;
-	}
+		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER, 0));
 	if (args.size() == 2)
-	{
-		//RPL_CHANNELMODEIS (324)
-		//RPL_CREATIONTIME (329)
-		return;
-	}
+		return (this->sendResponse(RPL_CHANNELMODEIS, MOD_USER, 0),
+			this->sendResponse(RPL_CREATIONTIME, MOD_USER, 0));
 	if (!this->_currChannel->isOp(this->_user))
-	{
-		//ERR_CHANOPRIVSNEEDED (482)
-		return;
-	}
+		return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER, 0));
+	
 	this->_modes = splitMessage(args[2], ',');
-	this->_params = splitMessage(args[3], ' ');
 	for (size_t i = 3; i < args.size(); i++)
-	{
 		this->_params.push_back(args[i]);
-	}
-	std::cout << "Modes:" << std::endl;
-	printVector(this->_modes);
-	std::cout << "Params:" << std::endl;
-	printVector(this->_params);
 
 	for (size_t i = 0; i < this->_modes.size(); i++)
 	{
@@ -59,23 +43,23 @@ void Command::cmdMode()
 		{
 			char sign = '+';
 			if ((this->_modes[i][j] == '+' || this->_modes[i][j] == '-') && sign != this->_modes[i][j])
-			{
 				sign = this->_modes[i][j];
-				
-			}
 			else if (this->_modes[i][j] == 'i' || this->_modes[i][j] == 'k' || this->_modes[i][j] == 'l' || this->_modes[i][j] == 'o' || this->_modes[i][j] == 't')
-			{
 				execModes(this->_modes[i][j], sign);
-			}
 			else
 			{
-				//ERR_UMODEUNKNOWNFLAG (501)
+				this->_unknowFlags += this->_modes[i][j] + " ";
 				continue;
 			}
 			j++;
 		}
 	}
-
+	this->sendResponse(RPL_CHANNELMODEIS, MOD_USER, 0);
+	if (!this->_unknowFlags.empty())
+	{
+		this->_unknowFlags.erase(this->_unknowFlags.find_last_not_of(" \n\r\t")  + 1);
+		this->sendResponse(ERR_UMODEUNKNOWNFLAG, MOD_USER, 0);
+	}
 }
 
 /**
@@ -84,7 +68,8 @@ void Command::cmdMode()
  * @param mode iktol - if not one of those, error
  * TODO: Test all usage +/- IKTOL!
  * TODO: Implement RESPONSES
- * TODO: [?] When no params and needed - error or silence?
+ * TODO: [?] When no params and needed - error or silence? currently: silence
+ * TODO: get iktol check in aux function
  */
 void Command::execModes(const char sign, const char mode)
 {
@@ -96,40 +81,36 @@ void Command::execModes(const char sign, const char mode)
 			{
 				this->_currChannel->setInviteMode(true);
 				this->_currChannel->updateMode('i', 0);
-				//RPL_CHANNELMODEIS (324)
 			}
 			else if (sign == '-')
 			{
 				this->_currChannel->setInviteMode(false);
 				this->_currChannel->updateMode('i', 1);
-				//RPL_CHANNELMODEIS (324)
 			}
 			break;
 		case 'k':
 			if (this->_paramCount < this->_params.size() && this->_params[this->_paramCount].empty())
-				return; 
+			{
+				this->_errorMsg = " :'k'";
+				return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
+			} 
 			if (sign == '+')
 			{
 				this->_currChannel->setKeyMode(true);
 				this->_currChannel->setPassword(this->_params[this->_paramCount]);
 				this->_currChannel->updateMode('k', 0);
 				this->_paramCount++;
-				//RPL_CHANNELMODEIS (324)
 			}
 			else if (sign == '-')
 			{
 				if (this->_currChannel->getKeyMode())
 				{
 					if (this->_currChannel->getPassword() != this->_params[this->_paramCount])
-					{
-						//ERR_BADCHANNELKEY (475)
-						return;
-					}
+						return (this->sendResponse(ERR_BADCHANNELKEY, MOD_USER, 0));
 					this->_currChannel->setKeyMode(false);
 					this->_currChannel->setPassword("");
 					this->_currChannel->updateMode('k', 1);
 					this->_paramCount++;
-					//RPL_CHANNELMODEIS (324)
 				}
 			}
 			break;
@@ -137,13 +118,15 @@ void Command::execModes(const char sign, const char mode)
 			if (sign == '+')
 			{
 				if (this->_paramCount < this->_params.size() && this->_params[this->_paramCount].empty())
-					return;
+				{
+					this->_errorMsg = " :'l'";
+					return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
+				}
 				if (this->_currChannel->getUsersLimit() != atoi(this->_params[this->_paramCount].c_str()))
 				{	
 					this->_currChannel->setUsersLimit(atoi(this->_params[this->_paramCount].c_str()));
 					this->_currChannel->updateMode('l', 0);
 					this->_paramCount++;
-					//RPL_CHANNELMODEIS (324)
 				}
 			}
 			else if (sign == '-')
@@ -152,43 +135,41 @@ void Command::execModes(const char sign, const char mode)
 				{
 					this->_currChannel->setUsersLimit(-1);
 					this->_currChannel->updateMode('l', 1);
-					//RPL_CHANNELMODEIS (324)
 				}
 			}
 			break;
 		case 'o':
 			if (this->_paramCount < this->_params.size() && this->_params[this->_paramCount].empty())
-				return;
+			{
+				this->_errorMsg = " :'o'";
+				return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
+			}
 			target_user = this->_server.getUserByNick(this->_params[this->_paramCount]);
-			if (!target_user)
-				return ;//RESPONSE
+			if (this->_currChannel->isUserInChannel(*target_user))
+			{
+				this->_errorMsg = this->_params[this->_paramCount];
+				this->_paramCount++;
+				return (this->sendResponse(ERR_USERNOTINCHANNEL, MOD_USER, 0));
+			}
 			if (sign == '+' && !this->_currChannel->isOp(*target_user))
-			{
 				this->_currChannel->addOpChannel(*target_user);
-				//RESPONSE
-			}
 			else if (sign == '-' && this->_currChannel->isOp(*target_user))
-			{
 				this->_currChannel->deleteOpChannel(*target_user);
-				//RESPONSE
-			}
+			this->_paramCount++;
 			break;
 		case 't':
 			if (sign == '+' && !this->_currChannel->getTopicMode())
 			{
 				this->_currChannel->setTopicMode(true);
 				this->_currChannel->updateMode('t', 0);
-				//RPL_CHANNELMODEIS (324)
 			}
 			else if (sign == '-' && this->_currChannel->getTopicMode())
 			{
 				this->_currChannel->setTopicMode(false);
 				this->_currChannel->updateMode('t', 1);
-				//RPL_CHANNELMODEIS (324)
 			}
 			break;
 		default:
-			//NOT_MODE_OR_MODEFORMAT_VALID?
 			break;
 	}
 }

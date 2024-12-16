@@ -64,3 +64,5 @@ class Server
 std::ostream& operator<<(std::ostream& out, const Server& server);
 
 #endif
+
+//TODO: printVector también en command, duplicado, se puede usar uno para ambos?
