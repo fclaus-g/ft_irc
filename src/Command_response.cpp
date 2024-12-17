@@ -52,10 +52,9 @@ std::string	Command::composeResponse(int code)
 {
 	std::string			detail = "";
 	std::stringstream	limit_str;
-
-	if (this->_currChannel->getUsersLimit() > 0)
+	if (this->_currChannel && this->_currChannel->getUsersLimit() > 0)
 		limit_str << this->_currChannel->getUsersLimit();
-	
+
 	switch (code)
 	{
 		case ERR_CUSTOM_CHANNEL:

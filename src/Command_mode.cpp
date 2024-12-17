@@ -22,7 +22,7 @@ void Command::cmdMode()
 	std::vector<std::string> args = splitMessage(this->_msg, ' ');
 	if (args.size() < 2)
 		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
-	
+		
 	std::string channelName = args[1];
 	this->_currChannel = this->_server.getChannelByName(channelName);
 	if (!this->_currChannel)
@@ -45,7 +45,7 @@ void Command::cmdMode()
 			if ((this->_modes[i][j] == '+' || this->_modes[i][j] == '-') && sign != this->_modes[i][j])
 				sign = this->_modes[i][j];
 			else if (this->_modes[i][j] == 'i' || this->_modes[i][j] == 'k' || this->_modes[i][j] == 'l' || this->_modes[i][j] == 'o' || this->_modes[i][j] == 't')
-				execModes(this->_modes[i][j], sign);
+				execModes(sign, this->_modes[i][j]);
 			else
 			{
 				this->_unknowFlags += this->_modes[i][j] + " ";
@@ -54,6 +54,8 @@ void Command::cmdMode()
 			j++;
 		}
 	}
+	std::cout << "modeStr: " << this->_currChannel->getModeStr() << std::endl;
+	// if (!this->_currChannel->getModeStr().empty())
 	this->sendResponse(RPL_CHANNELMODEIS, MOD_USER, 0);
 	if (!this->_unknowFlags.empty())
 	{
@@ -89,15 +91,15 @@ void Command::execModes(const char sign, const char mode)
 			}
 			break;
 		case 'k':
-			if (this->_paramCount < this->_params.size() && this->_params[this->_paramCount].empty())
+			if (this->_paramCount > this->_params.size() || this->_params.size() == 0)
 			{
 				this->_errorMsg = " :'k'";
 				return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
 			} 
 			if (sign == '+')
 			{
-				this->_currChannel->setKeyMode(true);
 				this->_currChannel->setPassword(this->_params[this->_paramCount]);
+				this->_currChannel->setKeyMode(true);
 				this->_currChannel->updateMode('k', 0);
 				this->_paramCount++;
 			}
