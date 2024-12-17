@@ -18,6 +18,7 @@ enum command
 	INVITE,
 	TOPIC,
 	MODE,
+	WHO,
 	TOTAL
 };
 
@@ -27,6 +28,7 @@ class Command
 		int							_socketFd;
 		std::string					_msg;
 		std::string					_errorMsg;
+		std::string					_unknowFlags;
 		std::string					_commands[TOTAL];
 		void						_initCommands();
 		User						&_user;
@@ -36,7 +38,6 @@ class Command
 		std::vector<std::string>	_modes;
 		std::vector<std::string>	_params;
 		size_t 						_paramCount;
-
     public:
 		Command(int socketFd, const std::string msg, User &user, Server &server);
 		~Command();
@@ -44,24 +45,25 @@ class Command
 		bool 						checkCmd(int userFd);
 		void						runCmd(int userFd, int key);
 		void						kickNonAuthenticatedUser(int userFd);
-		void						sendResponse(int code, int mode);
+		void						sendResponse(int code, int mode, int fd);
 		std::string					composeResponse(int code);
 		std::vector<std::string>	splitMessage(const std::string &msg, char delim);
 		void 						printVector(const std::vector<std::string> args);
-		void 						execMode(const char sign, const char mode);
+		void 						execModes(const char sign, const char mode);
 		//Commands methods
-		void 			cmdNick();
-		void 			cmdPass();
-		void 			cmdUser();
-		void 			cmdPrivmsg();
-		void 			cmdJoin();
-		void 			cmdMode();
-		void 			commandKick();
-		void 			commandInvite();
-		void 			commandQuit();
-		void 			commandTopic();
-		void 			commandMode();
+		void 						cmdNick();
+		void 						cmdPass();
+		void 						cmdUser();
+		void 						cmdPrivmsg();
+		void 						cmdJoin();
+		void 						commandKick();
+		void 						commandInvite();
+		void 						commandQuit();
+		void 						commandTopic();
+		void 						cmdMode();
+		void						cmdWho();
 };
 
 #endif
-	/*AL CREAR EL CMD SE CREA CON EL FD DEL CLIENTE, EL MENSAJE, REFERENCIA DEL USUARIO Y REF DEL SERVER*/
+
+//TODO: printVector duplicado, lo tenemos también en server, se puede utilizar solo uno para todo?

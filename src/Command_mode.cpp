@@ -1,156 +1,175 @@
 #include "ft_irc.hpp"
 
-bool	isModeValid(char m)
+/**
+ * @brief Function to parse, set and init the MODE command environment
+ * 	1 - Check if user is authenticated, if not, finish here (only to protect nc connections)
+ *	2 - Check if enough params (MIN "MODE #channelName" - show modes list string)
+ *	3 - Check if channel exists
+ *	4 - Check if user isOp
+ *	(!) IF EVERYTHING ABOVE IS OK
+ *	5 - Parse and store modes (i-k,t+ol) in string vector splitted by ','
+ *	6 - Parse and store params ("param1 param2 param3") in string vector splitted by ' '
+ *	7 - Iterate the modes vector -> check each char in each string to update sign, execute
+ *			mode command or skip if none
+ *	TODO: Test cases, errors and RESPONSES
+ *	TODO: Check if _errorMsg is used in any response during execModes, if so, use new attribute instead
+ */
+void Command::cmdMode()
 {
-	std::string validModes = "itokl";
-
-	if (validModes.find(m) == std::string::npos)
-		return (false);
-	return (true);
-}
-
-bool	isASign(char s)
-{
-	switch (s)
-	{
-	case '+':
-	case '-':
-		return (true);
-		break;
+	if (!this->_user.getAuthenticated())
+		return (kickNonAuthenticatedUser(this->_user.getFd()));
 	
-	default:
-		return (false);
-		break;
-	}
-}
-
-bool	needParam(char m)
-{
-	switch (m)
-	{
-	case 'l':
-	case 'k':
-	case 'o':
-		return (true);
-		break;
+	std::vector<std::string> args = splitMessage(this->_msg, ' ');
+	if (args.size() < 2)
+		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
 	
-	default:
-		return (false);
-		break;
-	}
-}
+	std::string channelName = args[1];
+	this->_currChannel = this->_server.getChannelByName(channelName);
+	if (!this->_currChannel)
+		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER, 0));
+	if (args.size() == 2)
+		return (this->sendResponse(RPL_CHANNELMODEIS, MOD_USER, 0),
+			this->sendResponse(RPL_CREATIONTIME, MOD_USER, 0));
+	if (!this->_currChannel->isOp(this->_user))
+		return (this->sendResponse(ERR_CHANOPRIVSNEEDED, MOD_USER, 0));
+	
+	this->_modes = splitMessage(args[2], ',');
+	for (size_t i = 3; i < args.size(); i++)
+		this->_params.push_back(args[i]);
 
-void	readModes(std::vector<std::string> const args, std::vector<std::string> &m, std::vector<std::string> &p)
-{
-	std::string modeArg;
-	size_t		argCount;
-
-	argCount = args.size();
-	for (size_t index = 2; index < argCount; index++)
+	for (size_t i = 0; i < this->_modes.size(); i++)
 	{
-		modeArg = args[index];
-		if (modeArg.length() > 0 && isASign(modeArg[0]))
+		for (size_t j = 0; j < this->_modes[i].size(); j++)
 		{
-			if (modeArg.length() == 2)
-				m.push_back(modeArg);
+			char sign = '+';
+			if ((this->_modes[i][j] == '+' || this->_modes[i][j] == '-') && sign != this->_modes[i][j])
+				sign = this->_modes[i][j];
+			else if (this->_modes[i][j] == 'i' || this->_modes[i][j] == 'k' || this->_modes[i][j] == 'l' || this->_modes[i][j] == 'o' || this->_modes[i][j] == 't')
+				execModes(this->_modes[i][j], sign);
+			else
+			{
+				this->_unknowFlags += this->_modes[i][j] + " ";
+				continue;
+			}
+			j++;
 		}
-		else if (modeArg.length() > 0)
-			p.push_back(modeArg);
 	}
-}
-
-//////////////////////////////DEBUG FUNCTIONS////////////////////
-
-void	ftShowVector(std::string msg, std::vector<std::string> &v, size_t index)
-{
-	for (size_t i = index; i < v.size(); i++)
-		std::cout << msg << ": " << v[i] << std::endl;
+	this->sendResponse(RPL_CHANNELMODEIS, MOD_USER, 0);
+	if (!this->_unknowFlags.empty())
+	{
+		this->_unknowFlags.erase(this->_unknowFlags.find_last_not_of(" \n\r\t")  + 1);
+		this->sendResponse(ERR_UMODEUNKNOWNFLAG, MOD_USER, 0);
+	}
 }
 
 /**
-* @brief Command to change channel/user modes - not implemented yet
-* (!) Moved to its own .cpp file to keep the code organized, will add here all related aux functions
-*/
-void Command::commandMode(/*User user*/)
+ * @brief Function to execute the mode command according to the character and sign
+ * @param sign + / -
+ * @param mode iktol - if not one of those, error
+ * TODO: Test all usage +/- IKTOL!
+ * TODO: Implement RESPONSES
+ * TODO: [?] When no params and needed - error or silence? currently: silence
+ * TODO: get iktol check in aux function
+ */
+void Command::execModes(const char sign, const char mode)
 {
-	/*
-	/MODE canal [modestring [modearguments]]
-	
-	modestring 	= 1*( modeset )
-	modeset 	= plusminus *( modechar )
-	plusminus	= %x2B / %x2D
-				; + or -
-	modechar = ALPHA
-	modearguments : argumentos de la opción (no todas tienen)
-	
-	Example:
-	/MODE #canal +i				-> establece el canal como privado
-	/MODE #canal +k password	-> establece la contraseña especificada al canal
-	/MODE #canal -k				-> elimina la contraseña del canal 
-
- 	*/
-
- 	std::vector<std::string> args;
-	std::vector<std::string> modes;
-	std::vector<std::string> params;
-	std::string channelName;
-	size_t	argCount;
-
-	//obtenemos el nombre del canal
-	args = ft_split(this->_msg);
-	argCount = args.size();
-	//std::cout << "DEBUG. Argument count: " << argCount << std::endl; 
-	
-	//DEBUG
-	ftShowVector("Args comando MODE", args, 2);
-	//FIN DEBUG
-	if (argCount < 2)
+	User	*target_user = NULL;
+	switch (mode)
 	{
-		/*
-		No hay suficientes argumentos
-		*/
-		std::cout << "DEBUG: Faltan parámetros en MODE\n";
-		return ;
+		case 'i':
+			if (sign == '+')
+			{
+				this->_currChannel->setInviteMode(true);
+				this->_currChannel->updateMode('i', 0);
+			}
+			else if (sign == '-')
+			{
+				this->_currChannel->setInviteMode(false);
+				this->_currChannel->updateMode('i', 1);
+			}
+			break;
+		case 'k':
+			if (this->_paramCount < this->_params.size() && this->_params[this->_paramCount].empty())
+			{
+				this->_errorMsg = " :'k'";
+				return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
+			} 
+			if (sign == '+')
+			{
+				this->_currChannel->setKeyMode(true);
+				this->_currChannel->setPassword(this->_params[this->_paramCount]);
+				this->_currChannel->updateMode('k', 0);
+				this->_paramCount++;
+			}
+			else if (sign == '-')
+			{
+				if (this->_currChannel->getKeyMode())
+				{
+					if (this->_currChannel->getPassword() != this->_params[this->_paramCount])
+						return (this->sendResponse(ERR_BADCHANNELKEY, MOD_USER, 0));
+					this->_currChannel->setKeyMode(false);
+					this->_currChannel->setPassword("");
+					this->_currChannel->updateMode('k', 1);
+					this->_paramCount++;
+				}
+			}
+			break;
+		case 'l':
+			if (sign == '+')
+			{
+				if (this->_paramCount < this->_params.size() && this->_params[this->_paramCount].empty())
+				{
+					this->_errorMsg = " :'l'";
+					return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
+				}
+				if (this->_currChannel->getUsersLimit() != atoi(this->_params[this->_paramCount].c_str()))
+				{	
+					this->_currChannel->setUsersLimit(atoi(this->_params[this->_paramCount].c_str()));
+					this->_currChannel->updateMode('l', 0);
+					this->_paramCount++;
+				}
+			}
+			else if (sign == '-')
+			{
+				if (this->_currChannel->getUsersLimit() != -1)
+				{
+					this->_currChannel->setUsersLimit(-1);
+					this->_currChannel->updateMode('l', 1);
+				}
+			}
+			break;
+		case 'o':
+			if (this->_paramCount < this->_params.size() && this->_params[this->_paramCount].empty())
+			{
+				this->_errorMsg = " :'o'";
+				return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
+			}
+			target_user = this->_server.getUserByNick(this->_params[this->_paramCount]);
+			if (this->_currChannel->isUserInChannel(*target_user))
+			{
+				this->_errorMsg = this->_params[this->_paramCount];
+				this->_paramCount++;
+				return (this->sendResponse(ERR_USERNOTINCHANNEL, MOD_USER, 0));
+			}
+			if (sign == '+' && !this->_currChannel->isOp(*target_user))
+				this->_currChannel->addOpChannel(*target_user);
+			else if (sign == '-' && this->_currChannel->isOp(*target_user))
+				this->_currChannel->deleteOpChannel(*target_user);
+			this->_paramCount++;
+			break;
+		case 't':
+			if (sign == '+' && !this->_currChannel->getTopicMode())
+			{
+				this->_currChannel->setTopicMode(true);
+				this->_currChannel->updateMode('t', 0);
+			}
+			else if (sign == '-' && this->_currChannel->getTopicMode())
+			{
+				this->_currChannel->setTopicMode(false);
+				this->_currChannel->updateMode('t', 1);
+			}
+			break;
+		default:
+			break;
 	}
-	channelName = args[1];
-	Channel *channel = this->_server.getChannelByName(channelName);
-	if (!channel)
-	{
-		/*
-		Devolver respuesta ERR_NOSUCHCHANNEL al cliente
-		*/
-		std::cout << "DEBUG: No existe el canal\n";
-		return ;
-	}	
-	if (argCount == 2)
-	{
-		/*
-		Enviar mensaje RPL_CHANNELMODEIS al cliente con los modos actuales del canal
-		Opcionalmente enviar mensaje RPL_CREATIONTIME tras el anterior
-		*/
-
-		std::cout << "DEBUG: MODE sin parámetros:\n";
-		std::cout << "FIN DEBUG\n";
-		return ;
-	}
-	else
-	{
-		// Si el usuario no es admin no hacer nada
-		if (!channel->isOp(this->_user))
-		{
-			/*
-			Devolver respuesta ERR_CHANOPRIVSNEEDED al cliente
-			*/
-			std::cout << "DEBUG: El usuario no es operador del canal\n";
-			return ;
-		}
-		// Parsear el resto del mensaje para obtener los modos a cambiar
-		readModes(args, modes, params);
-
-		//Vemos lo que hemos parseado
-		ftShowVector("DEBUG: Modos de MODE", modes, 0);
-		ftShowVector("DEBUG: Parámetros de MODE", params, 0);
-		std::cout << "FIN DEBUG\n";
-	}
-	
 }

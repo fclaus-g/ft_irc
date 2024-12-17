@@ -33,7 +33,6 @@ void Server::createChannel(const std::string& name)
 	Channel *newChannel = new Channel(name);
 	this->_channels.push_back(newChannel);
 	this->_channelsMap[name] = newChannel;
-	std::cout << "Channel created" << std::endl;
 }
 
 void Server::addUserToChannel(const std::string& channelName, User& user)

@@ -112,6 +112,31 @@ void Channel::addOpChannel(User& user)
 }
 
 /**
+ * @brief remove user from the op vector after checking if the user is already an op
+ */
+void Channel::deleteOpChannel(User& user)
+{
+	std::map <User*, bool>::iterator	aux;
+
+	aux = this->_usersMap.find(&user);
+	if (isUserInChannel(user))
+	{
+		if (!isOp(user))
+		{
+			std::cout << "addOpChannel: User is already non-op" << std::endl;
+			send(user.getFd(), "User is already non-op", 18, 0);
+			return ;
+		}
+	}
+	else
+	{
+		std::cout << "addOpChannel: User is not in channel" << std::endl;
+		return ;	
+	}
+	aux->second = false;
+}
+
+/**
  * @brief Broadcast a message to all users in the channel except the one who sent the message
  * @param mode 0 to send all user but sender, 1 to send to all (including the sender)
  * @param message the text message to be sent
@@ -169,7 +194,8 @@ void	Channel::updateTopic(const std::string &topic, const std::string &userNick)
 
 /**
  * @brief Aux function to update channel mode when command is executed
- * 	Checks if the mode is being added or removed and updates the mode string
+ * 	Checks if the mode is being added (op == 0)or removed (op == 1)
+ * 	and updates the mode string
  */
 void Channel::updateMode(char mode, int op)
 {
