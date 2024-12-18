@@ -33,7 +33,10 @@ void Command::cmdMode()
 	
 	this->_modes = splitMessage(args[2], ',');
 	for (size_t i = 3; i < args.size(); i++)
-		this->_params.push_back(args[i]);
+	{
+		std::string param = args[i].substr(0, args[i].find_last_not_of(" \n\r\t") + 1);
+		this->_params.push_back(param);
+	}
 
 	for (size_t i = 0; i < this->_modes.size(); i++)
 	{

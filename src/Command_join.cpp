@@ -25,7 +25,8 @@ void Command::cmdJoin()
 	std::vector<std::string> args = splitMessage(this->_msg, ' ');
 	std::vector<std::string> channels = splitMessage(args[1], ',');
 	std::vector<std::string> keys = (args.size() > 2) ? splitMessage(args[2], ',') : std::vector<std::string>();
-
+	std::cout << "DEBUG Command::cmdJoin() - 30 ------------------------------------------------------------- ";
+	printVector(keys);
 	for (size_t i = 0; i < channels.size(); i++)
 	{
 		std::string channelName = channels[i];
