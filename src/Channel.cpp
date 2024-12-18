@@ -203,13 +203,13 @@ void Channel::updateMode(char mode, int op)
 	{
 		if (this->_modeStr.empty())
 			this->_modeStr = "+";
-		if (this->_modeStr.find(mode))
+		if (this->_modeStr.find(mode) != std::string::npos)
 			return;
 		this->_modeStr += mode;
 	}
 	else
 	{
-		if (!this->_modeStr.find(mode))
+		if (this->_modeStr.find(mode) == std::string::npos)
 			return;
 		this->_modeStr.erase(this->_modeStr.find(mode), 1);
 		if (this->_modeStr.size() == 1 && this->_modeStr[0] == '+')

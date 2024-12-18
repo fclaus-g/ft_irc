@@ -84,3 +84,24 @@ std::string toString(int num)
 	return str.str();
 }
 
+/**
+ * @brief Aux function to check if a string is composed only by digit
+ * @param str string to check
+ * @return true if only digits found, false otherwise
+ */
+bool isOnlyDigits(const std::string& str)
+{
+	if (str.empty())
+		return (false);
+	
+	size_t	i = 0;
+	if (str[i] == '+')
+		i++;
+	while (i < str.size())
+	{
+		if (!std::isdigit(str[i]))
+			return (false);
+		i++;
+	}
+	return (true);
+}

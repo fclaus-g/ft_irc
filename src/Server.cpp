@@ -144,7 +144,7 @@ void	Server::msgHandler(int socketFd)
 	this->_readMsg = true;
 	if (!readFromSocket(socketFd, this->_message))
 		return (deleteUser(socketFd));
-	//std::cout << "Client raw message -> " << this->_message << std::endl;
+	std::cout << "Client raw message -> " << this->_message << std::endl;
 	this->_message = this->getUserByFd(socketFd)->bufferFilter(this->_message);
 	while (!this->_message.empty() && this->_readMsg)
 	{

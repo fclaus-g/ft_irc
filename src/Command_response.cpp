@@ -52,10 +52,9 @@ std::string	Command::composeResponse(int code)
 {
 	std::string			detail = "";
 	std::stringstream	limit_str;
-
-	if (this->_currChannel->getUsersLimit() > 0)
+	if (this->_currChannel && this->_currChannel->getUsersLimit() > 0)
 		limit_str << this->_currChannel->getUsersLimit();
-	
+
 	switch (code)
 	{
 		case ERR_CUSTOM_CHANNEL:
@@ -138,7 +137,7 @@ std::string	Command::composeResponse(int code)
 			break;
 		case ERR_NEEDMOREPARAMS:
 			if (!this->_errorMsg.empty())
-				detail = " " + this->_user.getNick() + " " + this->_splitCmd[0] + this->_errorMsg + " :Not enough parameters\r\n";
+				detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[0] + this->_errorMsg + " :Not enough parameters\r\n";
 			else if (this->_currChannel)
 				detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[0] + " :Not enough parameters\r\n";
 			else	
@@ -150,6 +149,9 @@ std::string	Command::composeResponse(int code)
 		case ERR_PASSWDMISMATCH:
 			detail = " * :Password incorrect\r\n";
 			break;
+		case ERR_KEYSET:
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Channel key already set\r\n";;
+			break;
 		case ERR_CHANNELISFULL:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Cannot join channel (+l)\r\n";
 			break;
@@ -157,7 +159,7 @@ std::string	Command::composeResponse(int code)
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Cannot join channel (+i)\r\n";
 			break;
 		case ERR_BADCHANNELKEY:
-			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Incorrect channel key (+k)\r\n";
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Cannot join channel (+k)\r\n";
 			break;
 		case ERR_BADCHANMASK:
 			detail = " " + this->_errorMsg + " :Bad Channel Mask\r\n";
@@ -166,7 +168,7 @@ std::string	Command::composeResponse(int code)
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :You're not channel operator\r\n";
 			break;
 		case ERR_UMODEUNKNOWNFLAG:
-			detail = " " + this->_user.getNick() + " :Unknown MODE flag: " + this->_errorMsg + "\r\n";
+			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " :Unknown MODE flag: " + this->_unknowFlags + "\r\n";
 			break;
 		default:
 			break;
