@@ -39,7 +39,6 @@ class Channel
 		bool							getKeyMode() const;
 		int								getUsersInChannel() const;
 		int								getUsersLimit() const;
-		const std::string&				getPassword() const;
 		const std::string				getCurrentTime() const;
 		const std::string				getCreationTime() const;
 		//Setters

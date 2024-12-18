@@ -19,30 +19,25 @@ bool	readFromSocket(int socketFd, std::string &store)
 	
 	pollfd.fd = socketFd;
 	pollfd.events = POLLIN;
-	while (42)
+	int	poll_result = poll(&pollfd, 1, TIMEOUT);
+	if (poll_result == -1)
+		return (perror("poll"), false);
+	else if (poll_result == 0)
 	{
-		int	poll_result = poll(&pollfd, 1, TIMEOUT);
-		if (poll_result == -1)
-			return (perror("poll"), false);
-		else if (poll_result == 0)
-		{
-			std::cout << "poll: Timeout occurred, no data available" << std::endl;
-			return (false);
-		}
-		read_bytes = read(socketFd, buffer, sizeof(buffer) - 1);
-		if (read_bytes <= 0)
-		{
-			if (read_bytes == 0)
-				std::cout << RED << "User disconnected" << RES << std::endl;
-			else
-				perror("read");
-			return (false);
-		}
-		buffer[read_bytes] = '\0';
-		store += buffer;
-		if (store.find("\n") != std::string::npos)
-			break ;
+		std::cout << "poll: Timeout occurred, no data available" << std::endl;
+		return (false);
 	}
+	read_bytes = read(socketFd, buffer, sizeof(buffer) - 1);
+	if (read_bytes <= 0)
+	{
+		if (read_bytes == 0)
+			std::cout << RED << "User disconnected" << RES << std::endl;
+		else
+			perror("read");
+		return (false);
+	}
+	buffer[read_bytes] = '\0';
+	store += buffer;
 	return (true);
 }
 
