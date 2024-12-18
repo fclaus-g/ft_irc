@@ -68,6 +68,7 @@ enum response
 	ERR_NEEDMOREPARAMS = 461,
 	ERR_ALREADYREGISTERED = 462,
 	ERR_PASSWDMISMATCH = 464,
+	ERR_KEYSET = 467,
 	ERR_CHANNELISFULL = 471,
 	ERR_INVITEONLYCHAN = 473,
 	ERR_BADCHANNELKEY = 475,
@@ -80,5 +81,6 @@ enum response
 bool						readFromSocket(int socketFd, std::string &store);
 std::vector<std::string>	ft_split(std::string message);
 std::string 				toString(int num);
+bool 						isOnlyDigits(const std::string& str);
 
 #endif

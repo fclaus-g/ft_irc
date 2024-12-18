@@ -190,10 +190,8 @@ void	Channel::updateTopic(const std::string &topic, const std::string &userNick)
  */
 void Channel::updateMode(char mode, int op)
 {
-	std::cout << "updateMode start" << std::endl;
 	if (op == 0)
 	{
-		std::cout << "updateMode start" << std::endl;
 		if (this->_modeStr.empty())
 			this->_modeStr = "+";
 		if (this->_modeStr.find(mode) != std::string::npos)
@@ -208,7 +206,6 @@ void Channel::updateMode(char mode, int op)
 		if (this->_modeStr.size() == 1 && this->_modeStr[0] == '+')
 			this->_modeStr = "";
 	}
-	std::cout << "updateMode finish" << std::endl;
 }
 
 void Channel::setName(const std::string& name)
