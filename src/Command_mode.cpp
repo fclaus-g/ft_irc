@@ -22,6 +22,7 @@ void Command::cmdMode()
 		return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
 		
 	std::string channelName = args[1];
+	channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
 	this->_currChannel = this->_server.getChannelByName(channelName);
 	if (!this->_currChannel)
 		return (this->sendResponse(ERR_NOSUCHCHANNEL, MOD_USER, 0));
@@ -33,11 +34,16 @@ void Command::cmdMode()
 	
 	this->_modes = splitMessage(args[2], ',');
 	for (size_t i = 3; i < args.size(); i++)
+	{	
+		args[i].erase(args[i].find_last_not_of(" \n\r\t") + 1);
 		this->_params.push_back(args[i]);
+	}
 
 	for (size_t i = 0; i < this->_modes.size(); i++)
 	{
 		char	sign = '+';
+		
+		this->_modes[i].erase(this->_modes[i].find_last_not_of(" \n\r\t") + 1);
 		for (size_t j = 0; j < this->_modes[i].size(); j++)
 		{
 			if (this->_modes[i][j] == '+' || this->_modes[i][j] == '-')
@@ -85,7 +91,7 @@ void Command::execModes(const char sign, const char mode)
 			}
 			break;
 		case 'k':
-			if (this->_paramCount > this->_params.size() || this->_params.size() == 0)
+			if (this->_paramCount >= this->_params.size() || this->_params.size() == 0)
 			{
 				this->_errorMsg = " :'k'";
 				return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));
@@ -99,7 +105,6 @@ void Command::execModes(const char sign, const char mode)
 				msg.append("+k ");
 				msg.append(this->_params[this->_paramCount]);
 				this->_server.messageToClient(msg, this->_user, this->_user);
-				this->_paramCount++;
 			}
 			else if (sign == '-' && this->_currChannel->getKeyMode())
 			{
@@ -113,13 +118,13 @@ void Command::execModes(const char sign, const char mode)
 				this->_currChannel->updateMode('k', 1);
 				msg.append("-k");
 				this->_server.messageToClient(msg, this->_user, this->_user);
-				this->_paramCount++;
 			}
+			this->_paramCount++;
 			break;
 		case 'l':
 			if (sign == '+')
 			{
-				if (this->_paramCount > this->_params.size() || this->_params.size() == 0
+				if (this->_paramCount >= this->_params.size() || this->_params.size() == 0
 					|| !isOnlyDigits(this->_params[this->_paramCount]) || atoi(this->_params[this->_paramCount].c_str()) <= 0)
 				{
 					this->_errorMsg = " :'l'";
@@ -147,7 +152,7 @@ void Command::execModes(const char sign, const char mode)
 			}
 			break;
 		case 'o':
-			if (this->_paramCount > this->_params.size() || this->_params.size() == 0)
+			if (this->_paramCount >= this->_params.size() || this->_params.size() == 0)
 			{
 				this->_errorMsg = " :'o'";
 				return (this->sendResponse(ERR_NEEDMOREPARAMS, MOD_USER, 0));

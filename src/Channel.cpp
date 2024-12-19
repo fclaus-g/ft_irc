@@ -13,9 +13,9 @@ bool Channel::isUserInChannel(User& user)
  * - Creates an iterator which finds an aim to the user passed as argument
  * - Then checks (if the user exists in list) if the user is op or not
  */
-bool Channel::isOp(User& user)
+bool Channel::isOp(User& user) const
 {
-	std::map<User *, bool>::iterator i;
+	std::map<User *, bool>::const_iterator i;
 
 	i = this->_usersMap.find(&user);
 	if (i != this->_usersMap.end() && i->second == true)

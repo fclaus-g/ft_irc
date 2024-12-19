@@ -98,7 +98,7 @@ const std::string Channel::getUsersChannelStr() const
 	std::map<User*, bool>::const_iterator i;
 	for (i = this->_usersMap.begin(); i != this->_usersMap.end(); ++i)
 	{
-		usersStr += i->first->getNick() + " ";
+		usersStr += ((this->isOp(*i->first)) ? " @" : " ") + i->first->getNick() + " ";
 	}
 	return (usersStr);
 }

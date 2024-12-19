@@ -12,7 +12,7 @@ int main (int ac, char **av)
 		std::cerr << "Port must be between 1024 and 49151" << std::endl;
 		return 1;
 	}
-	Server server(std::atoi(av[1]), av[2]);
+	Server	server(std::atoi(av[1]), av[2]);
 	try
 	{
 		signal(SIGINT, Server::signalHandler);

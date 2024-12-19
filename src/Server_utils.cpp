@@ -123,9 +123,9 @@ void Server::stop()
 		userFds.push_back(it->first);
 	}
 	for (size_t i = 0; i < userFds.size(); ++i)
-	{
 		deleteUser(userFds[i]);
-	}
+	while(this->_channels.size())
+		this->removeChannel(this->_channels[0]->getName());
 	close(_serverFd);
 	_fds.clear();
 	_users.clear();

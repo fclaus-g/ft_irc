@@ -61,11 +61,9 @@ void Server::removeChannel(const std::string& name)
 			delete this->_channels[i];
 			this->_channels.erase(this->_channels.begin() + i);
 			this->_channelsMap.erase(name);
-			std::cout << "Channel removed" << std::endl;
-			return;
+			return ;
 		}
 	}
-	std::cout << "Channel not found" << std::endl;
 }
 
 bool Server::channelExists(const std::string& name)

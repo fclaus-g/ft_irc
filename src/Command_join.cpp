@@ -27,6 +27,10 @@ void Command::cmdJoin()
 	std::vector<std::string> keys = (args.size() > 2) ? splitMessage(args[2], ',') : std::vector<std::string>();
 
 	for (size_t i = 0; i < channels.size(); i++)
+		channels[i].erase(channels[i].find_last_not_of(" \n\r\t") + 1);
+	for (size_t i = 0; i < keys.size(); i++)
+		keys[i].erase(keys[i].find_last_not_of(" \n\r\t") + 1);
+	for (size_t i = 0; i < channels.size(); i++)
 	{
 		std::string channelName = channels[i];
 		if (!channelName.empty())
