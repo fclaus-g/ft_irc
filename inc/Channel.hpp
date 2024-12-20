@@ -59,7 +59,6 @@ class Channel
 		void							addUserChannel(User& user);
 		void							removeUserChannel(User& user);
 		void							broadcastMessage(const std::string& message, User &sender, int mode);
-		void							sendTopicMessage(User& user);
 		void							addOpChannel(User& user);
 		void							deleteOpChannel(User& user);
 		void							updateTopic(const std::string &topic, const std::string &userNick);

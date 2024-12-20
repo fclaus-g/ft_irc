@@ -135,6 +135,9 @@ std::string	Command::composeResponse(int code)
 		case ERR_USERONCHANNEL:
 			detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[1] + " :is already on channel\r\n";
 			break;
+		case ERR_NOTREGISTERED:
+			detail = " * :You have not registered\r\n";
+			break ;
 		case ERR_NEEDMOREPARAMS:
 			if (!this->_errorMsg.empty())
 				detail = " " + this->_user.getNick() + " " + this->_currChannel->getName() + " " + this->_splitCmd[0] + this->_errorMsg + " :Not enough parameters\r\n";

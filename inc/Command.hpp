@@ -48,7 +48,6 @@ class Command
 		void						sendResponse(int code, int mode, int fd);
 		std::string					composeResponse(int code);
 		std::vector<std::string>	splitMessage(const std::string &msg, char delim);
-		void 						printVector(const std::vector<std::string> args);
 		void 						execModes(const char sign, const char mode);
 		//Commands methods
 		void 						cmdNick();
@@ -65,5 +64,3 @@ class Command
 };
 
 #endif
-
-//TODO: printVector duplicado, lo tenemos también en server, se puede utilizar solo uno para todo?

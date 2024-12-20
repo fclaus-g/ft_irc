@@ -68,8 +68,6 @@ bool Command::checkCmd(int userFd)
  * @brief Run the command if found; each case calls the corresponding command method
  * @param userFd the user file descriptor
  * @param key the command key
- * TODO: Implement the command methods =)
- * TODO: If not used, remove USER from here, enum, _initCommands()
  */
 void	Command::runCmd(int userFd, int key)
 {
@@ -120,13 +118,11 @@ void	Command::runCmd(int userFd, int key)
 /**
  * @brief Aux function to kick the user from the server when trying to use a command before authentication
  *  - sends a message to the userm a log to the server and call server.deleteUser()
- * TODO: send the proper response to the user according to IRC protocol documentation
  */
 void	Command::kickNonAuthenticatedUser(int userFd)
 {
 	std::cout << "User with socket fd " << userFd << " tried to use a command before authentication" << std::endl;
-	this->_server.sendWarning(userFd, "You need to authenticate before using commands\n");
-	this->_server.sendWarning(userFd, "You are being disconnected\n");
+	this->sendResponse(ERR_NOTREGISTERED, MOD_USER, 0);
 	this->_server.deleteUser(userFd);
 	std::cout << RED << "User kicked and socket closed" << RES << std::endl;
 }
@@ -148,23 +144,4 @@ std::vector<std::string> Command::splitMessage(const std::string &msg, char deli
 			args.push_back(word);
 	}
 	return args;
-}
-
-void Command::printVector(const std::vector<std::string> args)
-{
-	std::cout << "Printing vector" << std::endl;
-	for (size_t i = 0; i < args.size(); i++)
-	{
-		std::string formattedString;
-		for (size_t j = 0; j < args[i].size(); j++)
-		{
-			if (args[i][j] == '\n')
-				formattedString += "\\n";
-			else if (args[i][j] == '\r')
-				formattedString += "\\r";
-			else
-				formattedString += args[i][j];
-		}
-		std::cout << formattedString << std::endl;
-	}
 }

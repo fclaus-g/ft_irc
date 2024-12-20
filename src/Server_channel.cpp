@@ -2,34 +2,6 @@
 
 void Server::createChannel(const std::string& name)
 {
-	if (name == "")
-	{
-		std::cout << "Channel name can't be empty" << std::endl;
-		return;
-	}
-	if (name[0] != '#')
-	{
-		std::cout << "Channel name must start with #" << std::endl;
-		return;
-	}
-	if (name.size() < 2)
-	{
-		std::cout << "Channel name must have at least 2 characters" << std::endl;
-		return;
-	}
-	if (name.size() > 50)
-	{
-		std::cout << "Channel name must have at most 50 characters" << std::endl;
-		return;
-	}
-	for (size_t i = 0; i < this->_channels.size(); i++)
-	{
-		if (this->_channels[i]->getName() == name)
-		{
-			std::cout << "Channel already exists" << std::endl;
-			return;
-		}
-	}
 	Channel *newChannel = new Channel(name);
 	this->_channels.push_back(newChannel);
 	this->_channelsMap[name] = newChannel;
@@ -48,22 +20,12 @@ void Server::addUserToChannel(const std::string& channelName, User& user)
 }
 
 /**
- * @brief Remove a channel from containers (vector, map) and also delete the object
- * @param name The name of the channel to remove
- * TODO: Check if the order delete-erase is correct and not access invalid memory
+ * @brief Remove all channel objects (allocated with new) from _channels vector
  */
-void Server::removeChannel(const std::string& name)
+void Server::removeChannels()
 {
 	for (size_t i = 0; i < this->_channels.size(); i++)
-	{
-		if (this->_channels[i]->getName() == name)
-		{
-			delete this->_channels[i];
-			this->_channels.erase(this->_channels.begin() + i);
-			this->_channelsMap.erase(name);
-			return ;
-		}
-	}
+		delete this->_channels[i];
 }
 
 bool Server::channelExists(const std::string& name)
@@ -78,7 +40,6 @@ bool Server::channelExists(const std::string& name)
 
 /**
  * @brief Returns a [pointer to a] channel by its name if found, NULL otherwise
- * TODO: Check if _channelsMap should be <std::string, Channel*> instead
  */
 Channel	*Server::getChannelByName(std::string name)
 {

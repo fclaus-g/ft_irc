@@ -1,8 +1,7 @@
 #include "ft_irc.hpp"
 
 /**
- * @brief User default constructor
- * TODO: check if we need to have it, otherwise delete it
+ * @brief User default constructor - currently not being used
  */
 User::User()
 {

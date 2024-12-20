@@ -46,23 +46,18 @@ class Server
 		void 							stop();
 		void 							newConnection();
 		void							deleteUser(int socketFd);
+		void							removeChannels();
 		//Message-user handle methods
 		void							welcomeUser(int userFd);
 		void							sendWarning(int userFd, std::string str);
 		void							msgHandler(int socketFd);
 		void							messageToClient(const std::string& message, User &source, User &target);
-		//Debug methods
-		void 							printMap(const std::map<int, User>& map);
-		void 							printVector(const std::vector<Channel>& vector);
 		//Channel methods
 		void							createChannel(const std::string& name);
 		void							addUserToChannel(const std::string& channelName, User& user);
-		void							removeChannel(const std::string& name);
 		bool 							channelExists(const std::string& name);
 };
 
 std::ostream& operator<<(std::ostream& out, const Server& server);
 
 #endif
-
-//TODO: printVector también en command, duplicado, se puede usar uno para ambos?

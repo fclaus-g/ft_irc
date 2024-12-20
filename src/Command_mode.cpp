@@ -64,8 +64,6 @@ void Command::cmdMode()
  * @brief Function to execute the mode command according to the character and sign
  * @param sign + / -
  * @param mode iktol - if not one of those, error
- * (!) All standard cases and errors tested - ALL TESTS OK
- * TODO: TEST as many combinations as we can think of valid and/or invalid commands
  */
 void Command::execModes(const char sign, const char mode)
 {

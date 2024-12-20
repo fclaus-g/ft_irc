@@ -9,11 +9,6 @@
  * 	- check if the channel exists
  *	- if the channel does not exist, create it and add the user as operator
  *	- if the channel exists, add the user to the channel
- * (?) DOUBTS - MARKED AS TODO - Are these mandatory?
- * TODO: [?] standard init values of channel according to documentation (userLimit, modes)
- * TODO: [?] inviteMode + keyMode? - search in documentation of IRC and HexChat 
- * TODO: [?] ERR_BANNEDFROMCHAN (474)
- * TODO: [?] ERR_TOOMANYCHANNELS (405) - add server.maxChannelPerUser and compare with user.ChannelList.size()
  */
 void Command::cmdJoin()
 {
@@ -37,7 +32,7 @@ void Command::cmdJoin()
 			channelName.erase(channelName.find_last_not_of(" \n\r\t") + 1);
 	
 		this->_currChannel = this->_server.getChannelByName(channelName);
-		if (channelName.empty() || channelName[0] != '#')
+		if (channelName.empty() || channelName[0] != '#' || channelName.size() < 2 || channelName.size() > 50)
 		{
 			this->_errorMsg = channelName;
 			this->sendResponse(ERR_BADCHANMASK, MOD_USER, 0);

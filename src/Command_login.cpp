@@ -36,7 +36,6 @@ void	Command::cmdPass()
  *		("NICK <nick>\nUSER <user> 0 * :<realname>\n") cmdUser is called
  *	- if the user is 'nc' client, the nickName is set as userName and realName (provisional)
  * (!) First check if user is already authenticated - if not, kick the user
- * TODO: Succesful changed nick now notifies each user in each group, check if that's correct
  */
 void	Command::cmdNick()
 {

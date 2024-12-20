@@ -6,13 +6,6 @@
  *	- Check if the message is to a channel or user
  *	- In both cases, find if the user or channel exists
  *	- In case of channel, check if the user is in the channel
- * (?) DOUBTS - MARKED AS TODO -
- * TODO: Multiple targets user/channel: sending but not showing in HexChat
- * 	(when executing from terminal, it does work and received in HexChat too)
- * TODO: ERR_NOTONCHANNEL implemented but not needed according to the doc
- * TODO: ERR_NEEDMOREPARAMS implemented but not needed according to the doc
- * TODO: RPL_AWAY (301) - mandatory? USER AWAY STATUS
- * TODO: ERR_CANNOTSENDTOCHAN (404) -  mandatory? BANS and MODERATED MODE
  */
 void Command::cmdPrivmsg()
 {
@@ -79,7 +72,6 @@ void Command::cmdPrivmsg()
  *	- Get the nickName and channelName from the message
  *	- Check if the channel exists, if so, check if the user is operator
  *	- Check if the user to be kicked exists in the channel; if so, remove it
- * TODO: ERR_NEEDMOREPARAMS shown in main server window, not channel
  */
 void Command::commandKick()
 {
@@ -244,7 +236,6 @@ void Command::commandQuit()
  * - 1 ARGS - ERR_NEEDMOREPARAMS (461)
  * - 2 ARGS - Show current topic or alert that no topic is set
  * - 3+ ARGS - Change the current topic using arg[2] to arg[last]
- * TODO: test ERR_CHANOPRIVSNEEDED response when MODE is ready
  */
 void Command::commandTopic()
 {

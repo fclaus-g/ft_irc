@@ -38,36 +38,18 @@ bool Channel::channelIsFull()
 /*-----------------------[METHODS]------------------------*/
 /**
  * @brief Add a user to a channel
- * TODO: change @127.0.0.1 for actual host getter if needed, remove it if not needed
- * TODO: isUserInChannel check done twice, once before calling function and another in it
  */
 void Channel::addUserChannel(User& user)
 {
-	if (this->isUserInChannel(user))
-	{
-		std::cout << "User already in channel" << std::endl;
-		send(user.getFd(), "User already in channel", 21, 0);
-		return;
-	}
-	if (this->channelIsFull())
-	{
-		std::cout << "Channel is full" << std::endl;
-		send(user.getFd(), "Channel is full", 15, 0);
-		return;
-	}
-	else
-	{
-		this->_usersInChannel++;
-		this->_usersMap[&user] = false;
-		std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@127.0.0.1 JOIN :" + this->getName() + "\n";
-		send(user.getFd(), msg.c_str(), msg.length(), 0);
-	}
+	this->_usersInChannel++;
+	this->_usersMap[&user] = false;
+	std::string msg = ":" + user.getNick() + "!" + user.getUserName() + "@" + user.getHost() + " JOIN :" + this->getName() + "\n";
+	send(user.getFd(), msg.c_str(), msg.length(), 0);
 }
 
 /**
  * @brief Remove a user from the channel
  * @param user the user to be removed
- * TODO: what if the user is not in the channel? maybe make return bool?
  */
 void Channel::removeUserChannel(User& user)
 {
@@ -140,8 +122,6 @@ void Channel::deleteOpChannel(User& user)
  * @param message the text message to be sent
  * @param command_msg the message to be sent formatted as irc protocol needs
  * @param userFd the user file descriptor to avoid sending the message to the sender
- * TODO: later, check each user for bans, mutes, etc before sending the message
- * TODO: if @localhost is needed and working correclty in all cases, change it for a getter
  */
 void Channel::broadcastMessage(const std::string& message, User &sender, int mode)
 {
@@ -156,16 +136,6 @@ void Channel::broadcastMessage(const std::string& message, User &sender, int mod
 			continue ;
 		send(i->first->getFd(), command_msg.c_str(), command_msg.size(), 0);
 	}
-}
-
-void Channel::sendTopicMessage(User& user)
-{
-	std::string topicMsg;
-	if (this->_topic.empty())
-		topicMsg = ":server 331 " + user.getNick() + " " + this->_name + " :No topic is set\r\n";
-	else
-		topicMsg = ":server 332 " + user.getNick() + " " + this->_name + " :" + this->_topic + "\r\n";
-	send(user.getFd(), topicMsg.c_str(), topicMsg.size(), 0);
 }
 
 /**

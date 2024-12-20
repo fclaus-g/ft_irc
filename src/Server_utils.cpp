@@ -15,23 +15,6 @@ std::ostream& operator<<(std::ostream& out, const Server& server)
 	return out;
 }
 
-void Server::printMap(const std::map<int, User>& map)
-{
-	for (std::map<int, User>::const_iterator it = map.begin(); it != map.end(); ++it)
-	{
-		std::cout << "Key: " << it->first << std::endl;
-		std::cout << it->second << std::endl;
-	}
-}
-
-void Server::printVector(const std::vector<Channel>& vector)
-{
-	for (size_t i = 0; i < vector.size(); i++)
-	{
-		std::cout << vector[i] << std::endl;
-	}
-}
-
 void Server::signalHandler(int signal)
 {
 	if (signal == SIGINT || signal == SIGQUIT)
@@ -111,26 +94,23 @@ void	Server::deleteUser(int socketFd)
 
 /**
  * @brief end the server, close all fds if still opened including the server fd
- * TODO: Only a draft of the function, needs to be checked and improved if needed
  */
 void Server::stop()
 {
-	this->_isRunning = false;
-	std::vector<int>	userFds;
+	std::vector<int>				userFds;
 	std::map<int, User*>::iterator	it;
+
 	for (it = _users.begin(); it != _users.end(); ++it)
-	{
 		userFds.push_back(it->first);
-	}
 	for (size_t i = 0; i < userFds.size(); ++i)
 		deleteUser(userFds[i]);
-	while(this->_channels.size())
-		this->removeChannel(this->_channels[0]->getName());
+	this->removeChannels();
 	close(_serverFd);
 	_fds.clear();
 	_users.clear();
 	_channels.clear();
 	_channelsMap.clear();
+	this->_isRunning = false;
 	std::cout << "Server stopped" << std::endl;
 }
 
