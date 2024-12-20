@@ -15,18 +15,7 @@ bool	readFromSocket(int socketFd, std::string &store)
 {
 	char			buffer[BUFF_SIZE];
 	int				read_bytes;
-	struct pollfd 	pollfd;
-	
-	pollfd.fd = socketFd;
-	pollfd.events = POLLIN;
-	int	poll_result = poll(&pollfd, 1, TIMEOUT);
-	if (poll_result == -1)
-		return (perror("poll"), false);
-	else if (poll_result == 0)
-	{
-		std::cout << "poll: Timeout occurred, no data available" << std::endl;
-		return (false);
-	}
+
 	read_bytes = read(socketFd, buffer, sizeof(buffer) - 1);
 	if (read_bytes <= 0)
 	{

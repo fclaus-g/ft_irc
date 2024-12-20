@@ -1,0 +1,44 @@
+Date : 2024-12-20 14:33:50
+Directory : /home/pgomez-r/code/ft_irc/src
+Total : 14 files,  -893 codes, -14 comments, -129 blanks, all -1036 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Makefile |          1 |        -28 |          0 |        -12 |        -40 |
+| C++      |          5 |       -293 |        -14 |        -34 |       -341 |
+| Markdown |          8 |       -572 |          0 |        -83 |       -655 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                   | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                      |         14 |       -893 |        -14 |       -129 |     -1,036 |
+| ..                                                     |         14 |       -893 |        -14 |       -129 |     -1,036 |
+| .. (Files)                                             |          2 |        -59 |          0 |        -25 |        -84 |
+| ../docs                                                |          7 |       -541 |          0 |        -70 |       -611 |
+| ../inc                                                 |          5 |       -293 |        -14 |        -34 |       -341 |
++--------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                               | language | code       | comment    | blank      | total      |
++--------------------------------------------------------+----------+------------+------------+------------+------------+
+| /home/pgomez-r/code/ft_irc/Makefile                    | Makefile |        -28 |          0 |        -12 |        -40 |
+| /home/pgomez-r/code/ft_irc/README.md                   | Markdown |        -31 |          0 |        -13 |        -44 |
+| /home/pgomez-r/code/ft_irc/docs/RFC1459.md             | Markdown |       -122 |          0 |        -15 |       -137 |
+| /home/pgomez-r/code/ft_irc/docs/channel.md             | Markdown |        -10 |          0 |         -1 |        -11 |
+| /home/pgomez-r/code/ft_irc/docs/desarrollo.md          | Markdown |       -291 |          0 |        -29 |       -320 |
+| /home/pgomez-r/code/ft_irc/docs/estructura_proyecto.md | Markdown |        -43 |          0 |        -12 |        -55 |
+| /home/pgomez-r/code/ft_irc/docs/notes.md               | Markdown |        -10 |          0 |          0 |        -10 |
+| /home/pgomez-r/code/ft_irc/docs/subject_esp.md         | Markdown |        -51 |          0 |         -8 |        -59 |
+| /home/pgomez-r/code/ft_irc/docs/teoria.md              | Markdown |        -14 |          0 |         -5 |        -19 |
+| /home/pgomez-r/code/ft_irc/inc/Channel.hpp             | C++      |        -61 |         -4 |         -6 |        -71 |
+| /home/pgomez-r/code/ft_irc/inc/Command.hpp             | C++      |        -59 |         -2 |         -6 |        -67 |
+| /home/pgomez-r/code/ft_irc/inc/Server.hpp              | C++      |        -51 |         -4 |         -9 |        -64 |
+| /home/pgomez-r/code/ft_irc/inc/User.hpp                | C++      |        -45 |         -2 |         -4 |        -51 |
+| /home/pgomez-r/code/ft_irc/inc/ft_irc.hpp              | C++      |        -77 |         -2 |         -9 |        -88 |
+| Total                                                  |          |       -893 |        -14 |       -129 |     -1,036 |
++--------------------------------------------------------+----------+------------+------------+------------+------------+
