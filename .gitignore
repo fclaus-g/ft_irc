@@ -1,6 +1,7 @@
 ### C / C++ ###
 # This project executable name
 ircserv
+.VSCodeCounter
 
 # Prerequisites
 *.d
